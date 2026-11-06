@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Unity — Home of Kryos</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: "Segoe UI", Arial, sans-serif; color: #d8ecff; }
+  canvas { display: block; }
+  #title { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+  #title h1 { margin: 0; font-weight: 600; letter-spacing: 12px; font-size: 34px; color: #fff; text-shadow: 0 0 22px rgba(90, 220, 160, .55); }
+  #title div { margin-top: 6px; letter-spacing: 4px; font-size: 12px; color: #8fe8b8; }
+  #info { position: fixed; left: 18px; bottom: 18px; background: rgba(6, 16, 24, .78); border: 1px solid rgba(110, 230, 170, .35); border-radius: 6px; padding: 14px 16px; font-size: 12px; line-height: 1.9; letter-spacing: 1px; min-width: 250px; }
+  #info b { color: #fff; letter-spacing: 3px; font-size: 13px; }
+  #info span { color: #8fe8b8; float: right; margin-left: 18px; }
+  #btns { position: fixed; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+  #btns button { background: rgba(10, 34, 30, .85); color: #fff; border: 1px solid #3fae7e; border-radius: 4px; padding: 9px 14px; font: 600 12px "Segoe UI", Arial; letter-spacing: 2px; cursor: pointer; min-width: 190px; }
+  #btns button:hover { background: rgba(24, 74, 58, .95); border-color: #8fe8b8; }
+  #tag { position: fixed; pointer-events: none; transform: translate(-50%, -100%); text-align: center; white-space: nowrap; transition: opacity .2s; }
+  #tag .n { font-size: 14px; letter-spacing: 5px; color: #fff; text-shadow: 0 0 10px #40ffc0; }
+  #tag .s { font-size: 10px; letter-spacing: 2px; color: #8fe8b8; }
+  #tag .l { width: 1px; height: 26px; background: linear-gradient(#8fe8b8, transparent); margin: 4px auto 0; }
+  #hint { position: fixed; top: 92px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 2px; color: #6f8ea3; pointer-events: none; }
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="title"><h1>PLANET UNITY</h1><div>HOME OF THE CITY OF KRYOS</div></div>
+<div id="hint">DRAG TO TURN · SCROLL TO ZOOM</div>
+<div id="tag"><div class="n">KRYOS</div><div class="s">CITY BUILD SITE</div><div class="l"></div></div>
+<div id="info">
+  <b>UNITY</b><br>
+  DIAMETER <span>11,400 km</span><br>
+  GRAVITY <span>0.96 g</span><br>
+  DAY LENGTH <span>26.4 h</span><br>
+  SURFACE <span>58% OCEAN · 31% FOREST</span><br>
+  ATMOSPHERE <span>BREATHABLE · 22% O₂</span><br>
+  MOONS <span>2 · VESH & TALO</span><br>
+  KRYOS SITE <span>FOREST PLATEAU</span>
+</div>
+<div id="btns">
+  <button id="bKryos">FLY TO KRYOS SITE</button>
+  <button id="bWhole">WHOLE PLANET</button>
+  <button id="bSpin">STOP SPIN</button>
+  <button id="bClouds">HIDE CLOUDS</button>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ---------- renderer, scene, camera ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 5000);
+camera.position.set(0, 60, 330);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06; controls.minDistance = 104; controls.maxDistance = 900; controls.enablePan = false; controls.rotateSpeed = 0.5;
+
+const R = 100, SEA = 0.0;   // planet radius, sea level (in height units)
+
+/* ---------- 3D noise ---------- */
+const perm = new Uint8Array(512);
+{ let s = 1337; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) perm[i] = p[i & 255]; }
+const G3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+function noise(x, y, z) {
+  const X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+  x -= X; y -= Y; z -= Z;
+  const xi = X & 255, yi = Y & 255, zi = Z & 255;
+  const u = fade(x), v = fade(y), w = fade(z);
+  const g = (h, a, b, c) => { const q = G3[h % 12]; return q[0] * a + q[1] * b + q[2] * c; };
+  const A = perm[xi] + yi, AA = perm[A] + zi, AB = perm[A + 1] + zi, B = perm[xi + 1] + yi, BA = perm[B] + zi, BB = perm[B + 1] + zi;
+  const l = (a, b, t) => a + (b - a) * t;
+  return l(l(l(g(perm[AA], x, y, z), g(perm[BA], x - 1, y, z), u), l(g(perm[AB], x, y - 1, z), g(perm[BB], x - 1, y - 1, z), u), v),
+           l(l(g(perm[AA + 1], x, y, z - 1), g(perm[BA + 1], x - 1, y, z - 1), u), l(g(perm[AB + 1], x, y - 1, z - 1), g(perm[BB + 1], x - 1, y - 1, z - 1), u), v), w);
+}
+function fbm(x, y, z, oct = 6, lac = 2.05, gain = 0.5) { let a = 1, f = 1, s = 0, n = 0; for (let i = 0; i < oct; i++) { s += a * noise(x * f, y * f, z * f); n += a; a *= gain; f *= lac; } return s / n; }
+function ridge(x, y, z, oct = 5) { let a = 1, f = 1, s = 0, n = 0; for (let i = 0; i < oct; i++) { const r = 1 - Math.abs(noise(x * f + 31, y * f, z * f)); s += a * r * r; n += a; a *= 0.5; f *= 2.1; } return s / n; }
+
+/* ---------- Kryos site: a coastal plateau in the northern temperate band ---------- */
+const KRYOS_DIR = new THREE.Vector3(0.52, 0.42, 0.74).normalize();
+const SITE_R = 0.11;
+
+// height of the land at a unit direction (>0 is land)
+function heightAt(d) {
+  const x = d.x, y = d.y, z = d.z;
+  let c = fbm(x * 1.4 + 5, y * 1.4, z * 1.4, 6) * 1.35 + 0.08;                 // continents
+  const m = ridge(x * 3.2, y * 3.2, z * 3.2);                                  // mountain ridges
+  c += Math.max(0, c) * (m - 0.45) * 0.9;
+  c += fbm(x * 9, y * 9, z * 9, 4) * 0.08;                                      // small detail
+  // the Kryos site: a gentle plateau just above the sea
+  const a = d.angleTo(KRYOS_DIR);
+  if (a < SITE_R * 2.4) {
+    const k = THREE.MathUtils.smoothstep(SITE_R * 2.4 - a, 0, SITE_R * 1.8);
+    const plateau = 0.085 + fbm(x * 30, y * 30, z * 30, 2) * 0.004;
+    c = c * (1 - k) + plateau * k;
+  }
+  return c;
+}
+
+/* ---------- planet surface ---------- */
+const geo = new THREE.IcosahedronGeometry(1, 180);
+const pos = geo.attributes.position, n = pos.count;
+const col = new Float32Array(n * 3);
+const d = new THREE.Vector3(), C = new THREE.Color();
+const pal = {
+  deep: new THREE.Color(0x0a2a4a), sea: new THREE.Color(0x14507a), shallow: new THREE.Color(0x2a8fa0),
+  sand: new THREE.Color(0xb0a578), meadow: new THREE.Color(0x5f9e3a), forest: new THREE.Color(0x2e6b2a), deepForest: new THREE.Color(0x1d4a1f),
+  rock: new THREE.Color(0x6b6458), snow: new THREE.Color(0xf2f6fa), ice: new THREE.Color(0xdfeaf2), site: new THREE.Color(0x8ac06a),
+};
+const forestPts = [];
+for (let i = 0; i < n; i++) {
+  d.fromBufferAttribute(pos, i).normalize();
+  const h = heightAt(d);
+  const lat = Math.abs(d.y);
+  const land = Math.max(0, h - SEA);
+  const rr = R + land * 7;
+  pos.setXYZ(i, d.x * rr, d.y * rr, d.z * rr);
+  const wet = fbm(d.x * 4 + 50, d.y * 4, d.z * 4, 3);
+  if (h < SEA) {
+    const t = THREE.MathUtils.clamp(-h / 0.35, 0, 1);
+    C.copy(pal.shallow).lerp(pal.sea, Math.min(1, t * 2)).lerp(pal.deep, Math.max(0, t * 2 - 1));
+  } else if (h < SEA + 0.01) C.copy(pal.sand).lerp(pal.meadow, h / 0.01 * 0.5);
+  else if (h < 0.5) {
+    const t = THREE.MathUtils.clamp((h - 0.03) / 0.45, 0, 1);
+    C.copy(pal.meadow).lerp(pal.forest, THREE.MathUtils.smoothstep(wet, -0.3, 0.1)).lerp(pal.deepForest, t * 0.9);
+    C.offsetHSL(0, 0, fbm(d.x * 40, d.y * 40, d.z * 40, 2) * 0.06);
+    if (h > 0.05 && wet > -0.25 && d.angleTo(KRYOS_DIR) > SITE_R * 1.1 && lat < 0.86) forestPts.push(i);
+  } else if (h < 0.68) C.copy(pal.deepForest).lerp(pal.rock, (h - 0.5) / 0.18);
+  else C.copy(pal.rock).lerp(pal.snow, THREE.MathUtils.clamp((h - 0.68) / 0.1, 0, 1));
+  if (lat > 0.88) C.lerp(pal.ice, THREE.MathUtils.smoothstep(lat, 0.88, 0.94));
+  const ka = d.angleTo(KRYOS_DIR);
+  if (ka < SITE_R) C.lerp(pal.site, 1 - ka / SITE_R);
+  col[i * 3] = C.r; col[i * 3 + 1] = C.g; col[i * 3 + 2] = C.b;
+}
+geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+geo.computeVertexNormals();
+const planet = new THREE.Group(); scene.add(planet);
+planet.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0.0 })));
+
+// glossy water over the sea floor
+planet.add(new THREE.Mesh(new THREE.SphereGeometry(R + 0.02, 160, 120), new THREE.MeshStandardMaterial({ color: 0x1a5f8a, roughness: 0.18, metalness: 0.15, transparent: true, opacity: 0.55 })));
+
+/* ---------- forests: instanced trees on the lush land ---------- */
+{
+  const treeGeo = new THREE.ConeGeometry(0.09, 0.32, 5).translate(0, 0.16, 0);
+  const COUNT = Math.min(60000, forestPts.length * 2);
+  const trees = new THREE.InstancedMesh(treeGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true }), COUNT);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), s = new THREE.Vector3(), tc = new THREE.Color(), j = new THREE.Vector3();
+  let seed = 99; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < COUNT; k++) {
+    const i = forestPts[(rnd() * forestPts.length) | 0];
+    p.fromBufferAttribute(pos, i);
+    const len = p.length();
+    p.add(j.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).multiplyScalar(0.35)).setLength(len - 0.02);
+    q.setFromUnitVectors(up, j.copy(p).normalize());
+    const sc = 0.7 + rnd() * 0.9; s.set(sc, sc * (0.8 + rnd() * 0.6), sc);
+    m.compose(p, q, s); trees.setMatrixAt(k, m);
+    trees.setColorAt(k, tc.setHSL(0.27 + rnd() * 0.08, 0.55, 0.16 + rnd() * 0.12));
+  }
+  planet.add(trees);
+}
+
+/* ---------- Kryos site marker ---------- */
+const site = new THREE.Group(); planet.add(site);
+site.position.copy(KRYOS_DIR).multiplyScalar(R + 0.085 * 7);
+site.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), KRYOS_DIR);
+const ringMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1), transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false });
+const ring = new THREE.Mesh(new THREE.RingGeometry(9.2, 9.6, 96).rotateX(-Math.PI / 2), ringMat); ring.position.y = 0.15; site.add(ring);
+const ring2 = new THREE.Mesh(new THREE.RingGeometry(3.0, 3.25, 64).rotateX(-Math.PI / 2), ringMat); ring2.position.y = 0.15; site.add(ring2);
+for (let k = 0; k < 4; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 5.6).translate(0, 0, 6.3), ringMat); b.rotation.y = k * Math.PI / 2; b.position.y = 0.15; ring.add(b); }
+site.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.3, 14, 12, 1, true).translate(0, 7, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.4, 1.0), transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending })));
+
+/* ---------- clouds ---------- */
+function cloudTex() {
+  const W = 1024, H = 512, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'), img = g.createImageData(W, H);
+  for (let y = 0; y < H; y++) {
+    const lat = (0.5 - y / H) * Math.PI, cl = Math.cos(lat), sl = Math.sin(lat);
+    for (let x = 0; x < W; x++) {
+      const lon = (x / W) * Math.PI * 2;
+      const px = cl * Math.cos(lon), pz = cl * Math.sin(lon);
+      let v = fbm(px * 2.5 + 100, sl * 4, pz * 2.5, 5) * 1.6;
+      v += fbm(px * 8, sl * 12, pz * 8, 3) * 0.35;
+      const a = THREE.MathUtils.clamp((v - 0.05) * 2.4, 0, 1);
+      const o = (y * W + x) * 4; img.data[o] = img.data[o + 1] = img.data[o + 2] = 255; img.data[o + 3] = a * 235;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const clouds = new THREE.Mesh(new THREE.SphereGeometry(R + 2.4, 128, 96), new THREE.MeshStandardMaterial({ map: cloudTex(), transparent: true, depthWrite: false, roughness: 1 }));
+scene.add(clouds);
+
+/* ---------- atmosphere glow ---------- */
+const SUN_DIR = new THREE.Vector3(1, 0.3, 0.6).normalize();
+const atmoV = `varying vec3 vN; varying vec3 vW; void main(){ vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(R * 1.09, 96, 64), new THREE.ShaderMaterial({
+  transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
+  uniforms: { sun: { value: SUN_DIR } },
+  vertexShader: atmoV,
+  fragmentShader: `uniform vec3 sun; varying vec3 vN; varying vec3 vW;
+    void main(){ vec3 v = normalize(cameraPosition - vW); float rim = pow(1.0 - abs(dot(v, -vN)), 3.0);
+      float lit = clamp(dot(-vN, sun) * 0.8 + 0.35, 0.0, 1.0);
+      gl_FragColor = vec4(vec3(0.35, 0.75, 1.0) * rim * lit * 1.6, rim * lit); }`,
+})));
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(R * 1.03, 96, 64), new THREE.ShaderMaterial({
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  uniforms: { sun: { value: SUN_DIR } },
+  vertexShader: atmoV,
+  fragmentShader: `uniform vec3 sun; varying vec3 vN; varying vec3 vW; void main(){ vec3 v = normalize(cameraPosition - vW); float f = pow(1.0 - max(dot(v, vN), 0.0), 2.5); float lit = clamp(dot(vN, sun) * 0.7 + 0.4, 0.0, 1.0); gl_FragColor = vec4(vec3(0.4, 0.75, 1.0) * f * 0.7 * lit, f * 0.6 * lit); }`,
+})));
+
+/* ---------- moons ---------- */
+function moon(r, dist, color, speed, tilt, start) {
+  const g = new THREE.SphereGeometry(r, 48, 32), p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).normalize(); const h = 1 + fbm(v.x * 3 + r, v.y * 3, v.z * 3, 4) * 0.08; p.setXYZ(i, v.x * r * h, v.y * r * h, v.z * r * h); }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, flatShading: true }));
+  const pivot = new THREE.Group(); pivot.rotation.z = tilt; pivot.rotation.y = start; pivot.add(m); m.position.x = dist; scene.add(pivot);
+  return { pivot, speed };
+}
+const moons = [moon(9, 260, 0xa9a49a, 0.02, 0.2, 2.2), moon(5, 380, 0xb88a6a, -0.012, -0.35, 0.9)];
+
+/* ---------- stars & sun ---------- */
+{
+  const N = 6000, p = new Float32Array(N * 3), c = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const v = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize().multiplyScalar(2000 + Math.random() * 1500);
+    p.set([v.x, v.y, v.z], i * 3); const b = 0.5 + Math.random() * 0.5, t = Math.random();
+    c.set([b * (t < 0.2 ? 1 : 0.85), b * 0.9, b * (t > 0.8 ? 1 : 0.85)], i * 3);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3)); g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 2.2, vertexColors: true, sizeAttenuation: false })));
+}
+const sun = new THREE.DirectionalLight(0xfff2dc, 3.2); sun.position.copy(SUN_DIR).multiplyScalar(500); scene.add(sun);
+scene.add(new THREE.AmbientLight(0x30405a, 0.55));
+scene.add(new THREE.HemisphereLight(0x9fc8ff, 0x0a1a10, 0.25));
+{
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,250,235,1)'); gr.addColorStop(0.12, 'rgba(255,230,180,0.9)'); gr.addColorStop(0.4, 'rgba(255,190,120,0.15)'); gr.addColorStop(1, 'rgba(255,160,80,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, depthWrite: false }));
+  sp.scale.setScalar(260); sp.position.copy(SUN_DIR).multiplyScalar(2400); scene.add(sp);
+}
+
+/* ---------- buttons, label ---------- */
+let spin = true, camGoal = null;
+planet.rotation.y = -0.9;
+const $ = id => document.getElementById(id);
+$('bSpin').onclick = () => { spin = !spin; $('bSpin').textContent = spin ? 'STOP SPIN' : 'START SPIN'; };
+$('bClouds').onclick = () => { clouds.visible = !clouds.visible; $('bClouds').textContent = clouds.visible ? 'HIDE CLOUDS' : 'SHOW CLOUDS'; };
+$('bWhole').onclick = () => { camGoal = { dist: 330, dir: camera.position.clone().normalize() }; };
+$('bKryos').onclick = () => {
+  spin = false; $('bSpin').textContent = 'START SPIN';
+  const w = site.getWorldPosition(new THREE.Vector3()).normalize();
+  const side = new THREE.Vector3().crossVectors(w, new THREE.Vector3(0, 1, 0)).normalize();
+  camGoal = { dist: 128, dir: w.clone().add(side.multiplyScalar(0.25)).add(new THREE.Vector3(0, 0.12, 0)).normalize() };
+};
+controls.addEventListener('start', () => camGoal = null);
+const tag = $('tag'), tmp = new THREE.Vector3();
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+window.__coax = { camera, planet, site, controls, go: () => $('bKryos').onclick() };
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(0.05, clock.getDelta()), t = clock.elapsedTime;
+  if (spin) planet.rotation.y += dt * 0.025;
+  clouds.rotation.y = planet.rotation.y + t * 0.004;
+  for (const m of moons) m.pivot.rotation.y += dt * m.speed;
+  ring.rotation.y += dt * 0.3; ring2.rotation.y -= dt * 0.6;
+  ringMat.opacity = 0.55 + 0.35 * Math.sin(t * 2.4);
+  if (camGoal) {
+    const curDir = camera.position.clone().normalize(), curDist = camera.position.length();
+    const nd = curDir.clone().lerp(camGoal.dir, 0.05).normalize(), nl = curDist + (camGoal.dist - curDist) * 0.05;
+    camera.position.copy(nd.multiplyScalar(nl));
+    if (Math.abs(nl - camGoal.dist) < 0.3 && curDir.angleTo(camGoal.dir) < 0.003) camGoal = null;
+  }
+  controls.update();
+  // label over the Kryos site, hidden when it is round the back of the planet
+  site.getWorldPosition(tmp);
+  const facing = tmp.clone().normalize().dot(camera.position.clone().sub(tmp).normalize());
+  const sp = tmp.clone().add(tmp.clone().normalize().multiplyScalar(3)).project(camera);
+  tag.style.left = (sp.x * 0.5 + 0.5) * innerWidth + 'px'; tag.style.top = (-sp.y * 0.5 + 0.5) * innerHeight + 'px';
+  tag.style.opacity = facing > 0.1 && sp.z < 1 ? 1 : 0;
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
