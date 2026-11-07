@@ -681,8 +681,48 @@ function makeTruck(k) {
   a(new THREE.BoxGeometry(2.6, 0.35, 16), TM.steel, 0, 1.25, -2.3);
   for (const z of [-8.1, -9.4]) for (const sx of [-1, 1]) { wheel(sx * 0.95, z); wheel(sx * 1.3, z); }
   for (const sx of [-1, 1]) { a(new THREE.BoxGeometry(0.15, 1.1, 0.15), TM.steel, sx * 0.9, 0.55, 2.6); a(new THREE.BoxGeometry(0.3, 0.15, 0.08), TM.tail, sx * 1.1, 1.3, -10.32); }
+  // REAL headlights: a SpotLight that actually lights the road at night + a faint visible beam cone.
+  // Truck front is at +z, so the beam points forward (+z) from the headlights.
+  // Real light: whiter (0xffffff, not warm yellow) so the road looks white, not beige.
+  const headlight = new THREE.SpotLight(0xffffff, 0, 300, 0.45, 0.5, 0);
+  headlight.position.set(0, 2.0, 14.8);
+  headlight.target.position.set(0, 0, 110);
+  g.add(headlight, headlight.target);
+  // FLAT light pool on the road (replaces the round cone).
+  // A cone is round, so from behind it always looked like a curved dome.
+  // This is a flat trapezoid lying ON the road: narrow at the headlights, wide far ahead,
+  // straight far edge across the road. Longer (to z=120) and fades out via a gradient texture
+  // so it melts into the dark instead of stopping in a hard line.
+  const beamCanvas = document.createElement('canvas');
+  beamCanvas.width = 64; beamCanvas.height = 256;
+  const bctx = beamCanvas.getContext('2d');
+  const bgrad = bctx.createLinearGradient(0, 0, 0, 256);
+  bgrad.addColorStop(0, 'rgba(255,255,255,0)');
+  bgrad.addColorStop(0.55, 'rgba(255,255,255,0.55)');
+  bgrad.addColorStop(1, 'rgba(255,255,255,1)');
+  bctx.fillStyle = bgrad; bctx.fillRect(0, 0, 64, 256);
+  // Fade the side edges too so it is soft left-to-right
+  const sideGrad = bctx.createLinearGradient(0, 0, 64, 0);
+  sideGrad.addColorStop(0, 'rgba(0,0,0,1)');
+  sideGrad.addColorStop(0.25, 'rgba(0,0,0,0)');
+  sideGrad.addColorStop(0.75, 'rgba(0,0,0,0)');
+  sideGrad.addColorStop(1, 'rgba(0,0,0,1)');
+  bctx.globalCompositeOperation = 'destination-out';
+  bctx.fillStyle = sideGrad; bctx.fillRect(0, 0, 64, 256);
+  const beamTex = new THREE.CanvasTexture(beamCanvas);
+  const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, map: beamTex, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  const beamGeo = new THREE.BufferGeometry();
+  const bx = new Float32Array([
+    -1.6, 0.15, 14.5,   1.6, 0.15, 14.5,   14, 0.15, 120,
+    -1.6, 0.15, 14.5,   14, 0.15, 120,   -14, 0.15, 120
+  ]);
+  beamGeo.setAttribute('position', new THREE.BufferAttribute(bx, 3));
+  beamGeo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0]), 2));
+  beamGeo.computeVertexNormals();
+  const beamPool = new THREE.Mesh(beamGeo, beamMat);
+  g.add(beamPool);
   scene.add(g);
-  return { g, wheels };
+  return { g, wheels, headlight, beamMat, beamPool };
 }
 const crateTexCache = {};
 function crateMat(def, color) {
@@ -816,6 +856,22 @@ function updateTrucks(dt) {
     T.yaw = T.d < 1 ? p.yaw : T.yaw + dy * Math.min(1, dt * 5);
     T.g.position.set(p.x, 0.1, p.z); T.g.rotation.y = T.yaw;
     for (const w of T.wheels) w.rotation.x += T.v * dt / 0.53;
+    // Night headlights: bright at night so the road is visible, dim daytime running lights in the day.
+    // DN.isNight is true after 18:00 / before 06:00. Trucks that are parked / waiting keep a dim light.
+    if (T.headlight) {
+      // EVERY truck gets the SAME brightness / colour as the front truck - no dimmer parked/back mode.
+      // Front-truck values kept exactly: 25 / 0.85 at night, 2.5 / 0.18 in the day.
+      const night = (typeof DN !== 'undefined' && DN.isNight);
+      T.headlight.intensity = night ? 25 : 2.5;
+      if (T.beamMat) T.beamMat.opacity = night ? 0.85 : 0.18;
+      // But back trucks get a SHORTER beam, so it doesn't shoot through the truck in front.
+      // Lead truck (convoy()[0]) keeps the full long beam. Followers: beam scaled to ~38% length,
+      // near edge stays at z=14.5, far edge pulls back from 120 to ~54. Same brightness, just shorter.
+      const isLead = (typeof convoy === 'function' ? convoy()[0] : trucks[0]) === T;
+      const beamScale = isLead ? 1 : 0.38;
+      if (T.beamPool) { T.beamPool.scale.z = beamScale; T.beamPool.position.z = 14.5 * (1 - beamScale); }
+      T.headlight.distance = isLead ? 300 : 110;
+      T.headlight.target.position.set(0, 0, isLead ? 110 : 48);    }
   }
   for (let i = trucks.length - 1; i >= 0; i--) if (trucks[i].state === 'gone') { scene.remove(trucks[i].g); trucks.splice(i, 1); }
   // an empty truck drives straight out, and the line moves up
