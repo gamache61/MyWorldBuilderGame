@@ -313,4 +313,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE SEASHORE SHIPYARD \u00b7 PLANET UNITY',
+    html: '42-seashoreshipyard.html',
+    brief: 'The council has chosen the sea. On the open coast north of Seashore, build two slipways with gantry cranes, a great ship hall, a floating dock and a fitting-out quay \u2014 then launch Unity\u2019s first water ship, the ferry Coastline.',
+    builds: 5,
+    color: '#80d8ff',
+  },
+  {
+    name: 'THE EIGHTEENTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting18.html',
+    brief: 'The shipyard is open. The council talks about Havenreach \u2014 what the sky station does for Unity, what it costs and how it can earn \u2014 then chooses: Homeward Two, the Earth Trade Port, or the Havenreach Sky Docks.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
