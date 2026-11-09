@@ -123,45 +123,6 @@
     const code = (input.value || '').trim().toUpperCase();
     if (!code) { msg.textContent = 'Type a code first.'; return; }
 
-    // TEST CODES - only work when the game is opened from your own computer (not on the website)
-    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (isLocal && code === 'WB-RESET-TEST') {
-      save = { currentChapter: 1, ownedUpTo: 0, progress: {} };
-      msg.textContent = 'Reset — back to the demo.';
-      input.value = '';
-      saveGame();
-      try { renderMenu(); } catch(e) { console.error(e); }
-      return;
-    }
-    if (isLocal && code === 'WB-ALL-TEST') {
-      save.ownedUpTo = getList().length;
-      msg.textContent = 'All ' + save.ownedUpTo + ' chapters unlocked for testing.';
-      input.value = '';
-      saveGame();
-      try { renderMenu(); } catch(e) { console.error(e); }
-      return;
-    }
-    if (isLocal && code === 'WB-BASE-TEST') {
-      save.ownedUpTo = Math.max(save.ownedUpTo, BEGINNING_COUNT);
-      msg.textContent = 'Beginning Unlocked! Chapters 1–5 unlocked.';
-      input.value = '';
-      saveGame();
-      try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
-      return;
-    }
-    if (isLocal && code === 'WB-NEXT-TEST') {
-      if (save.ownedUpTo < BEGINNING_COUNT) {
-        msg.textContent = 'Buy The Beginning first ($4.89) — then you can buy Next Chapters.';
-        return;
-      }
-      save.ownedUpTo = save.ownedUpTo + 1;
-      msg.textContent = 'Next Chapter Unlocked! You now own up to Chapter ' + save.ownedUpTo + '.';
-      input.value = '';
-      saveGame();
-      try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
-      return;
-    }
-
     // REAL STRIPE CODES - e.g. WBB-USBK-MV3T - check with Worker
     msg.textContent = 'Checking code...';
     try {
