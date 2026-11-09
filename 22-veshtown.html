@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aegis Ark — The Keeper’s Gate · Planet Unity</title>
+<title>Aegis Ark — The Town on Vesh · Moon Vesh</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",Roboto,Arial,sans-serif}
   #hud,#status,#keys{background:rgba(6,14,24,.5);padding:8px 12px;border-radius:4px}
@@ -74,9 +74,9 @@
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
 <script>
-  // Keeper's Gate files live in projects/keepersgate next to this file.
-  // If they are not found there, the game also looks in projects/keepers gate, a keepersgate folder, and next to this file.
-  var CH_PLACES = ['projects/keepersgate/', 'projects/keepers gate/', 'keepersgate/', ''];
+  // Town on Vesh files live in projects/veshtown next to this file.
+  // If they are not found there, the game also looks in projects/vesh town, a veshtown folder, and next to this file.
+  var CH_PLACES = ['projects/veshtown/', 'projects/vesh town/', 'veshtown/', ''];
   function chLoad(base) {
     window.AEGIS_DIR = base.replace(/\/$/, '') || '.';
     document.write('<script src="' + base + 'station.js" onerror="this.remove()"><\/script>');
@@ -89,6 +89,7 @@
 <script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -115,15 +116,15 @@
   </div>
 </div>
 <div id="status">BAY DOORS <span id="sBay">SEALED</span><br>SHIELD <span id="sShield">OFFLINE</span><br>STEALTH <span id="sStealth">OFF</span><br>THREAT <span id="sThreat">NONE</span><br>CRANE <span id="sCrane">STOWED</span><br>LOCATION <span id="sLoc">EARTH WAREHOUSE</span><br><b id="sPlatL" style="font-weight:400">BUILD-1</b> <span id="sPlat">0 / 34</span></div>
-<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW GATE</button></div>
+<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW TOWN</button></div>
 <div id="fade"></div>
-<div id="confirm"><div class="box"><div class="t">START THE GATE OVER?</div><div class="m">This wipes your saved gate and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
+<div id="confirm"><div class="box"><div class="t">START THE TOWN OVER?</div><div class="m">This wipes your saved town and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
 <div id="goal"></div>
 <div id="parkChoice"><div class="pc-t">HOW DO YOU WANT TO UNLOAD?</div>
   <button id="pcLand">⬇ LAND ON THE LANDING FIELD<small>PARK THE SHIP · STATION TRANSPORTER BEAMS IT ALL</small></button>
   <button id="pcCrane">⇄ HOVER &amp; USE THE CRANE<small>OPEN THE BAY · UNLOAD WITH THE CRANE</small></button>
 </div>
-<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE KEEPER’S GATE · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
+<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE TOWN ON VESH · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
 <div id="bpPage"><div class="bar"><span>Station7_Blueprint.html — keep it in the same folder as the game</span><button id="bpPageClose">CLOSE ✕</button></div><iframe id="bpFrame" title="Station-7 blueprints"></iframe></div>
 <div id="menu"><button id="menuBtn">☰ CONTROLS <small>(M)</small></button><div id="menuPanel"></div></div>
 
@@ -899,7 +900,7 @@ const PEOPLE = (() => {
 })();
 
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
-const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.keepersgate.v1';
+const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.veshtown.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
@@ -938,94 +939,96 @@ function labelFor(type) {
 const earthGroup = new THREE.Group(); scene.add(earthGroup);
 const siteGroup = new THREE.Group(); scene.add(siteGroup);
 for (const n of ['sitePlanet', 'siteAtmo']) { const o = scene.getObjectByName(n); if (o) { siteGroup.add(o); o.visible = false; } }
-// --- Planet Unity: the Kryos plateau, forests, hills and a green-blue sky ---
-const COAX_SKY = new THREE.Color(0.62, 0.76, 0.84);
-const coaxFog = new THREE.Fog(COAX_SKY, 3500, 34000);
+// --- the moon Vesh: grey dust, craters, a black sky full of stars, and planet Unity hanging overhead ---
+const COAX_SKY = new THREE.Color(0.004, 0.005, 0.012);
+const coaxFog = new THREE.Fog(0x05060a, 30000, 90000);
 const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400;
 window.coaxH = (x, z) => coaxH(x, z);
 const coaxH = (() => {
-  const P = new Uint8Array(512); { let s = 4242; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
+  const P = new Uint8Array(512); { let s = 7171; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
   const f = t => t * t * (3 - 2 * t);
   const h2 = (x, z) => P[(P[x & 255] + z) & 511] / 255;
   const n2 = (x, z) => { const X = Math.floor(x), Z = Math.floor(z), u = f(x - X), v = f(z - Z); const a = h2(X, Z), b = h2(X + 1, Z), c = h2(X, Z + 1), d = h2(X + 1, Z + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
   const fbm = (x, z, o = 5) => { let s = 0, a = 1, n = 0; for (let i = 0; i < o; i++) { s += a * n2(x, z); n += a; a *= 0.5; x *= 2.03; z *= 2.03; } return s / n; };
+  // craters, kept away from the mine site (the landing field and everything east of it out to x = 1150)
+  const craters = []; { let s = 99; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let tries = 0; craters.length < 70 && tries < 4000; tries++) {
+      const a = r() * Math.PI * 2, d = 1250 + Math.pow(r(), 1.3) * 16000, cx = KRYOS_C.x + Math.cos(a) * d, cz = KRYOS_C.z + Math.sin(a) * d, cr = 60 + Math.pow(r(), 2.2) * (d > 5000 ? 1400 : 380);
+      if (cx > -150 - cr && cx < 1200 + cr && Math.abs(cz) < 520 + cr) continue;
+      craters.push([cx, cz, cr, cr * (0.16 + r() * 0.08)]);
+    } }
   return (x, z) => {
     const r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
-    const top = DECK_TOP - 0.4 + (fbm(x / 300, z / 300, 2) - 0.5) * 3 * THREE.MathUtils.smoothstep(r, 400, PLATEAU_R);
-    if (r < PLATEAU_R) return top;
-    // the plateau edge drops into forested valleys, then rolls up into hills and far mountains
-    const k = THREE.MathUtils.smoothstep(r, PLATEAU_R, PLATEAU_R + 700);
-    const valley = DECK_TOP - 160 + (fbm(x / 1400, z / 1400, 5) - 0.5) * 380;
-    const far = THREE.MathUtils.smoothstep(r, 5000, 16000);
-    const mtn = Math.pow(fbm(x / 3800 + 7, z / 3800, 5), 2.2) * 4200 * far;
-    return top * (1 - k) + (valley + mtn) * k;
+    let y = DECK_TOP - 0.4 + (fbm(x / 260, z / 260, 3) - 0.5) * 3 * THREE.MathUtils.smoothstep(r, 600, PLATEAU_R);
+    const far = THREE.MathUtils.smoothstep(r, 1500, 9000);
+    y += (fbm(x / 2600 + 3, z / 2600, 5) - 0.5) * 520 * far + Math.pow(fbm(x / 5200 + 9, z / 5200, 4), 2.4) * 2600 * THREE.MathUtils.smoothstep(r, 9000, 22000);
+    for (const [cx, cz, cr, dep] of craters) {
+      const d = Math.hypot(x - cx, z - cz) / cr; if (d > 1.6) continue;
+      y += d < 1 ? -dep * (1 - d * d) + dep * 0.25 : dep * 0.25 * Math.exp(-Math.pow((d - 1) / 0.22, 2));
+    }
+    return y;
   };
 })();
 {
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(42000, 48, 24), new THREE.ShaderMaterial({
-    side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { sun: { value: sunDir.clone() } },
-    vertexShader: `varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader: `uniform vec3 sun;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);
-      vec3 zen=vec3(0.16,0.42,0.66),hor=vec3(0.62,0.76,0.84);vec3 c=mix(hor,zen,pow(h,0.55));if(vD.y<0.)c=hor;
-      float s=max(dot(vD,normalize(sun)),0.);c+=vec3(1.,0.9,0.7)*(pow(s,900.)*14.+pow(s,24.)*0.2);gl_FragColor=vec4(c,1.);}`,
-  }));
-  sky.renderOrder = -1; siteGroup.add(sky);
-  // reflections for the glass towers come from Unity's own sky
-  { const es = new THREE.Scene(); es.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), sky.material));
-    const gd = new THREE.Mesh(new THREE.CircleGeometry(100, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x55704a })); gd.position.y = -2; es.add(gd);
+  // black sky with stars (only at the moon)
+  const n = 7000, pos = new Float32Array(n * 3), col = new Float32Array(n * 3), c = new THREE.Color();
+  for (let i = 0; i < n; i++) { const v = new THREE.Vector3().randomDirection(); if (v.y < -0.05) v.y = -v.y; v.multiplyScalar(52000); pos.set([v.x, v.y, v.z], i * 3); c.setHSL(0.58 + Math.random() * 0.1, 0.3, 0.55 + Math.random() * 0.45); col.set([c.r, c.g, c.b], i * 3); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); sg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const st = new THREE.Points(sg, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true, fog: false })); st.frustumCulled = false; siteGroup.add(st);
+  // planet Unity hanging in the sky: blue seas, green lands, white cloud and a soft blue rim
+  const uTex = canvasTex(1024, 512, (g, w, h) => {
+    g.fillStyle = '#1f5f9a'; g.fillRect(0, 0, w, h);
+    let s = 31; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 70; i++) { const x = r() * w, y = h * (0.15 + r() * 0.7), rx = 20 + r() * 90, ry = 10 + r() * 45; g.fillStyle = r() < 0.7 ? '#3f8a3a' : '#5f9a42'; g.beginPath(); g.ellipse(x, y, rx, ry, r() * 3, 0, 7); g.fill(); }
+    for (let i = 0; i < 160; i++) { g.fillStyle = `rgba(255,255,255,${0.25 + r() * 0.45})`; g.beginPath(); g.ellipse(r() * w, r() * h, 20 + r() * 80, 3 + r() * 9, (r() - 0.5) * 0.4, 0, 7); g.fill(); }
+    g.fillStyle = 'rgba(240,246,250,.85)'; g.fillRect(0, 0, w, h * 0.06); g.fillRect(0, h * 0.94, w, h * 0.06);
+  });
+  const UP = new THREE.Vector3(24000, 15000, -9000);
+  const unity = new THREE.Mesh(new THREE.SphereGeometry(5200, 96, 64), new THREE.MeshStandardMaterial({ map: uTex, roughness: 0.9, metalness: 0, fog: false, emissive: 0x0a1a2a, emissiveIntensity: 0.35 }));
+  unity.position.copy(UP); unity.rotation.z = 0.4; unity.name = 'moonUnity'; siteGroup.add(unity);
+  const rim = new THREE.Mesh(new THREE.SphereGeometry(5500, 96, 64), new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vN;varying vec3 vV;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}`,
+    fragmentShader: `varying vec3 vN;varying vec3 vV;void main(){float f=pow(1.0-abs(dot(vN,vV)),2.5);gl_FragColor=vec4(0.45,0.75,1.0,1.0)*f*1.3;}`,
+    blending: THREE.AdditiveBlending, side: THREE.BackSide, transparent: true, depthWrite: false, fog: false }));
+  rim.position.copy(UP); siteGroup.add(rim);
+  window.MOON_UNITY_AT = UP.clone();
+  // reflections come from a dark sky and grey ground
+  { const es = new THREE.Scene(); es.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0a0c12, side: THREE.BackSide })));
+    const gd = new THREE.Mesh(new THREE.CircleGeometry(100, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x8a8a86 })); gd.position.y = -2; es.add(gd);
     window.__coaxEnv = pmrem.fromScene(es, 0.02).texture; window.__earthEnv = scene.environment; }
-  // the big moon Vesh hanging in the sky
-  const vesh = new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 20), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.86, 0.86, 0.84), fog: false, transparent: true, opacity: 0.55, depthWrite: false }));
-  vesh.position.set(-16000, 9500, -26000); vesh.renderOrder = -1; siteGroup.add(vesh);
-  // ground
+  // the grey ground
   const N = 260, SIZE = 60000;
   const geo = new THREE.PlaneGeometry(SIZE, SIZE, N, N); geo.rotateX(-Math.PI / 2);
-  const pa = geo.attributes.position, cols = new Float32Array(pa.count * 3), c = new THREE.Color();
-  const meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
+  const pa = geo.attributes.position, cols = new Float32Array(pa.count * 3), cc = new THREE.Color();
+  const dust = new THREE.Color(0x8c8b86), deep = new THREE.Color(0x5a5956), light = new THREE.Color(0xb0aea6);
   for (let i = 0; i < pa.count; i++) {
-    const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH(x, z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
+    const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH(x, z);
     pa.setXYZ(i, x, y, z);
-    c.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700));
-    if (y > DECK_TOP + 900) c.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
-    if (y > DECK_TOP + 2400) c.lerp(snow, THREE.MathUtils.smoothstep(y, DECK_TOP + 2400, DECK_TOP + 2900));
-    cols.set([c.r, c.g, c.b], i * 3);
+    cc.copy(dust); const k = (y - DECK_TOP) / 300; if (k < 0) cc.lerp(deep, Math.min(1, -k)); else cc.lerp(light, Math.min(0.6, k * 0.3));
+    cols.set([cc.r, cc.g, cc.b], i * 3);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3)); geo.computeVertexNormals();
-  const grassTex = canvasTex(512, 512, (g, w, h) => {
-    g.fillStyle = '#b8c8a8'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 30000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(90,120,70,.16)' : 'rgba(250,255,235,.16)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
+  const dustTex = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#bcbcb6'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 26000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(70,70,66,.18)' : 'rgba(250,250,244,.14)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    for (let i = 0; i < 60; i++) { const x = Math.random() * w, y = Math.random() * h, r = 3 + Math.random() * 12; g.strokeStyle = 'rgba(60,60,56,.25)'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); }
   });
-  grassTex.repeat.set(1400, 1400);
-  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: grassTex, roughness: 0.95 }));
+  dustTex.repeat.set(1400, 1400);
+  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: dustTex, roughness: 1 }));
   ground.receiveShadow = true; siteGroup.add(ground);
-  // the plateau, cleared and ready to build on: a ring of light marker posts round the city site
-  const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1) });
-  for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, x = KRYOS_C.x + Math.cos(a) * 900, z = KRYOS_C.z + Math.sin(a) * 900; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
-  // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
-  let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const CON = 16000, BRD = 9000;
-  const conifer = new THREE.InstancedMesh(new THREE.ConeGeometry(4.5, 22, 6).translate(0, 15, 0), new THREE.MeshStandardMaterial({ color: 0x1f4a22, roughness: 0.9, flatShading: true }), CON);
-  const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
-  const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
-    if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
-  let ti = 0;
-  for (let i = 0; i < CON + BRD; i++) {
-    const [x, y, z] = spot(), s = 0.7 + rnd() * 0.9;
-    q.setFromAxisAngle(V(0, 1, 0), rnd() * 6.28); ps.set(x, y - 0.5, z); sc.set(s, s * (0.8 + rnd() * 0.5), s); m4.compose(ps, q, sc);
-    trunks.setMatrixAt(ti++, m4);
-    if (i < CON) { conifer.setMatrixAt(i, m4); conifer.setColorAt(i, tc.setRGB(0.75 + rnd() * 0.5, 0.75 + rnd() * 0.5, 0.7 + rnd() * 0.4)); }
-    else { crown.setMatrixAt(i - CON, m4); crown.setColorAt(i - CON, tc.setRGB(0.75 + rnd() * 0.6, 0.75 + rnd() * 0.5, 0.6 + rnd() * 0.4)); }
+  // boulders scattered over the plains (none on the mine site)
+  let seed = 41; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const NB = 2600, rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0x7c7a74, roughness: 1, flatShading: true }), NB);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3();
+  for (let i = 0; i < NB; i++) {
+    let x, z; do { const a = rnd() * Math.PI * 2, d = 300 + Math.pow(rnd(), 1.5) * 9000; x = KRYOS_C.x + Math.cos(a) * d; z = KRYOS_C.z + Math.sin(a) * d; } while (x > -120 && x < 1180 && Math.abs(z) < 480);
+    const s = 1 + Math.pow(rnd(), 3) * 9;
+    q.setFromEuler(new THREE.Euler(rnd() * 3, rnd() * 3, rnd() * 3)); ps.set(x, coaxH(x, z) + s * 0.3, z); sc.set(s, s * (0.5 + rnd() * 0.5), s * (0.7 + rnd() * 0.5)); m4.compose(ps, q, sc); rocks.setMatrixAt(i, m4);
   }
-  for (const t of [conifer, crown, trunks]) { t.castShadow = true; t.receiveShadow = true; siteGroup.add(t); }
-  // a river winding through the valley below the plateau
-  const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60, a = -1.2 + t * 2.6, r = 2300 + Math.sin(t * 9) * 260; pts.push(V(KRYOS_C.x + Math.cos(a) * r, 0, KRYOS_C.z + Math.sin(a) * r)); }
-  const curve = new THREE.CatmullRomCurve3(pts), rv = [], ri = [];
-  for (let i = 0; i <= 300; i++) { const t = i / 300, p = curve.getPoint(t), tg = curve.getTangent(t), nx = -tg.z, nz = tg.x, w = 55;
-    for (const s of [-1, 1]) { const x = p.x + nx * w * s, z = p.z + nz * w * s; rv.push(x, Math.max(coaxH(p.x, p.z), coaxH(x, z)) + 14, z); } if (i) { const b = (i - 1) * 2; ri.push(b, b + 2, b + 1, b + 1, b + 2, b + 3); } }
-  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(rv, 3)); rg.setIndex(ri); rg.computeVertexNormals();
-  siteGroup.add(new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: 0x3f7fa0, roughness: 0.15, metalness: 0.3, side: THREE.DoubleSide })));
+  rocks.castShadow = rocks.receiveShadow = true; siteGroup.add(rocks);
+  // a ring of marker lights round the mine site
+  const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.0, 0.4) });
+  for (let i = 0; i < 40; i++) { const a = i / 40 * Math.PI * 2, x = 560 + Math.cos(a) * 720, z = Math.sin(a) * 560; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
 }
 // --- Earth: desert, sky, mountains ---
 const SKY_HOR = new THREE.Color(0.74, 0.69, 0.6), SPACE_BG = new THREE.Color(0x01020a);
@@ -1564,7 +1567,7 @@ function setLocation(l) {
   if (window.__coaxEnv) scene.environment = e ? window.__earthEnv : window.__coaxEnv;
   scene.background = e ? SKY_HOR : COAX_SKY;
   const st = scene.getObjectByName('stars'); if (st) st.visible = false;
-  renderer.toneMappingExposure = e ? 0.82 : 0.85;
+  renderer.toneMappingExposure = e ? 0.82 : 0.95;
 }
 
 /* ---------- kits, supply crates & cargo bay (crates travel in groups of 4) ---------- */
@@ -1718,6 +1721,11 @@ const api = {
   flag: k => !!(G.flags && G.flags[k]),
   setFlag: (k, v) => { (G.flags || (G.flags = {}))[k] = v; save(); },
   sparkle: (pos, scale = 1) => sparkle(siteGroup, pos, scale),
+  // the Ark and its cargo bay, so a build can load the bay and fly the Ark
+  get ship() { return ship; }, get baySpots() { return baySpots; },
+  get bayT() { return bayT; }, get landed() { return landed && !landing; },
+  // set the Ark down on the landing field (used when a build needs it parked under the ore gantry)
+  parkShip() { if (!landed && !landing && !warp) { parked = true; parkLift = false; landMode = 'land'; autoMode = false; landing = 1; landT = 0; padShot(); } },
 };
 const isFixed = t => !!(KIT_TYPES[t] && KIT_TYPES[t].fixed);
 function slotAt(B, type, x, z) { return (B.slots || []).findIndex(s => s.type === type && s.x === x && s.z === z); }
@@ -2205,7 +2213,7 @@ const STX = { on: false, next: 0 };
 let stxMsg = '';
 function siteTxBlock() {
   if (G.loc !== 'site' || G.stage !== 'build') return 'NOTHING TO BEAM HERE';
-  if (!hasStationTX()) return 'THE GATE SITE HAS NO TRANSPORTER YET — USE THE CRANE';
+  if (!hasStationTX()) return 'THE TOWN ON VESH HAS NO TRANSPORTER YET — USE THE CRANE';
   if (STX.on) { STX.fast = true; return 'CAMERA STEPS SKIPPED — FINISHING QUICKLY'; }
   if (landing || (landed && !parked)) return 'NOT WHILE DOCKED OR LANDING';
   if (CR.load.length) return 'SET DOWN THE CRATES FIRST';
@@ -2603,6 +2611,7 @@ function updateLanding(dt) {
   // at the build site the Ark hovers high enough that its wings clear the masts and clamps, then drops onto the pad when landing
   ship.position.set(L.x * a, H * (1 - b) - 8 * b + warpY, zBase + warpZ);
   for (const p of armPieces()) p.userData.arm.rotation.z = -p.userData.dir * c * (Math.PI / 2 - 0.02);
+  if (window.__shipFly) window.__shipFly(ship, dt);   // a build can fly the Ark somewhere (the Moon Mines: the ore run to Unity)
 }
 
 /* ---------- warp between Earth and the build site ---------- */
@@ -2755,6 +2764,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -3282,7 +3292,7 @@ function askConfirm(title, msg, yes, fn) {
   c.querySelector('.t').textContent = title; c.querySelector('.m').textContent = msg; document.getElementById('cYes').textContent = yes;
   confirmYes = fn; c.style.display = 'flex';
 }
-document.getElementById('newBtn').onclick = () => askConfirm('START THE GATE OVER?', 'This wipes your saved gate and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
+document.getElementById('newBtn').onclick = () => askConfirm('START THE TOWN OVER?', 'This wipes your saved town and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
 document.getElementById('redoBtn').onclick = () => {
   const B = curBuild();
   if (!B) { txMsg = 'THERE IS NO BUILD IN PROGRESS'; txMsgT = 3; return; }
@@ -3331,12 +3341,12 @@ function updateGameHUD(dt) {
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
   let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE KEEPER’S GATE'; } }
+  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE TOWN ON VESH'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE GATE SITE'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE KEEPER’S GATE' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE KEEPER’S GATE · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'KEEPER’S GATE BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/keepersgate NEXT TO keepersgate.html, THEN REFRESH'; }
+  else if (warp && warp.phase === 'in') { head = 'APPROACHING THE MOON VESH'; sub = 'DESCENDING TO THE TOWN ON VESH'; }
+  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE TOWN ON VESH' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO THE MOON VESH' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE TOWN ON VESH · MOON VESH' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (!BUILDS.length) { head = 'TOWN ON VESH BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/veshtown NEXT TO 22-veshtown.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
@@ -3345,7 +3355,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE KEEPER’S GATE IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE KEEPER’S GATE' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE KEEPER’S GATE'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE TOWN ON VESH IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE TOWN ON VESH' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE TOWN ON VESH'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3353,7 +3363,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE GATE SITE') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE TOWN ON VESH') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
@@ -3371,7 +3381,7 @@ function updateGameHUD(dt) {
       const r = buildReady();
       head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
       sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE GATE TRANSPORTER'
+        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE TOWN TRANSPORTER'
         : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
         : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
         : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
@@ -3383,8 +3393,8 @@ function updateGameHUD(dt) {
       const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE KEEPER’S GATE IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE KEEPER’S GATE'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE TOWN ON VESH IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+    } else { head = 'THE TOWN ON VESH'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
   if (WALK.on) {
@@ -3400,10 +3410,10 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE KEEPER’S GATE · PLANET UNITY';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE TOWN ON VESH · MOON VESH';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
-  let h = '<b>THE KEEPER’S GATE</b>';
+  let h = '<b>THE TOWN ON VESH</b>';
   { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
@@ -3413,7 +3423,7 @@ function updateGameHUD(dt) {
       h += '<div class="dim" style="color:' + (i === G.trip ? '#cfe9ff' : '') + '">' + ts + ' TRIP ' + (i + 1) + ' · ' + tr.name + '</div>';
     });
   }
-  if (G.stage !== 'none' && BUILDS.length < 6) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
+  if (G.stage !== 'none' && BUILDS.length < 5) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
   if (B && B.stats && G.stage !== 'none') {
     const sup = kits.filter(k => k.type === 'SUPPLY');
     h += '<hr>' + B.stats.call(B, api).map(([a, v]) => '<div>' + a + ' <span>' + v + '</span></div>').join('');
@@ -3431,9 +3441,9 @@ function updateGameHUD(dt) {
     else if (e.net < 0) h += '<div>VAULT LASTS <span>' + Math.floor(G.stock / -e.net) + ' min</span></div>';
     else h += '<div style="color:#7dff9a">VAULT FILLING ITSELF · STATION IS SELF-SUFFICIENT</div>';
   }
-  const KF = [['gatePower', 'HEART LINK', 'POWER FLOWING'], ['opened', 'THE GATE', 'OPEN']];
+  const KF = [['veshTown', 'FIRST FAMILIES', 'LIVING ON VESH']];
   for (const [f, n, v] of KF) if (G.flags && G.flags[f]) h += '<div>' + n + ' <span style="color:#7dff9a">' + v + '</span></div>';
-  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE KEEPER’S GATE IS OPEN ★</div>';
+  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE TOWN ON VESH IS OPEN ★</div>';
   $('stationInfo').innerHTML = h;
 }
 
@@ -4362,10 +4372,9 @@ addEventListener('resize', () => {
 /* ---------- blueprint room (a real room: the full station blueprint covers the far wall) ---------- */
 {
   const room = $('bpRoom'), frame = $('bpFrame'), page = $('bpPage');
-  const PLAN = ['Gate Landing Field', 'Gate Foundations', 'The Ring · Lower Half', 'The Ring · Upper Half', 'The Heart Link', 'The Gate Opens'];
-  const FAMILIES = [['SF', 'Deck Tile', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Light Mast', '#b03a2e'], ['SY', 'Power Unit', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['FN', 'Cradle Foot', '#8a7a5a'],
-    ['PY', 'Gate Pylon', '#5a6470'], ['GC', 'Power Conduit', '#2f8fb0'], ['RS', 'Ring Segment', '#d9b44a'], ['KS', 'Keystone', '#ffd060'], ['EM', 'Gate Emitter', '#5fe8d8'], ['CP', 'Capacitor Bank', '#e8c13a'],
-    ['LK', 'Heart Link Spire', '#ff9a3a'], ['PZ', 'Plaza Stone', '#e8e2d8'], ['OB', 'Light Obelisk', '#9a8ad0'], ['CR', 'Control Pavilion', '#3a7d44']];
+  const PLAN = ['Town Landing Field', 'The Ice Mine & Water Works', 'The Moon Spaceport', 'The Miners’ Town', 'The Vesh Observatory'];
+  const FAMILIES = [['SF', 'Deck / Pads / Tubes', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Mast / Beacon / Dish', '#b03a2e'], ['SY', 'Power Unit', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['HM', 'Domes', '#8a5ad0'],
+    ['WR', 'Ice & Water Works', '#2f8fb0'], ['MN', 'Ice Drill', '#d9731b'], ['GD', 'Park Dome', '#3a7d44']];
   const built = id => { const B = curBuild(); return (B && id < B.id) || G.stage === 'none' || (B && B.id === id && G.stage === 'done'); };
   const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   function paper(g, w, h) {
@@ -4380,64 +4389,48 @@ addEventListener('resize', () => {
   function drawMain(c) {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
     g.textBaseline = 'middle'; g.textAlign = 'center';
-    const has = t => placed.some(p => p.type === t && !p.busy), hasSlot = (t, i) => placed.some(p => p.type === t && p.s === i && !p.busy);
     const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
-    // ---- front elevation: the ring as seen from the landing field ----
-    const cx = 1300, gy = 1700, k = 4.4, KG = window.KG || { RO: 128, RI: 106 };
-    const cy = gy - 150 * k;
-    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('FRONT ELEVATION · THE RING 256 m ACROSS', cx, 210);
-    g.strokeStyle = ink; g.lineWidth = 3; g.beginPath(); g.moveTo(cx - 900, gy); g.lineTo(cx + 900, gy); g.stroke();
-    g.font = '26px Arial'; g.fillText('GROUND · PLANET UNITY', cx - 700, gy + 34);
-    const step = Math.PI / 12;
-    for (let i = 0; i < 24; i++) {
-      const lower = i < 12, a0 = lower ? Math.PI + i * step : (i - 12) * step, a1 = a0 + step;
-      const done = lower ? placed.some(p => p.type === 'RING' && Math.abs(p.y - (KG.C ? KG.C.y : 122) - Math.sin(a0 + step / 2) * (KG.RO + KG.RI) / 2) < 0.5 && Math.abs(p.z - Math.cos(a0 + step / 2) * (KG.RO + KG.RI) / 2) < 0.5)
-        : placed.some(p => p.type === 'RINGU' && Math.abs(p.y - (KG.C ? KG.C.y : 122) - Math.sin(a0 + step / 2) * (KG.RO + KG.RI) / 2) < 0.5 && Math.abs(p.z - Math.cos(a0 + step / 2) * (KG.RO + KG.RI) / 2) < 0.5);
-      g.beginPath(); g.arc(cx, cy, KG.RO * k, -a1, -a0); g.arc(cx, cy, KG.RI * k, -a0, -a1, true); g.closePath();
-      g.fillStyle = done ? 'rgba(217,180,74,.55)' : 'rgba(255,255,255,.05)'; g.fill(); g.strokeStyle = done ? '#ffd060' : wait; g.lineWidth = 3; g.stroke();
-    }
-    // keystone, emitters, feet and pylons
-    if (has('KEY')) { g.fillStyle = '#ffd060'; g.beginPath(); g.moveTo(cx, cy - (KG.RO + 22) * k); g.lineTo(cx - 9 * k, cy - (KG.RO + 2) * k); g.lineTo(cx + 9 * k, cy - (KG.RO + 2) * k); g.closePath(); g.fill(); }
-    for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + i * Math.PI / 4, on = hasSlot('EMIT', i); g.beginPath(); g.arc(cx + Math.cos(a) * (KG.RI - 6) * k, cy - Math.sin(a) * (KG.RI - 6) * k, 14, 0, 7); g.fillStyle = on ? '#5fe8d8' : wait; g.fill(); }
-    for (const s of [-1, 1]) {
-      g.fillStyle = has('FOOT') ? 'rgba(138,122,90,.8)' : 'rgba(255,255,255,.06)'; g.fillRect(cx + s * 34 * k - 15 * k, gy - 27 * k, 30 * k, 27 * k); g.strokeStyle = ink; g.lineWidth = 2; g.strokeRect(cx + s * 34 * k - 15 * k, gy - 27 * k, 30 * k, 27 * k);
-      g.fillStyle = has('PYLON') ? 'rgba(90,100,112,.85)' : 'rgba(255,255,255,.06)'; g.beginPath(); g.moveTo(cx + s * 150 * k - 13 * k, gy); g.lineTo(cx + s * 150 * k + 13 * k, gy); g.lineTo(cx + s * 150 * k + 7 * k, gy - 176 * k); g.lineTo(cx + s * 150 * k - 7 * k, gy - 176 * k); g.closePath(); g.fill(); g.stroke();
-      g.fillRect(cx + s * 137 * k - 13 * k, cy - 5 * k, 26 * k, 10 * k);
-    }
-    if (window.KG && (G.flags || {}).opened) { const r = g.createRadialGradient(cx, cy, 0, cx, cy, KG.RI * k); r.addColorStop(0, 'rgba(255,230,160,.9)'); r.addColorStop(0.2, 'rgba(120,180,255,.5)'); r.addColorStop(1, 'rgba(40,80,200,.25)'); g.fillStyle = r; g.beginPath(); g.arc(cx, cy, (KG.RI - 2) * k, 0, 7); g.fill(); }
-    g.fillStyle = ink; g.font = '28px Arial'; g.fillText('24 SEGMENTS · 8 EMITTERS · KEYSTONE · 2 PYLONS 170 m', cx, gy + 90);
-    // ---- site plan: landing field, conduit, plaza, gate, link spire ----
-    const px0 = 2350, py = 760, sk = 2.1, X = x => px0 + (x - 40) * sk, Z = z => py + z * sk;
-    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN', (X(40) + X(840)) / 2, 210);
-    const box = (x0, x1, z0, z1, on, label) => { g.fillStyle = on ? 'rgba(125,255,154,.22)' : 'rgba(255,255,255,.05)'; g.fillRect(X(x0), Z(z0), X(x1) - X(x0), Z(z1) - Z(z0)); g.strokeStyle = on ? ok : wait; g.lineWidth = 3; g.strokeRect(X(x0), Z(z0), X(x1) - X(x0), Z(z1) - Z(z0)); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, (X(x0) + X(x1)) / 2, Z(z1) + 26); } };
-    box(60, 180, -240, 240, built(1), 'LANDING FIELD');
-    box(186, 540, -4, 4, has('CONDUIT'), '');
-    box(400, 540, -60, 60, has('PLAZA'), 'PLAZA');
-    box(551, 569, -128, 128, has('RING'), '');
-    g.fillStyle = ink; g.font = '24px Arial'; g.fillText('THE GATE', X(560), Z(-150));
-    for (const z of [-150, 150]) box(543, 577, z - 17, z + 17, has('PYLON'), '');
-    for (const [x, z] of [[610, -72], [610, 72], [650, -72], [650, 72]]) box(x - 11, x + 11, z - 8, z + 8, has('CAP'), '');
-    g.beginPath(); g.arc(X(780), Z(0), 16 * sk, 0, 7); g.fillStyle = has('LINK') ? 'rgba(255,154,58,.6)' : 'rgba(255,255,255,.05)'; g.fill(); g.strokeStyle = has('LINK') ? '#ff9a3a' : wait; g.stroke();
-    g.fillStyle = ink; g.fillText('HEART LINK', X(780), Z(0) + 70);
-    g.font = '24px Arial'; g.fillText('← AEGIS ARK APPROACH', X(120), Z(-280)); g.fillText('TO THE HEART OF UNITY →', X(780), Z(-60));
+    const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - x) < 1 && Math.abs(p.z - z) < 1);
+    // ---- site plan of the mine (seen from above) ----
+    const x0 = 120, sk = 3.0, X = x => x0 + (x - 20) * sk, Z = z => 1050 + z * sk;
+    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE TOWN ON VESH', X(520), 210);
+    const box = (cx, cz, bw, bd, on, col, label) => { g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fillRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.strokeRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz + bd / 2) + 22); } };
+    const disc = (cx, cz, r, on, col, label) => { g.beginPath(); g.arc(X(cx), Z(cz), r * sk, 0, 7); g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.stroke(); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz) + r * sk + 22); } };
+    box(120, 0, 120, 540, built(1), 'rgba(125,255,154,.18)', 'LANDING FIELD');
+    disc(420, -260, 64, has('ICECRATER'), 'rgba(143,184,208,.5)', 'ICE MINE');
+    for (const [x, z] of [[420, -228], [392, -276], [448, -276]]) box(x, z, 12, 12, at('ICEDRILL', x, z), 'rgba(217,115,27,.8)');
+    box(560, -260, 44, 40, has('WATERWORKS'), 'rgba(47,143,176,.6)', 'WATER WORKS');
+    for (const z of [-305, -260, -215]) disc(625, z, 9, at('WTANK', 625, z), 'rgba(232,225,209,.6)');
+    for (const x of [320, 440]) disc(x, 220, 32, at('SPAD', x, 220), 'rgba(108,117,125,.6)');
+    g.fillStyle = ink; g.font = '24px Arial'; g.fillText('SPACEPORT', X(380), Z(170));
+    disc(380, 320, 22, has('PORTDOME'), 'rgba(138,90,208,.45)');
+    for (const [x, z] of [[280, 175], [480, 175], [280, 265], [480, 265]]) disc(x, z, 3, at('VBEACON', x, z), 'rgba(176,58,46,.9)');
+    for (const x of [560, 640, 720]) for (const z of [120, 220]) disc(x, z, 22, at('HOMEDOME', x, z), 'rgba(138,90,208,.45)');
+    for (const x of [600, 680]) for (const z of [120, 220]) box(x, z, 36, 9, at('VTUBE', x, z), 'rgba(108,117,125,.8)');
+    g.fillStyle = ink; g.font = '24px Arial'; g.fillText('MINERS’ TOWN', X(640), Z(258));
+    disc(810, 170, 19, has('SCHOOL'), 'rgba(232,193,58,.5)', 'SCHOOL');
+    disc(660, 335, 40, has('PARKDOME'), 'rgba(58,125,68,.6)', 'PARK DOME');
+    disc(900, -100, 26, has('OBSERVATORY'), 'rgba(238,240,242,.5)', 'OBSERVATORY');
+    disc(965, -35, 16, has('VDISH'), 'rgba(154,163,173,.6)', 'DISH');
+    box(845, -40, 40, 6, has('SKYPATH'), 'rgba(108,117,125,.8)');
+    g.fillStyle = ink; g.font = '26px Arial'; g.fillText('ICE → WATER & AIR → A TOWN FOR THE MINERS’ FAMILIES', X(520), Z(420));
     // ---- build plan strip ----
-    const sx0 = 2280, sx1 = 3980, pyb = 1420, bw = (sx1 - sx0) / PLAN.length;
-    g.font = 'bold 40px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 70);
+    const sx0 = 2700, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;
+    g.font = 'bold 44px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 80);
     PLAN.forEach((p, i) => {
-      const bid = i + 1, cb = curBuild() ? curBuild().id : 99, x = sx0 + i * bw;
+      const bid = i + 1, cb = curBuild() ? curBuild().id : 99, x = sx0 + (i % 2) * bw, y = pyb + (i >> 1) * 220;
       const st = built(bid) ? 'done' : cb === bid ? 'now' : 'todo';
       g.fillStyle = st === 'done' ? 'rgba(125,255,154,.25)' : st === 'now' ? 'rgba(255,208,96,.25)' : 'rgba(255,255,255,.06)';
-      g.fillRect(x + 6, pyb, bw - 12, 160); g.strokeStyle = st === 'done' ? ok : st === 'now' ? '#ffd060' : 'rgba(225,240,255,.5)'; g.lineWidth = 3; g.strokeRect(x + 6, pyb, bw - 12, 160);
-      g.fillStyle = ink; g.font = 'bold 34px Arial'; g.fillText(String(bid), x + bw / 2, pyb + 40);
-      g.font = '23px Arial'; const words = p.split(' '); let line = '', ly = pyb + 86;
-      for (const wd of words) { if (g.measureText(line + wd).width > bw - 30) { g.fillText(line, x + bw / 2, ly); line = ''; ly += 28; } line += wd + ' '; }
-      g.fillText(line, x + bw / 2, ly);
+      g.fillRect(x + 10, y, bw - 20, 180); g.strokeStyle = st === 'done' ? ok : st === 'now' ? '#ffd060' : 'rgba(225,240,255,.5)'; g.lineWidth = 3; g.strokeRect(x + 10, y, bw - 20, 180);
+      g.fillStyle = ink; g.font = 'bold 44px Arial'; g.fillText(String(bid), x + bw / 2, y + 55);
+      g.font = '32px Arial'; g.fillText(p, x + bw / 2, y + 120);
     });
-    if ((G.flags || {}).opened) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ THE GATE IS OPEN', (sx0 + sx1) / 2, 1720); }
+    if ((G.flags || {}).veshTown) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ THE FIRST FAMILIES LIVE ON VESH', (sx0 + sx1) / 2, 1360); }
     // ---- title block ----
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE KEEPER’S GATE', 70, 100);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE TOWN ON VESH', 70, 100);
     g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · CHOSEN BY THE UNITY COUNCIL', 70, 150);
     g.textAlign = 'right'; g.fillText('SCALE: SCHEMATIC · ✔ BUILT  ▶ IN PROGRESS', w - 70, 100);
+    function has(t) { return placed.some(p => p.type === t && !p.busy); }
   }
   function drawProgress(c) {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
@@ -4456,7 +4449,7 @@ addEventListener('resize', () => {
       });
       y += 6;
     }
-    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE KEEPER’S GATE IS OPEN ★', 70, y + 10); }
+    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE TOWN ON VESH IS OPEN ★', 70, y + 10); }
     
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';

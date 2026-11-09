@@ -55,6 +55,7 @@
 </style>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -957,7 +958,7 @@ async function makeKeeperVoice() {
 }
 function finishSpeech() {
   speaking = 0; captainTalking = false; endProof(); $('say').style.opacity = 0; if (drone) drone.gain.linearRampToValueAtTime(0.15, actx.currentTime + 3);
-  G.named = true; G.phase = 'done'; save();
+  G.named = true; G.phase = 'done'; save(); window.WB_chapterDone && window.WB_chapterDone();
   banner('THE GREEN WORLD IS NAMED UNITY', 'NEXT: BUILD THE AEGIS ARK TO CARRY THE PARTS');
 }
 function speak(i = 0) {

@@ -54,7 +54,7 @@
 
 <!-- The ship plan, then one file per build (build1.js, build2.js …) -->
 <script>
-  var YARD_FOLDER = 'arkyard', YARD_HTML = 'arkyard.html', YARD_SAVE = 'worldBuilder.arkyard.v1';
+  var YARD_FOLDER = 'arkyard', YARD_HTML = '03-arkyard.html', YARD_SAVE = 'worldBuilder.arkyard.v1';
   // look in projects/ark first; if the files aren't there, also try an "ark" folder or the same folder as this page
   var YARD_PLACES = ['projects/arkyard/', 'projects/ark/', ''];
   function yardLoad(base) {
@@ -67,6 +67,7 @@
 <script>if (!window.SHIPYARD && !window.SEEKER) { window.SHIPYARD_BUILDS = window.SEEKER_BUILDS = undefined; yardLoad(YARD_PLACES[2]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -725,7 +726,7 @@ function load() {
 function tripLeft() { const T = curTrip(); return T ? T.parts.filter(id => !G.placed.has(id)) : []; }
 function refreshState() {
   const B = curBuild();
-  if (!B) { G.state = 'done'; return; }
+  if (!B) { G.state = 'done'; window.WB_chapterDone && window.WB_chapterDone(); return; }
   while (G.trip < B.trips.length && !tripLeft().length) G.trip++;
   G.state = G.trip >= B.trips.length ? 'ready' : 'idle';
 }
@@ -1007,7 +1008,7 @@ function updateLaunch(dt) {
   if (L.t > 38) {
     for (const sp of L.glow) shipRoot.remove(sp); launch = null; parkAtDepot();
     if (!L.replay && fin) { endFinish(); }
-    G.state = 'done';
+    G.state = 'done'; window.WB_chapterDone && window.WB_chapterDone();
     banner('THE AEGIS ARK IS AT THE DEPOT', 'READY TO HAUL CARGO TO EVERY BUILD');
   }
 }

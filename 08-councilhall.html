@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aegis Ark — Kryos City · Planet Unity</title>
+<title>Aegis Ark — The Council Hall · Planet Unity</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",Roboto,Arial,sans-serif}
   #hud,#status,#keys{background:rgba(6,14,24,.5);padding:8px 12px;border-radius:4px}
@@ -74,15 +74,22 @@
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
 <script>
-  // Kryos City files live in projects/kryoscity next to this file
-  window.AEGIS_DIR = 'projects/kryoscity';
-  document.write('<script src="projects/kryoscity/station.js" onerror="this.remove()"><\/script>');
+  // Council Hall files live in projects/councilhall next to this file.
+  // If they are not found there, the game also looks in projects/council, a councilhall folder, and next to this file.
+  var CH_PLACES = ['projects/councilhall/', 'projects/counsilhall/', 'councilhall/', ''];
+  function chLoad(base) {
+    window.AEGIS_DIR = base.replace(/\/$/, '') || '.';
+    document.write('<script src="' + base + 'station.js" onerror="this.remove()"><\/script>');
+    for (let i = 1; i <= 30; i++) document.write('<script src="' + base + 'build' + i + '.js" onerror="this.remove()"><\/script>');
+  }
+  chLoad(CH_PLACES[0]);
 </script>
-<script>
-  for (let i = 1; i <= 30; i++) document.write('<script src="projects/kryoscity/build' + i + '.js" onerror="this.remove()"><\/script>');
-</script>
+<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[1]); }</script>
+<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[2]); }</script>
+<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -117,7 +124,7 @@
   <button id="pcLand">⬇ LAND ON THE LANDING FIELD<small>PARK THE SHIP · STATION TRANSPORTER BEAMS IT ALL</small></button>
   <button id="pcCrane">⇄ HOVER &amp; USE THE CRANE<small>OPEN THE BAY · UNLOAD WITH THE CRANE</small></button>
 </div>
-<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>KRYOS CITY · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
+<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE COUNCIL HALL · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
 <div id="bpPage"><div class="bar"><span>Station7_Blueprint.html — keep it in the same folder as the game</span><button id="bpPageClose">CLOSE ✕</button></div><iframe id="bpFrame" title="Station-7 blueprints"></iframe></div>
 <div id="menu"><button id="menuBtn">☰ CONTROLS <small>(M)</small></button><div id="menuPanel"></div></div>
 
@@ -893,7 +900,7 @@ const PEOPLE = (() => {
 })();
 
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
-const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.kryoscity.v1';
+const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.councilhall.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
@@ -990,7 +997,8 @@ const coaxH = (() => {
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
+  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
+    if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
   let ti = 0;
   for (let i = 0; i < CON + BRD; i++) {
     const [x, y, z] = spot(), s = 0.7 + rnd() * 0.9;
@@ -2186,7 +2194,7 @@ const STX = { on: false, next: 0 };
 let stxMsg = '';
 function siteTxBlock() {
   if (G.loc !== 'site' || G.stage !== 'build') return 'NOTHING TO BEAM HERE';
-  if (!hasStationTX()) return 'KRYOS HAS NO TRANSPORTER YET — USE THE CRANE';
+  if (!hasStationTX()) return 'THE COUNCIL GROUNDS HAVE NO TRANSPORTER YET — USE THE CRANE';
   if (STX.on) { STX.fast = true; return 'CAMERA STEPS SKIPPED — FINISHING QUICKLY'; }
   if (landing || (landed && !parked)) return 'NOT WHILE DOCKED OR LANDING';
   if (CR.load.length) return 'SET DOWN THE CRATES FIRST';
@@ -2736,6 +2744,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -3312,12 +3321,12 @@ function updateGameHUD(dt) {
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
   let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO KRYOS CITY'; } }
+  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE COUNCIL HALL'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE KRYOS PLATEAU'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'KRYOS · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'KRYOS CITY BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/kryoscity NEXT TO kryoscity.html, THEN REFRESH'; }
+  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE COUNCIL GROUNDS'; }
+  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE COUNCIL HALL' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE COUNCIL HALL · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (!BUILDS.length) { head = 'COUNCIL HALL BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/councilhall NEXT TO 08-councilhall.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
@@ -3326,7 +3335,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.kshield ? 'KRYOS CITY IS COMPLETE' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.kshield ? 'PRESS W TO VISIT KRYOS' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT KRYOS'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE COUNCIL HALL IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE COUNCIL HALL' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE COUNCIL HALL'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3334,7 +3343,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' IN KRYOS') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE COUNCIL GROUNDS') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
@@ -3364,8 +3373,8 @@ function updateGameHUD(dt) {
       const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.kshield ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — KRYOS CITY IS COMPLETE' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'KRYOS CITY'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE COUNCIL HALL IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+    } else { head = 'THE COUNCIL HALL'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
   if (WALK.on) {
@@ -3381,10 +3390,10 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'KRYOS · PLANET UNITY';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE COUNCIL HALL · PLANET UNITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
-  let h = '<b>KRYOS CITY</b>';
+  let h = '<b>THE COUNCIL HALL</b>';
   { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
@@ -3416,7 +3425,7 @@ function updateGameHUD(dt) {
     ['krecycle', 'RECYCLING', '99% REUSED'], ['kfarms', 'FOOD', 'GROWING'], ['klowrise', 'BOULEVARD DISTRICT', 'OPEN'], ['ktowersn', 'NORTH SKYLINE', 'LIT'],
     ['ktowerss', 'SOUTH SKYLINE', 'LIT'], ['kspire', 'OBSERVATION SPIRE', 'LIT'], ['kfleet', 'CITY FLEET', '12 CRAFT FLYING'], ['kshield', 'CITY SHIELD', 'UP']];
   for (const [f, n, v] of KF) if (G.flags && G.flags[f]) h += '<div>' + n + ' <span style="color:#7dff9a">' + v + '</span></div>';
-  if (G.flags && G.flags.kshield && G.stage === 'none') h += '<div style="color:#ffd060">★ KRYOS CITY COMPLETE ★</div>';
+  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ COUNCIL HALL COMPLETE ★</div>';
   $('stationInfo').innerHTML = h;
 }
 
@@ -3431,6 +3440,7 @@ function spawnPerson(group, o, act, x, y, z, ry = 0, extra = {}) {
   const c = { P, act, group, ...extra }; crowd.push(c); return c;
 }
 // real walking people for the city builds (station.js K.people uses this) — kept to a budget so the game stays smooth
+window.WB_PERSON = (group, o, act, x, y, z, ry = 0, extra = {}) => spawnPerson(group, o, act, x, y, z, ry, { noShadow: true, ...extra });
 window.WB_CITY_PEOPLE = {
   left: 180,
   spawn(group, x, y, z, seed) {
@@ -4393,7 +4403,7 @@ addEventListener('resize', () => {
     // what's built so far
     const b1 = built(1), b2 = built(2), b2t = curBuild() && curBuild().id === 2 ? G.trip + (G.stage === 'tripdone' || G.stage === 'done' ? 1 : 0) : (b2 ? 2 : 0);
     const mark = (x, y, txt, ok) => { g.fillStyle = ok ? '#7dff9a' : '#ffd060'; g.beginPath(); g.arc(x, y, 16, 0, 7); g.fill(); g.font = 'bold 26px Arial'; g.fillText(txt, x, y - 40); };
-    mark(mid - 13.5 * sk, scy - 160, (b1 ? '✔ ' : '▶ ') + 'KRYOS LANDING FIELD', b1);
+    mark(mid - 13.5 * sk, scy - 160, (b1 ? '✔ ' : '▶ ') + 'COUNCIL LANDING FIELD', b1);
     if (b1) mark(mid + 9.5 * sk, scy - 160, (b2t >= 1 ? '✔ ' : '▶ ') + 'SPINDLE SEGMENT 1', b2t >= 1);
     if (b1) mark(mid + 13.5 * sk, scy - 240, (b2t >= 2 ? '✔ ' : '· ') + 'GATEWAY RING', b2t >= 2);
     const b3 = built(3), cur3 = curBuild() && curBuild().id === 3;
@@ -4421,7 +4431,7 @@ addEventListener('resize', () => {
       g.fillText(line, x + bw / 2, ly);
     });
     // ---- title block ----
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('KRYOS CITY', 70, 100);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE COUNCIL HALL', 70, 100);
     g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · AEGIS ARK CONSTRUCTION PROGRAMME', 70, 150);
     g.textAlign = 'right'; g.fillText('SCALE: SCHEMATIC · ✔ BUILT  ▶ IN PROGRESS', w - 70, 100);
   }
@@ -4442,7 +4452,7 @@ addEventListener('resize', () => {
       });
       y += 6;
     }
-    if (G.flags && G.flags.shield) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ KRYOS CITY COMPLETE ★', 70, y + 10); }
+    if (G.flags && G.flags.shield) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ COUNCIL HALL COMPLETE ★', 70, y + 10); }
     else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED', 70, y); }
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';

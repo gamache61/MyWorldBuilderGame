@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aegis Ark — Farmlands of Unity · Planet Unity</title>
+<title>Aegis Ark — Kryos City · Planet Unity</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",Roboto,Arial,sans-serif}
   #hud,#status,#keys{background:rgba(6,14,24,.5);padding:8px 12px;border-radius:4px}
@@ -74,21 +74,16 @@
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
 <script>
-  // Farmlands files live in projects/farmlands next to this file.
-  // If they are not found there, the game also looks in projects/farmland, a farmlands folder, and next to this file.
-  var CH_PLACES = ['projects/farmlands/', 'projects/farmland/', 'farmlands/', ''];
-  function chLoad(base) {
-    window.AEGIS_DIR = base.replace(/\/$/, '') || '.';
-    document.write('<script src="' + base + 'station.js" onerror="this.remove()"><\/script>');
-    for (let i = 1; i <= 30; i++) document.write('<script src="' + base + 'build' + i + '.js" onerror="this.remove()"><\/script>');
-  }
-  chLoad(CH_PLACES[0]);
+  // Kryos City files live in projects/kryoscity next to this file
+  window.AEGIS_DIR = 'projects/kryoscity';
+  document.write('<script src="projects/kryoscity/station.js" onerror="this.remove()"><\/script>');
 </script>
-<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[1]); }</script>
-<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[2]); }</script>
-<script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
+<script>
+  for (let i = 1; i <= 30; i++) document.write('<script src="projects/kryoscity/build' + i + '.js" onerror="this.remove()"><\/script>');
+</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -115,15 +110,15 @@
   </div>
 </div>
 <div id="status">BAY DOORS <span id="sBay">SEALED</span><br>SHIELD <span id="sShield">OFFLINE</span><br>STEALTH <span id="sStealth">OFF</span><br>THREAT <span id="sThreat">NONE</span><br>CRANE <span id="sCrane">STOWED</span><br>LOCATION <span id="sLoc">EARTH WAREHOUSE</span><br><b id="sPlatL" style="font-weight:400">BUILD-1</b> <span id="sPlat">0 / 34</span></div>
-<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW FARM</button></div>
+<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW CITY</button></div>
 <div id="fade"></div>
-<div id="confirm"><div class="box"><div class="t">START THE FARM OVER?</div><div class="m">This wipes your saved farm and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
+<div id="confirm"><div class="box"><div class="t">START A NEW CITY?</div><div class="m">This wipes your saved city and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
 <div id="goal"></div>
 <div id="parkChoice"><div class="pc-t">HOW DO YOU WANT TO UNLOAD?</div>
   <button id="pcLand">⬇ LAND ON THE LANDING FIELD<small>PARK THE SHIP · STATION TRANSPORTER BEAMS IT ALL</small></button>
   <button id="pcCrane">⇄ HOVER &amp; USE THE CRANE<small>OPEN THE BAY · UNLOAD WITH THE CRANE</small></button>
 </div>
-<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE FARMLANDS · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
+<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>KRYOS CITY · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
 <div id="bpPage"><div class="bar"><span>Station7_Blueprint.html — keep it in the same folder as the game</span><button id="bpPageClose">CLOSE ✕</button></div><iframe id="bpFrame" title="Station-7 blueprints"></iframe></div>
 <div id="menu"><button id="menuBtn">☰ CONTROLS <small>(M)</small></button><div id="menuPanel"></div></div>
 
@@ -899,7 +894,7 @@ const PEOPLE = (() => {
 })();
 
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
-const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.farmlands.v1';
+const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.kryoscity.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
@@ -907,18 +902,6 @@ const G = { idx: 0, stage: 'load', loc: 'earth' }; // stage: load (at Earth) · 
 const curBuild = () => BUILDS[G.idx] || null;
 G.trip = 0;
 for (const b of BUILDS) if (!b.trips) b.trips = [{ name: b.name, kits: b.kits, finish: b.land ? 'land' : b.dock ? 'dock' : 'unload' }];
-// every build takes two trips from Earth: the first load brings about half the parts, the second load the rest
-for (const b of BUILDS) {
-  if (!b.trips || b.trips.length !== 1) continue;
-  // landing-field builds stay one trip: the supply crates need the whole field of deck tiles to stand on
-  if (b.grid || Object.keys(b.trips[0].kits || {}).some(t => b.types && b.types[t] && b.types[t].deck)) continue;
-  const T0 = b.trips[0], list = [];
-  for (const [t, n] of Object.entries(T0.kits || {})) for (let i = 0; i < n; i++) list.push(t);
-  if (list.length < 2) continue;
-  const half = Math.ceil(list.length / 2), k1 = {}, k2 = {};
-  list.forEach((t, i) => { const k = i < half ? k1 : k2; k[t] = (k[t] || 0) + 1; });
-  b.trips = [{ name: 'FIRST LOAD', kits: k1, finish: 'unload' }, Object.assign({}, T0, { name: 'SECOND LOAD', kits: k2 })];
-}
 const curTrip = () => { const B = curBuild(); return B ? B.trips[Math.min(G.trip, B.trips.length - 1)] : null; };
 const lastTrip = () => { const B = curBuild(); return !B || G.trip >= B.trips.length - 1; };
 function prepBuild() { const B = curBuild(); if (B && B.setup && !B._ready) { B.setup(api); B._ready = true; } }
@@ -1008,8 +991,7 @@ const coaxH = (() => {
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
-    if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
+  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
   let ti = 0;
   for (let i = 0; i < CON + BRD; i++) {
     const [x, y, z] = spot(), s = 0.7 + rnd() * 0.9;
@@ -2205,7 +2187,7 @@ const STX = { on: false, next: 0 };
 let stxMsg = '';
 function siteTxBlock() {
   if (G.loc !== 'site' || G.stage !== 'build') return 'NOTHING TO BEAM HERE';
-  if (!hasStationTX()) return 'THE FARMLANDS HAVE NO TRANSPORTER YET — USE THE CRANE';
+  if (!hasStationTX()) return 'KRYOS HAS NO TRANSPORTER YET — USE THE CRANE';
   if (STX.on) { STX.fast = true; return 'CAMERA STEPS SKIPPED — FINISHING QUICKLY'; }
   if (landing || (landed && !parked)) return 'NOT WHILE DOCKED OR LANDING';
   if (CR.load.length) return 'SET DOWN THE CRATES FIRST';
@@ -2755,6 +2737,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -3282,7 +3265,7 @@ function askConfirm(title, msg, yes, fn) {
   c.querySelector('.t').textContent = title; c.querySelector('.m').textContent = msg; document.getElementById('cYes').textContent = yes;
   confirmYes = fn; c.style.display = 'flex';
 }
-document.getElementById('newBtn').onclick = () => askConfirm('START THE FARM OVER?', 'This wipes your saved farm and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
+document.getElementById('newBtn').onclick = () => askConfirm('START A NEW CITY?', 'This wipes your saved city and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
 document.getElementById('redoBtn').onclick = () => {
   const B = curBuild();
   if (!B) { txMsg = 'THERE IS NO BUILD IN PROGRESS'; txMsgT = 3; return; }
@@ -3331,12 +3314,12 @@ function updateGameHUD(dt) {
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
   let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE FARMLANDS'; } }
+  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO KRYOS CITY'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE FARMLANDS'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE FARMLANDS' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE FARMLANDS · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'FARMLANDS BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/farmlands NEXT TO farmlands.html, THEN REFRESH'; }
+  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE KRYOS PLATEAU'; }
+  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'KRYOS · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (!BUILDS.length) { head = 'KRYOS CITY BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/kryoscity NEXT TO 05-kryoscity.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
@@ -3345,7 +3328,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE FARMLANDS ARE GROWING' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE FARMLANDS' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE FARMLANDS'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.kshield ? 'KRYOS CITY IS COMPLETE' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.kshield ? 'PRESS W TO VISIT KRYOS' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT KRYOS'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3353,7 +3336,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE FARMLANDS') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' IN KRYOS') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
@@ -3371,7 +3354,7 @@ function updateGameHUD(dt) {
       const r = buildReady();
       head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
       sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE FARM TRANSPORTER'
+        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE CITY TRANSPORTER'
         : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
         : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
         : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
@@ -3383,8 +3366,8 @@ function updateGameHUD(dt) {
       const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE FARMLANDS ARE GROWING' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE FARMLANDS'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.kshield ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — KRYOS CITY IS COMPLETE' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+    } else { head = 'KRYOS CITY'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
   if (WALK.on) {
@@ -3400,10 +3383,10 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE FARMLANDS · PLANET UNITY';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'KRYOS · PLANET UNITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
-  let h = '<b>THE FARMLANDS</b>';
+  let h = '<b>KRYOS CITY</b>';
   { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
@@ -3413,7 +3396,7 @@ function updateGameHUD(dt) {
       h += '<div class="dim" style="color:' + (i === G.trip ? '#cfe9ff' : '') + '">' + ts + ' TRIP ' + (i + 1) + ' · ' + tr.name + '</div>';
     });
   }
-  if (G.stage !== 'none' && BUILDS.length < 6) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
+  if (G.stage !== 'none' && BUILDS.length < 12) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
   if (B && B.stats && G.stage !== 'none') {
     const sup = kits.filter(k => k.type === 'SUPPLY');
     h += '<hr>' + B.stats.call(B, api).map(([a, v]) => '<div>' + a + ' <span>' + v + '</span></div>').join('');
@@ -3431,9 +3414,11 @@ function updateGameHUD(dt) {
     else if (e.net < 0) h += '<div>VAULT LASTS <span>' + Math.floor(G.stock / -e.net) + ' min</span></div>';
     else h += '<div style="color:#7dff9a">VAULT FILLING ITSELF · STATION IS SELF-SUFFICIENT</div>';
   }
-  const KF = [['harvest', 'FOOD LINE TO KRYOS', 'RUNNING']];
+  const KF = [['kfield', 'LANDING FIELD', 'LIT'], ['power', 'CITY POWER', '2.4 GW ONLINE'], ['kblvd', 'GREEN BOULEVARD', 'OPEN'], ['kpods', 'POD TRAINS', 'RUNNING'],
+    ['krecycle', 'RECYCLING', '99% REUSED'], ['kfarms', 'FOOD', 'GROWING'], ['klowrise', 'BOULEVARD DISTRICT', 'OPEN'], ['ktowersn', 'NORTH SKYLINE', 'LIT'],
+    ['ktowerss', 'SOUTH SKYLINE', 'LIT'], ['kspire', 'OBSERVATION SPIRE', 'LIT'], ['kfleet', 'CITY FLEET', '12 CRAFT FLYING'], ['kshield', 'CITY SHIELD', 'UP']];
   for (const [f, n, v] of KF) if (G.flags && G.flags[f]) h += '<div>' + n + ' <span style="color:#7dff9a">' + v + '</span></div>';
-  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE FARMLANDS ARE GROWING ★</div>';
+  if (G.flags && G.flags.kshield && G.stage === 'none') h += '<div style="color:#ffd060">★ KRYOS CITY COMPLETE ★</div>';
   $('stationInfo').innerHTML = h;
 }
 
@@ -3448,7 +3433,6 @@ function spawnPerson(group, o, act, x, y, z, ry = 0, extra = {}) {
   const c = { P, act, group, ...extra }; crowd.push(c); return c;
 }
 // real walking people for the city builds (station.js K.people uses this) — kept to a budget so the game stays smooth
-window.WB_PERSON = (group, o, act, x, y, z, ry = 0, extra = {}) => spawnPerson(group, o, act, x, y, z, ry, { noShadow: true, ...extra });
 window.WB_CITY_PEOPLE = {
   left: 180,
   spawn(group, x, y, z, seed) {
@@ -4362,9 +4346,12 @@ addEventListener('resize', () => {
 /* ---------- blueprint room (a real room: the full station blueprint covers the far wall) ---------- */
 {
   const room = $('bpRoom'), frame = $('bpFrame'), page = $('bpPage');
-  const PLAN = ['Farm Landing Field', 'Water Channels', 'The First Fields', 'Greenhouses', 'The Harvest Hall', 'The Sky-Pod Food Line'];
-  const FAMILIES = [['SF', 'Deck Tile / Pylon', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Light Mast', '#b03a2e'], ['SY', 'Power / Pumps / Solar', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['WR', 'Reservoir', '#2f8fb0'],
-    ['WC', 'Canals & Channels', '#3a86b0'], ['GD', 'Fields & Greenhouses', '#3a7d44'], ['FB', 'Farm Robot', '#e8c13a'], ['FP', 'Harvest Hall & Silos', '#d9b13a']];
+  const PLAN = ['Spindle & Gateway', 'The Vault', 'Heartforge Core', 'Command & Spokes', 'Recycling', 'Industry', 'Gardens & Food', 'Living Districts', 'Defense Rim & Small Ship Bay'];
+  const RINGS = [['HF', 'HEARTFORGE WARP CORE', 0, 2.5, '#ff8a3a'], ['CE', 'COMMAND & ENGINEERING', 2.5, 5, '#e8e1d1'], ['RC', 'RECYCLING', 5, 8, '#3ec8b0'], ['IF', 'INDUSTRY', 8, 11, '#e8c13a'],
+    ['FP', 'FOOD PROCESSING', 11, 14, '#c8a03a'], ['GA', 'GARDENS', 14, 20, '#3ec85a'], ['LQ', 'LIVING QUARTERS', 20, 27, '#a070e0'], ['DR', 'DEFENSE & SHIELD RIM', 27, 28, '#e05040']];
+  const SPINDLE = [['SB', 'SMALL SHIP BAY', 3, 9, 1], ['GW', 'GATEWAY DOCKING', 9, 14, 1], ['VT', 'THE VAULT · PARTS STORAGE', 3, 10, -1], ['AY', 'ASSEMBLY YARD', 10, 14, -1]];
+  const FAMILIES = [['SF', 'Spindle / Frame', '#6c757d'], ['DC', 'Docking Clamp', '#2f6690'], ['HC', 'Heartforge Coil', '#d9731b'], ['CS', 'Containment Shell', '#b03a2e'], ['SY', 'Systems Pack', '#e8e1d1'], ['RU', 'Recycler Unit', '#3ec8b0'],
+    ['WR', 'Water Reclaimer', '#2f8fb0'], ['FB', 'Fabricator', '#e8c13a'], ['FP', 'Food Processor', '#d9b13a'], ['GD', 'Garden Dome Kit', '#3a7d44'], ['HM', 'Hab Module', '#8a5ad0'], ['HP', 'Hull / Shield Plate', '#9a2a22']];
   const built = id => { const B = curBuild(); return (B && id < B.id) || G.stage === 'none' || (B && B.id === id && G.stage === 'done'); };
   const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   function paper(g, w, h) {
@@ -4378,44 +4365,67 @@ addEventListener('resize', () => {
   const ink = 'rgba(225,240,255,.92)';
   function drawMain(c) {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
-    g.textBaseline = 'middle'; g.textAlign = 'center';
-    const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
-    const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - x) < 1 && Math.abs(p.z - z) < 1);
-    // ---- site plan of the farm (seen from above) ----
-    const x0 = 120, sk = 3.6, X = x => x0 + (x - 40) * sk, Z = z => 1060 + z * sk * 0.95;
-    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · FARMLANDS OF UNITY', X(420), 210);
-    const box = (cx, cz, bw, bd, on, col, label) => { g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fillRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk * 0.95); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.strokeRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk * 0.95); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz + bd / 2) + 22); } };
-    box(120, 0, 120, 540, built(1), 'rgba(125,255,154,.18)', 'LANDING FIELD');
-    g.beginPath(); g.arc(X(730), Z(0), 42 * sk, 0, 7); g.fillStyle = has('RESERVOIR') ? 'rgba(63,134,176,.6)' : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = has('RESERVOIR') ? ok : wait; g.stroke();
-    g.fillStyle = ink; g.font = '24px Arial'; g.fillText('RESERVOIR', X(730), Z(0) + 42 * sk + 22);
-    for (const z of [-64, 64]) box(730, z, 16, 12, at('PUMP', 730, z), 'rgba(232,225,209,.6)');
-    for (let i = 0; i < 8; i++) { const x = Math.round((300 + 47.5 * (i + 0.5)) * 100) / 100; box(x, 0, 47.5, 10, at('CANAL', x, 0), 'rgba(63,134,176,.7)'); }
-    for (const [x, z] of [[390, 160], [390, -160], [490, 160], [490, -160]]) box(x, z, 6, 300, at('SIDE', x, z), 'rgba(63,134,176,.7)');
-    for (const x of [340, 440, 540]) for (const z of [90, -90, 180, -180]) box(x, z, 80, 70, at('FIELD', x, z), 'rgba(106,168,74,.55)');
-    for (const x of [340, 440, 540]) for (const z of [270, -270]) box(x, z, 80, 70, at('GREENHOUSE', x, z), 'rgba(191,240,208,.45)');
-    for (const [x, z] of [[640, 300], [640, 340], [700, 300], [700, 340]]) box(x, z, 50, 30, at('SOLAR', x, z), 'rgba(47,79,138,.7)');
-    box(660, -170, 70, 110, has('HALL'), 'rgba(217,177,58,.5)', 'HARVEST HALL'); box(600, -170, 20, 30, has('PROC'), 'rgba(200,160,58,.6)');
-    for (const z of [120, 160, 200, 240]) { g.beginPath(); g.arc(X(650), Z(z), 8 * sk, 0, 7); g.fillStyle = at('SILO', 650, z) ? 'rgba(232,226,216,.7)' : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = at('SILO', 650, z) ? ok : wait; g.stroke(); }
-    box(660, -290, 40, 40, has('PODSTATION'), 'rgba(232,225,209,.6)', 'POD STATION');
-    g.strokeStyle = has('PODPYLON') ? ok : wait; g.lineWidth = 6; g.setLineDash([16, 10]); g.beginPath(); g.moveTo(X(660), Z(-310)); g.lineTo(X(660), Z(-470)); g.stroke(); g.setLineDash([]);
-    g.fillStyle = ink; g.font = '26px Arial'; g.fillText('SKY-POD LINE TO KRYOS ↑', X(660), Z(-490));
+    g.textBaseline = 'middle';
+    // ---- plan view ----
+    const cx = 700, cy = 1010, R = 640, k = R / 28;
+    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.textAlign = 'center'; g.fillText('PLAN VIEW · ROTATING DISC 56 km', cx, 220);
+    for (const [code, name, a, b, col] of RINGS.slice().reverse()) {
+      g.beginPath(); g.arc(cx, cy, b * k, 0, 7); g.fillStyle = col + '33'; g.fill(); g.strokeStyle = col; g.lineWidth = 4; g.stroke();
+    }
+    for (const [code, , a, b] of RINGS) { if (code === 'HF') continue; g.fillStyle = ink; g.font = 'bold 30px Arial'; g.fillText(code, cx + ((a + b) / 2) * k * Math.cos(-0.6), cy + ((a + b) / 2) * k * Math.sin(-0.6)); }
+    g.fillStyle = ink; g.font = 'bold 30px Arial'; g.fillText('HF', cx, cy);
+    g.strokeStyle = 'rgba(160,112,224,.9)'; g.lineWidth = 2;
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + 0.2; g.beginPath(); g.moveTo(cx + Math.cos(a) * 20 * k, cy + Math.sin(a) * 20 * k); g.lineTo(cx + Math.cos(a) * 27 * k, cy + Math.sin(a) * 27 * k); g.stroke(); }
+    g.strokeStyle = ink; g.lineWidth = 2; g.setLineDash([12, 10]); g.beginPath(); g.moveTo(cx - R - 30, cy); g.lineTo(cx + R + 30, cy); g.moveTo(cx, cy - R - 30); g.lineTo(cx, cy + R + 30); g.stroke(); g.setLineDash([]);
+    g.font = '28px Arial'; g.fillText('1 g AT RIM · ONE TURN / 5.6 min · 2.5 M PEOPLE', cx, cy + R + 70);
+    // ---- side section: spindle ----
+    const sx0 = 1500, sx1 = 3920, scy = 760, sk = (sx1 - sx0) / 28, mid = (sx0 + sx1) / 2;
+    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SIDE SECTION · NON-ROTATING SPINDLE 28 km', mid, 220);
+    g.fillStyle = '#ffffff22'; g.fillRect(mid - 30, scy - 380, 60, 760); g.strokeStyle = ink; g.lineWidth = 3; g.strokeRect(mid - 30, scy - 380, 60, 760);
+    g.font = '26px Arial'; g.fillText('DISC (EDGE-ON)', mid, scy + 420);
+    g.fillStyle = '#ffffff18'; g.fillRect(sx0, scy - 40, sx1 - sx0, 80); g.strokeRect(sx0, scy - 40, sx1 - sx0, 80);
+    g.fillText('SOUTH ◀', sx0 + 70, scy - 90); g.fillText('▶ NORTH', sx1 - 70, scy - 90);
+    for (const [code, name, a, b, dir] of SPINDLE) {
+      const xa = mid + dir * a * sk, xb = mid + dir * b * sk, x0 = Math.min(xa, xb), x1 = Math.max(xa, xb);
+      g.fillStyle = 'rgba(64,208,255,.25)'; g.fillRect(x0, scy - 40, x1 - x0, 80); g.strokeStyle = '#7fd8ff'; g.lineWidth = 3; g.strokeRect(x0, scy - 40, x1 - x0, 80);
+      g.fillStyle = ink; g.font = 'bold 34px Arial'; g.fillText(code, (x0 + x1) / 2, scy);
+      g.font = '24px Arial'; g.fillText(name, (x0 + x1) / 2, scy + 70);
+      g.fillText(a + '–' + b + ' km', (x0 + x1) / 2, scy + 100);
+    }
+    // what's built so far
+    const b1 = built(1), b2 = built(2), b2t = curBuild() && curBuild().id === 2 ? G.trip + (G.stage === 'tripdone' || G.stage === 'done' ? 1 : 0) : (b2 ? 2 : 0);
+    const mark = (x, y, txt, ok) => { g.fillStyle = ok ? '#7dff9a' : '#ffd060'; g.beginPath(); g.arc(x, y, 16, 0, 7); g.fill(); g.font = 'bold 26px Arial'; g.fillText(txt, x, y - 40); };
+    mark(mid - 13.5 * sk, scy - 160, (b1 ? '✔ ' : '▶ ') + 'KRYOS LANDING FIELD', b1);
+    if (b1) mark(mid + 9.5 * sk, scy - 160, (b2t >= 1 ? '✔ ' : '▶ ') + 'SPINDLE SEGMENT 1', b2t >= 1);
+    if (b1) mark(mid + 13.5 * sk, scy - 240, (b2t >= 2 ? '✔ ' : '· ') + 'GATEWAY RING', b2t >= 2);
+    const b3 = built(3), cur3 = curBuild() && curBuild().id === 3;
+    const b4 = built(4), cur4 = curBuild() && curBuild().id === 4;
+    if (b4 || cur4) mark(mid, scy + 470, (b4 ? '✔ ' : '▶ ') + 'HEARTFORGE CORE' + (b4 ? ' · POWER ONLINE' : ''), b4);
+    if (b4) { g.beginPath(); g.arc(cx, cy, 2.5 * k + 10, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); }
+    if (built(10)) { g.beginPath(); g.arc(cx, cy, 28 * k + 6, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 10; g.stroke(); mark(mid + 6 * sk, scy - 160, '✔ SMALL SHIP BAY', true); g.fillStyle = '#7dff9a'; g.font = 'bold 60px Arial'; g.fillText('✔ STATION COMPLETE', cx, cy + R + 130); }
+    if (built(9)) { g.beginPath(); g.arc(cx, cy, 20 * k, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); }
+    if (built(8)) { g.beginPath(); g.arc(cx, cy, 14 * k, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); }
+    if (built(7)) { g.beginPath(); g.arc(cx, cy, 11 * k, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); }
+    if (built(6)) { g.beginPath(); g.arc(cx, cy, 8 * k, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); }
+    if (built(5)) { g.beginPath(); g.arc(cx, cy, 5 * k, 0, 7); g.strokeStyle = '#7dff9a'; g.lineWidth = 8; g.stroke(); for (const a of [45, 135, 225, 315]) { g.beginPath(); g.moveTo(cx + Math.cos(a * Math.PI / 180) * 2.5 * k, cy + Math.sin(a * Math.PI / 180) * 2.5 * k); g.lineTo(cx + Math.cos(a * Math.PI / 180) * 5 * k, cy + Math.sin(a * Math.PI / 180) * 5 * k); g.stroke(); } }
+    if (b2 || cur3) mark(mid - 6.5 * sk, scy + 170, (b3 ? '✔ ' : '▶ ') + 'THE VAULT' + (b3 ? ' · ' + (G.stock || 0) + ' CRATES STORED' : ''), b3);
     // ---- build plan strip ----
-    const sx0 = 2380, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;
-    g.font = 'bold 44px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 80);
+    const py = 1380; g.font = 'bold 40px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', mid, py - 70);
     PLAN.forEach((p, i) => {
-      const bid = i + 1, cb = curBuild() ? curBuild().id : 99, x = sx0 + (i % 2) * bw, y = pyb + (i >> 1) * 220;
-      const st = built(bid) ? 'done' : cb === bid ? 'now' : 'todo';
+      const bw = (sx1 - sx0) / 9, x = sx0 + i * bw;
+      const bid = i + 2, cb = curBuild() ? curBuild().id : 99;
+      const st = built(bid) ? 'done' : (cb === bid || (i === 0 && cb <= 2)) ? 'now' : 'todo';
       g.fillStyle = st === 'done' ? 'rgba(125,255,154,.25)' : st === 'now' ? 'rgba(255,208,96,.25)' : 'rgba(255,255,255,.06)';
-      g.fillRect(x + 10, y, bw - 20, 180); g.strokeStyle = st === 'done' ? ok : st === 'now' ? '#ffd060' : 'rgba(225,240,255,.5)'; g.lineWidth = 3; g.strokeRect(x + 10, y, bw - 20, 180);
-      g.fillStyle = ink; g.font = 'bold 44px Arial'; g.fillText(String(bid), x + bw / 2, y + 55);
-      g.font = '32px Arial'; g.fillText(p, x + bw / 2, y + 120);
+      g.fillRect(x + 6, py, bw - 12, 140); g.strokeStyle = st === 'done' ? '#7dff9a' : st === 'now' ? '#ffd060' : 'rgba(225,240,255,.5)'; g.lineWidth = 3; g.strokeRect(x + 6, py, bw - 12, 140);
+      g.fillStyle = ink; g.font = 'bold 34px Arial'; g.fillText(String(i + 1), x + bw / 2, py + 40);
+      g.font = '21px Arial'; const words = p.split(' '); let line = '', ly = py + 82;
+      for (const wd of words) { if (g.measureText(line + wd).width > bw - 30) { g.fillText(line, x + bw / 2, ly); line = ''; ly += 26; } line += wd + ' '; }
+      g.fillText(line, x + bw / 2, ly);
     });
-    if ((G.flags || {}).harvest) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ UNITY FEEDS ITSELF', (sx0 + sx1) / 2, 1360); }
     // ---- title block ----
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('FARMLANDS OF UNITY', 70, 100);
-    g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · CHOSEN BY THE UNITY COUNCIL', 70, 150);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('KRYOS CITY', 70, 100);
+    g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · AEGIS ARK CONSTRUCTION PROGRAMME', 70, 150);
     g.textAlign = 'right'; g.fillText('SCALE: SCHEMATIC · ✔ BUILT  ▶ IN PROGRESS', w - 70, 100);
-    function has(t) { return placed.some(p => p.type === t && !p.busy); }
   }
   function drawProgress(c) {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
@@ -4434,8 +4444,8 @@ addEventListener('resize', () => {
       });
       y += 6;
     }
-    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE FARMLANDS ARE GROWING ★', 70, y + 10); }
-    
+    if (G.flags && G.flags.shield) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ KRYOS CITY COMPLETE ★', 70, y + 10); }
+    else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED', 70, y); }
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';
     g.fillText('Deck area ' + (n('DECK') * 2400 + n('TRUSS') * 2400).toLocaleString() + ' m²  ·  Spindle ' + n('TRUSS') * 60 + ' m  ·  Supply crates ' + n('SUPPLY'), 70, h - 80);

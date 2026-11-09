@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aegis Ark — The House of Healing · Planet Unity</title>
+<title>Aegis Ark — The Great School of Unity · Planet Unity</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",Roboto,Arial,sans-serif}
   #hud,#status,#keys{background:rgba(6,14,24,.5);padding:8px 12px;border-radius:4px}
@@ -74,9 +74,9 @@
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
 <script>
-  // House of Healing files live in projects/houseofhealing next to this file.
-  // If they are not found there, the game also looks in projects/house of healing, a houseofhealing folder, and next to this file.
-  var CH_PLACES = ['projects/houseofhealing/', 'projects/house of healing/', 'houseofhealing/', ''];
+  // Great School files live in projects/greatschool next to this file.
+  // If they are not found there, the game also looks in projects/great school, a greatschool folder, and next to this file.
+  var CH_PLACES = ['projects/greatschool/', 'projects/great school/', 'greatschool/', ''];
   function chLoad(base) {
     window.AEGIS_DIR = base.replace(/\/$/, '') || '.';
     document.write('<script src="' + base + 'station.js" onerror="this.remove()"><\/script>');
@@ -89,6 +89,7 @@
 <script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -115,15 +116,15 @@
   </div>
 </div>
 <div id="status">BAY DOORS <span id="sBay">SEALED</span><br>SHIELD <span id="sShield">OFFLINE</span><br>STEALTH <span id="sStealth">OFF</span><br>THREAT <span id="sThreat">NONE</span><br>CRANE <span id="sCrane">STOWED</span><br>LOCATION <span id="sLoc">EARTH WAREHOUSE</span><br><b id="sPlatL" style="font-weight:400">BUILD-1</b> <span id="sPlat">0 / 34</span></div>
-<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW HOSPITAL</button></div>
+<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW SCHOOL</button></div>
 <div id="fade"></div>
-<div id="confirm"><div class="box"><div class="t">START THE HOUSE OF HEALING OVER?</div><div class="m">This wipes your saved hospital and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
+<div id="confirm"><div class="box"><div class="t">START THE SCHOOL OVER?</div><div class="m">This wipes your saved school and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
 <div id="goal"></div>
 <div id="parkChoice"><div class="pc-t">HOW DO YOU WANT TO UNLOAD?</div>
   <button id="pcLand">⬇ LAND ON THE LANDING FIELD<small>PARK THE SHIP · STATION TRANSPORTER BEAMS IT ALL</small></button>
   <button id="pcCrane">⇄ HOVER &amp; USE THE CRANE<small>OPEN THE BAY · UNLOAD WITH THE CRANE</small></button>
 </div>
-<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE HOUSE OF HEALING · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
+<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE GREAT SCHOOL · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
 <div id="bpPage"><div class="bar"><span>Station7_Blueprint.html — keep it in the same folder as the game</span><button id="bpPageClose">CLOSE ✕</button></div><iframe id="bpFrame" title="Station-7 blueprints"></iframe></div>
 <div id="menu"><button id="menuBtn">☰ CONTROLS <small>(M)</small></button><div id="menuPanel"></div></div>
 
@@ -899,7 +900,7 @@ const PEOPLE = (() => {
 })();
 
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
-const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.houseofhealing.v1';
+const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.greatschool.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
@@ -2208,7 +2209,7 @@ const STX = { on: false, next: 0 };
 let stxMsg = '';
 function siteTxBlock() {
   if (G.loc !== 'site' || G.stage !== 'build') return 'NOTHING TO BEAM HERE';
-  if (!hasStationTX()) return 'THE HOSPITAL SITE HAS NO TRANSPORTER YET — USE THE CRANE';
+  if (!hasStationTX()) return 'THE SCHOOL SITE HAS NO TRANSPORTER YET — USE THE CRANE';
   if (STX.on) { STX.fast = true; return 'CAMERA STEPS SKIPPED — FINISHING QUICKLY'; }
   if (landing || (landed && !parked)) return 'NOT WHILE DOCKED OR LANDING';
   if (CR.load.length) return 'SET DOWN THE CRATES FIRST';
@@ -2760,6 +2761,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -2826,7 +2828,7 @@ function repairStation() {
   return added;
 }
 function newStation() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); }
-// the House of Healing is in Kryos city: the city's landing field and transporter are already there, so a new game starts at build 2
+// the Great School is in Kryos city: the city's landing field and transporter are already there, so a new game starts at build 2
 try {
   const old = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
   // a new game, or a game saved while still on build 1: skip straight to build 2 (the Kryos field is put in place below)
@@ -3293,7 +3295,7 @@ function askConfirm(title, msg, yes, fn) {
   c.querySelector('.t').textContent = title; c.querySelector('.m').textContent = msg; document.getElementById('cYes').textContent = yes;
   confirmYes = fn; c.style.display = 'flex';
 }
-document.getElementById('newBtn').onclick = () => askConfirm('START THE HOUSE OF HEALING OVER?', 'This wipes your saved hospital and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
+document.getElementById('newBtn').onclick = () => askConfirm('START THE SCHOOL OVER?', 'This wipes your saved school and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
 document.getElementById('redoBtn').onclick = () => {
   const B = curBuild();
   if (!B) { txMsg = 'THERE IS NO BUILD IN PROGRESS'; txMsgT = 3; return; }
@@ -3346,8 +3348,8 @@ function updateGameHUD(dt) {
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
   else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO KRYOS CITY'; }
   else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE HOUSE OF HEALING · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'HOUSE OF HEALING BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/houseofhealing NEXT TO houseofhealing.html, THEN REFRESH'; }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE GREAT SCHOOL · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (!BUILDS.length) { head = 'SCHOOL BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/greatschool NEXT TO 28-greatschool.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
@@ -3356,7 +3358,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE HOUSE OF HEALING IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE HOUSE OF HEALING' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE HOUSE OF HEALING'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE GREAT SCHOOL IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE SCHOOL' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE SCHOOL'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3364,7 +3366,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE HOUSE OF HEALING') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE SCHOOL') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
@@ -3382,7 +3384,7 @@ function updateGameHUD(dt) {
       const r = buildReady();
       head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
       sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE HOSPITAL TRANSPORTER'
+        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE SCHOOL TRANSPORTER'
         : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
         : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
         : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
@@ -3394,8 +3396,8 @@ function updateGameHUD(dt) {
       const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE HOUSE OF HEALING IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE HOUSE OF HEALING'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE GREAT SCHOOL IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+    } else { head = 'THE GREAT SCHOOL'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
   if (WALK.on) {
@@ -3411,10 +3413,10 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE HOUSE OF HEALING · KRYOS CITY';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE GREAT SCHOOL · KRYOS CITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
-  let h = '<b>THE HOUSE OF HEALING</b>';
+  let h = '<b>THE GREAT SCHOOL</b>';
   { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
@@ -3442,9 +3444,9 @@ function updateGameHUD(dt) {
     else if (e.net < 0) h += '<div>VAULT LASTS <span>' + Math.floor(G.stock / -e.net) + ' min</span></div>';
     else h += '<div style="color:#7dff9a">VAULT FILLING ITSELF · STATION IS SELF-SUFFICIENT</div>';
   }
-  const KF = [['healOpen', 'THE HOUSE OF HEALING', 'OPEN FOR EVERY FAMILY ON UNITY']];
+  const KF = [['schoolOpen', 'THE GREAT SCHOOL', 'OPEN TO EVERYONE OF EVERY AGE']];
   for (const [f, n, v] of KF) if (G.flags && G.flags[f]) h += '<div>' + n + ' <span style="color:#7dff9a">' + v + '</span></div>';
-  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE HOUSE OF HEALING IS OPEN ★</div>';
+  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE GREAT SCHOOL IS OPEN ★</div>';
   $('stationInfo').innerHTML = h;
 }
 
@@ -3981,7 +3983,7 @@ const views = {
   5: [V(110, 140, -20), V(0, 0, -10)],
   6: [V(20, 560, 10), V(0, 0, 0)],
 };
-const siteView = [V(560, 380, -200), V(120, -28, -600)];
+const siteView = [V(-760, 260, 560), V(-340, -28, 0)];
 // pull right back so every part of the station built so far is in the shot
 function wholeStationView() {
   if (G.loc !== 'site' || warp) { txMsg = 'WHOLE-STATION VIEW WORKS AT THE STATION — WARP THERE FIRST (W)'; txMsgT = 3; return; }
@@ -4374,8 +4376,8 @@ addEventListener('resize', () => {
 /* ---------- blueprint room (a real room: the full station blueprint covers the far wall) ---------- */
 {
   const room = $('bpRoom'), frame = $('bpFrame'), page = $('bpPage');
-  const PLAN = ['Kryos Landing Field', 'The Main Hospital', 'The Wards & the Children\u2019s Wing', 'The Healing Gardens & the Birth House', 'The Sky-Pod Pad & Opening Day'];
-  const FAMILIES = [['SF', 'Deck / Paths', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Masts / Gate / Sky-Pod Pad', '#b03a2e'], ['SY', 'Power / Hospital / Wards', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['GD', 'Healing Gardens / Trees', '#3fb04a'], ['WR', 'Birth House', '#3f86b0']];
+  const PLAN = ['Kryos Landing Field', 'The Great Hall & the Library', 'The Workshop Hall & the Building Yard', 'The Farm School & the Healing School', 'The Classrooms & the First Day'];
+  const FAMILIES = [['SF', 'Deck / Paths', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Masts / Gate / Building Yard', '#b03a2e'], ['SY', 'Power / Halls / Classrooms', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['GD', 'Greenhouses / Fields / Trees', '#3fb04a'], ['FB', 'Workshop Hall', '#d9a21b']];
   const built = id => { const B = curBuild(); return (B && id < B.id) || G.stage === 'none' || (B && B.id === id && G.stage === 'done'); };
   const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   function paper(g, w, h) {
@@ -4393,19 +4395,22 @@ addEventListener('resize', () => {
     const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
     const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - x) < 1 && Math.abs(p.z - z) < 1);
     // ---- site plan of the spaceport (seen from above) ----
-    const sk = 1.4, X = x => 1100 + (x - 120) * sk, Z = z => 300 + (300 - z) * sk;
-    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE HOUSE OF HEALING', X(120), 220);
+    const x0 = 160, sk = 1.9, X = x => x0 + (x + 950) * sk, Z = z => 1060 + z * sk;
+    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE GREAT SCHOOL OF UNITY', X(-380), 210);
     const box = (cx, cz, bw, bd, on, col, label) => { g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fillRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.strokeRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz + bd / 2) + 22); } };
     const disc = (cx, cz, r, on, col, label) => { g.beginPath(); g.arc(X(cx), Z(cz), r * sk, 0, 7); g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.stroke(); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz) + r * sk + 22); } };
     box(120, 0, 120, 540, built(1), 'rgba(125,255,154,.18)', 'LANDING FIELD');
-    box(120, -430, 12, 180, at('HWALK', 120, -430), 'rgba(216,205,182,.6)'); box(120, -630, 460, 12, at('HWALK', 120, -630), 'rgba(216,205,182,.6)');
-    box(120, -560, 160, 80, has('HOSPITAL'), 'rgba(128,240,224,.45)', 'HOUSE OF HEALING');
-    for (const x of [-40, 280]) box(x, -560, 70, 60, at('WARD', x, -560), 'rgba(242,244,246,.5)', 'WARDS');
-    box(120, -690, 120, 50, has('CHILDWING'), 'rgba(242,196,26,.5)', 'CHILDREN\u2019S WING');
-    for (const x of [-40, 280]) box(x, -720, 120, 80, at('HEALGARDEN', x, -720), 'rgba(63,176,74,.5)', 'HEALING GARDEN');
-    box(120, -800, 90, 60, has('BIRTHHOUSE'), 'rgba(63,134,176,.5)', 'BIRTH HOUSE');
-    box(-40, -430, 60, 60, has('SKYPAD'), 'rgba(127,216,255,.5)', 'SKY-POD PAD');
-    box(120, -345, 60, 6, has('HEALGATE'), 'rgba(128,240,224,.8)', 'GATE');
+    disc(-560, 0, 70, has('GREATHALL'), 'rgba(144,240,176,.45)', 'GREAT HALL');
+    box(-560, -170, 60, 60, has('LIBRARY'), 'rgba(232,225,209,.6)', 'LIBRARY');
+    box(-365, 0, 250, 10, at('WALK', -365, 0), 'rgba(216,205,182,.6)'); box(-760, 0, 240, 10, at('WALK', -760, 0), 'rgba(216,205,182,.6)'); box(-560, 190, 10, 240, at('WALK', -560, 190), 'rgba(216,205,182,.6)');
+    box(-380, -170, 150, 90, has('WORKSHOP'), 'rgba(217,162,27,.55)', 'WORKSHOP HALL');
+    box(-760, -170, 150, 110, has('BUILDYARD'), 'rgba(176,58,46,.45)', 'BUILDING YARD');
+    for (const x of [-800, -700]) box(x, 150, 80, 60, at('GREENHOUSE', x, 150), 'rgba(63,176,74,.5)', 'GREENHOUSE');
+    box(-750, 260, 180, 60, has('PRACTICEFIELD'), 'rgba(95,158,58,.6)', 'PRACTICE FIELDS');
+    box(-370, 180, 140, 100, has('HEALING'), 'rgba(242,244,246,.5)', 'HEALING SCHOOL');
+    for (const [x, z] of [[-390, 85], [-730, 85], [-390, -85], [-730, -85]]) box(x, z, 100, 40, at('CLASSWING', x, z), 'rgba(127,216,255,.45)', 'CLASSROOMS');
+    for (const [x, z] of [[-870, -60], [-870, 60], [-290, -265], [-640, -270], [-890, 250], [-290, 290]]) disc(x, z, 15, at('GROVE', x, z), 'rgba(58,125,68,.7)');
+    box(-255, 0, 8, 60, has('SCHOOLGATE'), 'rgba(144,240,176,.8)', 'GATE');
     // ---- build plan strip ----
     const sx0 = 2700, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;
     g.font = 'bold 44px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 80);
@@ -4417,9 +4422,9 @@ addEventListener('resize', () => {
       g.fillStyle = ink; g.font = 'bold 44px Arial'; g.fillText(String(bid), x + bw / 2, y + 55);
       g.font = '32px Arial'; g.fillText(p, x + bw / 2, y + 120);
     });
-    if ((G.flags || {}).healOpen) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ THE HOUSE OF HEALING IS OPEN', (sx0 + sx1) / 2, 1360); }
+    if ((G.flags || {}).schoolOpen) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ THE GREAT SCHOOL IS OPEN', (sx0 + sx1) / 2, 1360); }
     // ---- title block ----
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE HOUSE OF HEALING', 70, 100);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE GREAT SCHOOL OF UNITY', 70, 100);
     g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · CHOSEN BY THE UNITY COUNCIL', 70, 150);
     g.textAlign = 'right'; g.fillText('SCALE: SCHEMATIC · ✔ BUILT  ▶ IN PROGRESS', w - 70, 100);
     function has(t) { return placed.some(p => p.type === t && !p.busy); }
@@ -4441,7 +4446,7 @@ addEventListener('resize', () => {
       });
       y += 6;
     }
-    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE HOUSE OF HEALING IS OPEN ★', 70, y + 10); }
+    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE GREAT SCHOOL IS OPEN ★', 70, y + 10); }
     
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';

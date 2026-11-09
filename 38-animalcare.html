@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aegis Ark — The Unity Ore Depot · Planet Unity</title>
+<title>Aegis Ark — The Animal Care Centre · Planet Unity</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",Roboto,Arial,sans-serif}
   #hud,#status,#keys{background:rgba(6,14,24,.5);padding:8px 12px;border-radius:4px}
@@ -74,9 +74,9 @@
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
 <script>
-  // Ore Depot files live in projects/oredepot next to this file.
-  // If they are not found there, the game also looks in projects/ore depot, an oredepot folder, and next to this file.
-  var CH_PLACES = ['projects/oredepot/', 'projects/ore depot/', 'oredepot/', ''];
+  // Animal Care Centre files live in projects/animalcare next to this file.
+  // If they are not found there, the game also looks in projects/animal care centre, a animalcare folder, and next to this file.
+  var CH_PLACES = ['projects/animalcare/', 'projects/animal care/', 'animalcare/', ''];
   function chLoad(base) {
     window.AEGIS_DIR = base.replace(/\/$/, '') || '.';
     document.write('<script src="' + base + 'station.js" onerror="this.remove()"><\/script>');
@@ -89,6 +89,7 @@
 <script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -115,15 +116,15 @@
   </div>
 </div>
 <div id="status">BAY DOORS <span id="sBay">SEALED</span><br>SHIELD <span id="sShield">OFFLINE</span><br>STEALTH <span id="sStealth">OFF</span><br>THREAT <span id="sThreat">NONE</span><br>CRANE <span id="sCrane">STOWED</span><br>LOCATION <span id="sLoc">EARTH WAREHOUSE</span><br><b id="sPlatL" style="font-weight:400">BUILD-1</b> <span id="sPlat">0 / 34</span></div>
-<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW DEPOT</button></div>
+<div id="station"><div id="stationInfo"></div><button id="redoBtn">RESTART THIS BUILD</button> <button id="newBtn">NEW ANIMAL CARE CENTRE</button></div>
 <div id="fade"></div>
-<div id="confirm"><div class="box"><div class="t">START THE DEPOT OVER?</div><div class="m">This wipes your saved depot and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
+<div id="confirm"><div class="box"><div class="t">START THE ANIMAL CARE CENTRE OVER?</div><div class="m">This wipes your saved animal care centre and every build. You start again at Build 1 at the Earth spaceport.</div><button id="cYes">YES, START OVER</button><button id="cNo">CANCEL</button></div></div>
 <div id="goal"></div>
 <div id="parkChoice"><div class="pc-t">HOW DO YOU WANT TO UNLOAD?</div>
   <button id="pcLand">⬇ LAND ON THE LANDING FIELD<small>PARK THE SHIP · STATION TRANSPORTER BEAMS IT ALL</small></button>
   <button id="pcCrane">⇄ HOVER &amp; USE THE CRANE<small>OPEN THE BAY · UNLOAD WITH THE CRANE</small></button>
 </div>
-<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE ORE DEPOT · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
+<div id="bpRoom"><div id="bpTop"><h2>BLUEPRINT ROOM<small>THE ANIMAL CARE CENTRE · DRAG TO LOOK AROUND · SCROLL TO STEP CLOSER</small></h2><div><button id="bpWall">VIEW THE WALL</button><button id="bpPageBtn" style="display:none">DETAILED BLUEPRINT PAGE</button><button id="bpBack">◀ BACK TO SHIP (ESC)</button></div></div></div>
 <div id="bpPage"><div class="bar"><span>Station7_Blueprint.html — keep it in the same folder as the game</span><button id="bpPageClose">CLOSE ✕</button></div><iframe id="bpFrame" title="Station-7 blueprints"></iframe></div>
 <div id="menu"><button id="menuBtn">☰ CONTROLS <small>(M)</small></button><div id="menuPanel"></div></div>
 
@@ -899,7 +900,7 @@ const PEOPLE = (() => {
 })();
 
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
-const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.oredepot.v1';
+const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.animalcare.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
@@ -907,6 +908,18 @@ const G = { idx: 0, stage: 'load', loc: 'earth' }; // stage: load (at Earth) · 
 const curBuild = () => BUILDS[G.idx] || null;
 G.trip = 0;
 for (const b of BUILDS) if (!b.trips) b.trips = [{ name: b.name, kits: b.kits, finish: b.land ? 'land' : b.dock ? 'dock' : 'unload' }];
+// every build takes two trips from Earth: the first load brings about half the parts, the second load the rest
+for (const b of BUILDS) {
+  if (!b.trips || b.trips.length !== 1) continue;
+  // landing-field builds stay one trip: the supply crates need the whole field of deck tiles to stand on
+  if (b.grid || Object.keys(b.trips[0].kits || {}).some(t => b.types && b.types[t] && b.types[t].deck)) continue;
+  const T0 = b.trips[0], list = [];
+  for (const [t, n] of Object.entries(T0.kits || {})) for (let i = 0; i < n; i++) list.push(t);
+  if (list.length < 2) continue;
+  const half = Math.ceil(list.length / 2), k1 = {}, k2 = {};
+  list.forEach((t, i) => { const k = i < half ? k1 : k2; k[t] = (k[t] || 0) + 1; });
+  b.trips = [{ name: 'FIRST LOAD', kits: k1, finish: 'unload' }, Object.assign({}, T0, { name: 'SECOND LOAD', kits: k2 })];
+}
 const curTrip = () => { const B = curBuild(); return B ? B.trips[Math.min(G.trip, B.trips.length - 1)] : null; };
 const lastTrip = () => { const B = curBuild(); return !B || G.trip >= B.trips.length - 1; };
 function prepBuild() { const B = curBuild(); if (B && B.setup && !B._ready) { B.setup(api); B._ready = true; } }
@@ -2196,7 +2209,7 @@ const STX = { on: false, next: 0 };
 let stxMsg = '';
 function siteTxBlock() {
   if (G.loc !== 'site' || G.stage !== 'build') return 'NOTHING TO BEAM HERE';
-  if (!hasStationTX()) return 'THE ORE DEPOT HAS NO TRANSPORTER YET — USE THE CRANE';
+  if (!hasStationTX()) return 'THE ANIMAL CARE CENTRE SITE HAS NO TRANSPORTER YET — USE THE CRANE';
   if (STX.on) { STX.fast = true; return 'CAMERA STEPS SKIPPED — FINISHING QUICKLY'; }
   if (landing || (landed && !parked)) return 'NOT WHILE DOCKED OR LANDING';
   if (CR.load.length) return 'SET DOWN THE CRATES FIRST';
@@ -2213,7 +2226,7 @@ function padShot() {
   if (viewMode === 1 || viewMode === 2) return;   // stay in the cockpit and watch from the bridge
   if (viewMode) setView(0);
   followHook = null; camGoal = null;
-  snapCam = [V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)];
+  snapCam = [V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)]; padHold = true;   // camera stays put on the pad while the Ark comes down
 }
 function parkAndBeam() {
   if (!parkChoiceOpen()) return;
@@ -2594,11 +2607,11 @@ function updateLanding(dt) {
   // at the build site the Ark hovers high enough that its wings clear the masts and clamps, then drops onto the pad when landing
   ship.position.set(L.x * a, H * (1 - b) - 8 * b + warpY, zBase + warpZ);
   for (const p of armPieces()) p.userData.arm.rotation.z = -p.userData.dir * c * (Math.PI / 2 - 0.02);
-  if (window.__shipFly) window.__shipFly(ship, dt);   // a build can move the Ark (the Ore Depot: hovering over the shaft for the ore drop)
+  if (window.__shipFly) window.__shipFly(ship, dt);   // a build can move the Ark 
 }
 
 /* ---------- warp between Earth and the build site ---------- */
-let snapCam = null, warp = null, warpZ = 0, warpY = 0, warpMsg = '', warpMsgT = 0;
+let padHold = false, snapCam = null, warp = null, warpZ = 0, warpY = 0, warpMsg = '', warpMsgT = 0;
 const fade = document.getElementById('fade');
 const streaks = (() => {
   const n = 900, pos = new Float32Array(n * 6);
@@ -2673,7 +2686,7 @@ function enterTunnel() {
 }
 function finishTunnel() {
   arrive(warp.to); warp.t = 0; warp.phase = 'in';
-  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapCam = [V(700, 160, 900), V(0, DESCENT * 0.85, 0)]; }
+  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapCam = [V(300, 160, 900), V(0, DESCENT * 0.85, 0)]; }
   else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapCam = [V(520, 120, 640), V(0, DESCENT * 0.85, 0)]; }
 }
 function updateWarp(dt) {
@@ -2738,7 +2751,8 @@ function updateWarp(dt) {
     // drop down through Unity's sky onto the Kryos plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
-    if (k < 1) snapCam = [V(700, 160, 900), V(0, warpY * 0.85, 0)];
+    // watch the descent from up the open strip north of the field, where no towers stand in the way
+    if (k < 1) snapCam = [V(300, 160, 900), V(0, warpY * 0.85, 0)];
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
     if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   }
@@ -2747,6 +2761,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -2813,6 +2828,12 @@ function repairStation() {
   return added;
 }
 function newStation() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); }
+// the Animal Care Centre is in Kryos city: the city's landing field and transporter are already there, so a new game starts at build 2
+try {
+  const old = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+  // a new game, or a game saved while still on build 1: skip straight to build 2 (the Kryos field is put in place below)
+  if (!old || !(old.idx > 0)) localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, idx: 1, trip: 0, stage: 'load', loc: 'earth', stock: 0, stockF: 0, flags: (old && old.flags) || {}, placed: [], kits: [] }));
+} catch (e) { }
 if (loadGame()) { try { repairStation(); } catch (e) { console.warn(e); } }
 else { setLocation('earth'); G.idx = 0; G.trip = 0; G.stage = curBuild() ? 'load' : 'none'; prepBuild(); spawnBuildKitsOnDock(); save(); }
 setupSiteMarks();
@@ -3274,7 +3295,7 @@ function askConfirm(title, msg, yes, fn) {
   c.querySelector('.t').textContent = title; c.querySelector('.m').textContent = msg; document.getElementById('cYes').textContent = yes;
   confirmYes = fn; c.style.display = 'flex';
 }
-document.getElementById('newBtn').onclick = () => askConfirm('START THE DEPOT OVER?', 'This wipes your saved depot and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
+document.getElementById('newBtn').onclick = () => askConfirm('START THE ANIMAL CARE CENTRE OVER?', 'This wipes your saved animal care centre and every build. You start again at Build 1 at the Earth warehouse.', 'YES, START OVER', newStation);
 document.getElementById('redoBtn').onclick = () => {
   const B = curBuild();
   if (!B) { txMsg = 'THERE IS NO BUILD IN PROGRESS'; txMsgT = 3; return; }
@@ -3323,12 +3344,12 @@ function updateGameHUD(dt) {
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
   let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE ORE DEPOT'; } }
+  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO KRYOS CITY'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO THE ORE DEPOT SITE'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE ORE DEPOT' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE ORE DEPOT · PLANET UNITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'ORE DEPOT BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/oredepot NEXT TO oredepot.html, THEN REFRESH'; }
+  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO KRYOS CITY'; }
+  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE ANIMAL CARE CENTRE · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (!BUILDS.length) { head = 'ANIMAL CARE CENTRE BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/animalcare NEXT TO 38-animalcare.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
@@ -3337,7 +3358,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE ORE DEPOT IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE ORE DEPOT' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE ORE DEPOT'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE ANIMAL CARE CENTRE IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE ANIMAL CARE CENTRE' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE ANIMAL CARE CENTRE'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3345,7 +3366,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE ORE DEPOT SITE') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE ANIMAL CARE CENTRE') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
@@ -3363,7 +3384,7 @@ function updateGameHUD(dt) {
       const r = buildReady();
       head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
       sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE DEPOT TRANSPORTER'
+        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE CITY TRANSPORTER'
         : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
         : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
         : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
@@ -3375,8 +3396,8 @@ function updateGameHUD(dt) {
       const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE ORE DEPOT IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE ORE DEPOT'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE ANIMAL CARE CENTRE IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+    } else { head = 'THE ANIMAL CARE CENTRE'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
   if (WALK.on) {
@@ -3392,10 +3413,10 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE ORE DEPOT · PLANET UNITY';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE ANIMAL CARE CENTRE · KRYOS CITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
-  let h = '<b>THE ORE DEPOT</b>';
+  let h = '<b>THE ANIMAL CARE CENTRE</b>';
   { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
@@ -3405,7 +3426,7 @@ function updateGameHUD(dt) {
       h += '<div class="dim" style="color:' + (i === G.trip ? '#cfe9ff' : '') + '">' + ts + ' TRIP ' + (i + 1) + ' · ' + tr.name + '</div>';
     });
   }
-  if (G.stage !== 'none' && BUILDS.length < 4) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
+  if (G.stage !== 'none' && BUILDS.length < 5) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
   if (B && B.stats && G.stage !== 'none') {
     const sup = kits.filter(k => k.type === 'SUPPLY');
     h += '<hr>' + B.stats.call(B, api).map(([a, v]) => '<div>' + a + ' <span>' + v + '</span></div>').join('');
@@ -3423,9 +3444,9 @@ function updateGameHUD(dt) {
     else if (e.net < 0) h += '<div>VAULT LASTS <span>' + Math.floor(G.stock / -e.net) + ' min</span></div>';
     else h += '<div style="color:#7dff9a">VAULT FILLING ITSELF · STATION IS SELF-SUFFICIENT</div>';
   }
-  const KF = [['oreStored', 'MOON ORE IN THE STORE', '24,000 t']];
+  const KF = [['animalOpen', 'THE ANIMAL CARE CENTRE', 'CARE FOR EVERY CREATURE ON UNITY']];
   for (const [f, n, v] of KF) if (G.flags && G.flags[f]) h += '<div>' + n + ' <span style="color:#7dff9a">' + v + '</span></div>';
-  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE ORE DEPOT IS OPEN ★</div>';
+  if (G.flags && G.flags.opened && G.stage === 'none') h += '<div style="color:#ffd060">★ THE ANIMAL CARE CENTRE IS OPEN ★</div>';
   $('stationInfo').innerHTML = h;
 }
 
@@ -3962,7 +3983,7 @@ const views = {
   5: [V(110, 140, -20), V(0, 0, -10)],
   6: [V(20, 560, 10), V(0, 0, 0)],
 };
-const siteView = [V(430, 230, 420), V(120, -28, 0)];
+const siteView = [V(700, 360, 460), V(1150, -28, 0)];
 // pull right back so every part of the station built so far is in the shot
 function wholeStationView() {
   if (G.loc !== 'site' || warp) { txMsg = 'WHOLE-STATION VIEW WORKS AT THE STATION — WARP THERE FIRST (W)'; txMsgT = 3; return; }
@@ -4194,7 +4215,8 @@ function animate() {
   }
   updateTrucks(dt);
   const dShip = ship.position.clone().sub(prevShip);
-  if (!followHook) { camera.position.add(dShip); controls.target.add(dShip); }
+  if (padHold && !landing) padHold = false;
+  if (!followHook && !padHold) { camera.position.add(dShip); controls.target.add(dShip); }
   if (camGoal) { camGoal = [camGoal[0].clone().add(dShip), camGoal[1].clone().add(dShip)]; }
   if (viewMode === 1 || viewMode === 2) { snapCam = null; camGoal = null; followHook = null;
     const eye = bridge.localToWorld(viewMode === 1 ? V(0, 1.78, -0.7) : V(0, 1.9, 5.6)), d = eye.sub(camera.position);
@@ -4354,8 +4376,8 @@ addEventListener('resize', () => {
 /* ---------- blueprint room (a real room: the full station blueprint covers the far wall) ---------- */
 {
   const room = $('bpRoom'), frame = $('bpFrame'), page = $('bpPage');
-  const PLAN = ['Depot Landing Field', 'The Shaft', 'The Underground Store', 'The Ore Drop'];
-  const FAMILIES = [['SF', 'Deck / Collar / Galleries', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Masts / Guide Lights', '#b03a2e'], ['SY', 'Power / Lift / Vents', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['MN', 'Moon Ore', '#8a5a3a']];
+  const PLAN = ['Kryos Landing Field', 'The Animal Clinic & the Farm Barn', 'The Wildlife Refuge', 'The Ranger Station & the Aviary', 'The Green Bridge & Release Day'];
+  const FAMILIES = [['SF', 'Deck / Paths', '#6c757d'], ['DC', 'Dock Clamp', '#2f6690'], ['HP', 'Masts / Gate / Aviary', '#b03a2e'], ['SY', 'Power / Clinic / Rangers', '#e8e1d1'], ['TX', 'Transporter Pad', '#7b4fa0'], ['GD', 'Refuge / Green Bridge', '#3fb04a'], ['FB', 'Farm Barn', '#d9a21b']];
   const built = id => { const B = curBuild(); return (B && id < B.id) || G.stage === 'none' || (B && B.id === id && G.stage === 'done'); };
   const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   function paper(g, w, h) {
@@ -4372,21 +4394,17 @@ addEventListener('resize', () => {
     g.textBaseline = 'middle'; g.textAlign = 'center';
     const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
     const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - x) < 1 && Math.abs(p.z - z) < 1);
-    // ---- site plan of the depot (seen from above) ----
-    const x0 = 120, sk = 1.6, X = x => x0 + (x + 740) * sk, Z = z => 1050 + z * sk;
-    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE UNITY ORE DEPOT', X(-280), 210);
+    // ---- site plan of the spaceport (seen from above) ----
+    const sk = 2.4, X = x => 1100 + (x - 1150) * sk, Z = z => 1060 + z * sk;
+    g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE ANIMAL CARE CENTRE', X(1150), 260);
     const box = (cx, cz, bw, bd, on, col, label) => { g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fillRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.strokeRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz + bd / 2) + 22); } };
     const disc = (cx, cz, r, on, col, label) => { g.beginPath(); g.arc(X(cx), Z(cz), r * sk, 0, 7); g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.stroke(); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz) + r * sk + 22); } };
-    box(120, 0, 120, 540, built(1), 'rgba(125,255,154,.18)', 'LANDING FIELD');
-    disc(0, 0, 38, has('COLLAR'), 'rgba(20,20,22,.8)', 'THE SHAFT');
-    box(-150, 0, 40, 30, has('TUNNEL'), 'rgba(95,154,66,.6)', 'TUNNEL');
-    for (const [x, z] of [[-60, 110], [-60, -110], [-130, 230], [-130, -230]]) disc(x, z, 14, at('SKYLIGHT', x, z), 'rgba(255,220,150,.6)');
-    for (const [x, z] of [[-115, 130], [-115, -130], [-60, 280], [-60, -200]]) disc(x, z, 5, at('VENT', x, z), 'rgba(232,225,209,.7)');
-    box(-80, -300, 16, 16, has('SLIFT'), 'rgba(232,225,209,.7)', 'LIFT');
-    for (let i = 0; i < 6; i++) box(-220 - 60 * i, 0, 60, 12, at('GALLERY', -220 - 60 * i, 0), 'rgba(138,90,58,.8)');
-    box(-640, 0, 160, 160, has('DISTRICT'), 'rgba(217,162,27,.25)', 'FACTORY DISTRICT (NEXT)');
-    g.setLineDash([14, 10]); g.strokeStyle = 'rgba(255,208,96,.7)'; g.lineWidth = 3; g.beginPath(); g.ellipse(X(-90), Z(0), 160 * sk, 300 * sk, 0, 0, 7); g.stroke(); g.setLineDash([]);
-    g.fillStyle = '#ffd060'; g.font = '26px Arial'; g.fillText('UNDERGROUND STORE (1.2 km OF CAVERNS)', X(-90), Z(-330));
+    box(1000, -120, 110, 70, has('CLINIC'), 'rgba(184,240,144,.5)', 'ANIMAL CLINIC');
+    box(1000, 120, 100, 60, has('FARMBARN'), 'rgba(217,162,27,.5)', 'FARM BARN');
+    box(1120, 0, 380, 12, has('APATH'), 'rgba(216,205,182,.6)');
+    for (const [x, z] of [[1180, -200], [1180, 200], [1330, 10]]) disc(x, z, 55, at('ENCLOSURE', x, z), 'rgba(63,176,74,.45)', 'REFUGE');
+    box(1090, 75, 60, 40, has('RANGERS'), 'rgba(127,216,255,.5)', 'RANGERS'); disc(1335, -190, 40, has('AVIARY'), 'rgba(176,58,46,.35)', 'AVIARY');
+    box(1255, 0, 40, 70, has('GREENBRIDGE'), 'rgba(95,158,58,.8)', 'GREEN BRIDGE'); box(925, 0, 8, 60, has('VETGATE'), 'rgba(184,240,144,.8)', 'GATE');
     // ---- build plan strip ----
     const sx0 = 2700, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;
     g.font = 'bold 44px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 80);
@@ -4398,9 +4416,9 @@ addEventListener('resize', () => {
       g.fillStyle = ink; g.font = 'bold 44px Arial'; g.fillText(String(bid), x + bw / 2, y + 55);
       g.font = '32px Arial'; g.fillText(p, x + bw / 2, y + 120);
     });
-    if ((G.flags || {}).oreStored) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ 24,000 t OF MOON ORE STORED', (sx0 + sx1) / 2, 1360); }
+    if ((G.flags || {}).animalOpen) { g.fillStyle = ok; g.font = 'bold 60px Arial'; g.fillText('✔ THE ANIMAL CARE CENTRE IS OPEN', (sx0 + sx1) / 2, 1360); }
     // ---- title block ----
-    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE UNITY ORE DEPOT', 70, 100);
+    g.textAlign = 'left'; g.fillStyle = ink; g.font = 'bold 64px Arial'; g.fillText('THE ANIMAL CARE CENTRE', 70, 100);
     g.font = '28px Arial'; g.fillText('MASTER BLUEPRINT · SHEET 1 OF 1 · CHOSEN BY THE UNITY COUNCIL', 70, 150);
     g.textAlign = 'right'; g.fillText('SCALE: SCHEMATIC · ✔ BUILT  ▶ IN PROGRESS', w - 70, 100);
     function has(t) { return placed.some(p => p.type === t && !p.busy); }
@@ -4422,7 +4440,7 @@ addEventListener('resize', () => {
       });
       y += 6;
     }
-    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE ORE DEPOT IS OPEN ★', 70, y + 10); }
+    if (G.flags && G.flags.opened) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ THE ANIMAL CARE CENTRE IS OPEN ★', 70, y + 10); }
     
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';

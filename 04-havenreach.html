@@ -83,6 +83,7 @@
 </script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -2646,6 +2647,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
+  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -3226,7 +3228,7 @@ function updateGameHUD(dt) {
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
   else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'STATION-7 HAVENREACH' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
   else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'STATION-7 HAVENREACH BUILD SITE' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = window.HAVEN ? 'station.js FOUND · NO build1.js … build12.js' : 'STATION FILES NOT FOUND'; sub = 'PUT station.js AND build1.js … build13.js IN projects/havenreach NEXT TO havenreach.html, THEN REFRESH'; }
+  else if (!BUILDS.length) { head = window.HAVEN ? 'station.js FOUND · NO build1.js … build12.js' : 'STATION FILES NOT FOUND'; sub = 'PUT station.js AND build1.js … build13.js IN projects/havenreach NEXT TO 04-havenreach.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';

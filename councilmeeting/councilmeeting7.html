@@ -56,11 +56,12 @@
   #report .bal:hover { background: rgba(64, 208, 255, .2); }
 </style>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
-<script src="projects/projects.js" onerror="this.remove()"></script>
+<script src="../projects/projects.js" onerror="this.remove()"></script>
+<script src="../projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
-    for (var i = 0; i < L.length; i++) { if ((L[i].html || '').toLowerCase() === me) return d; d += L[i].builds || 0; }
+    for (var i = 0; i < L.length; i++) { if ((L[i].html || '').split('/').pop().toLowerCase() === me) return d; d += L[i].builds || 0; }
     return d;
   })();
 </script>
@@ -819,7 +820,7 @@ function askKeeper(q = 0) {
   say(m, Q[1], () => { hideSay(); sitDown(m); heartPulse = 1; setTimeout(() => keeperLine(Q[2], () => { hideSay(); setTimeout(() => askKeeper(q + 1), 1500); }), 1200); });
 }
 function finish() {
-  G.done = true; G.phase = 'done'; save(); applause(6, 1.4); $('report').style.opacity = 0;
+  G.done = true; G.phase = 'done'; save(); window.WB_chapterDone && window.WB_chapterDone(); applause(6, 1.4); $('report').style.opacity = 0;
   banner('THE COUNCIL HAS CHOSEN', PROPS[G.choice].name + ' · UNITY\'S NEXT GREAT BUILD');
 }
 let heartPulse = 0, bannerT = 0;
@@ -849,7 +850,7 @@ function menuData() {
     ['THE PROPOSALS', PROPS.map((P, k) => ['row', P.short, G.choice === k ? 'CHOSEN' : '—', G.choice === k])],
     ['CAMERA', [['Follow the meeting', 'C', () => setView('auto')], ['The Heart', '1', () => setView('heart')], ['The council ring', '2', () => setView('ring')], ['From the seats', '3', () => setView('seats')], ['From above', '4', () => setView('above')], ['The whole hall', '5', () => setView('hall')], ['Free look', 'F', () => setView('free')], ['text', 'Look: drag · Pan: right-drag · Zoom: scroll']]],
     ['DISPLAY', [['Hide / show info', 'H', () => document.body.classList.toggle('hideInfo')], ['Open / close this menu', 'M', () => menuEl.classList.toggle('open')]]],
-    ['GAME', [['Back to the main menu', '', () => { location.href = 'index.html'; }], [newArm > 0 ? 'Tap again to start over' : 'Hold the meeting again', '', restart]]],
+    ['GAME', [['Back to the main menu', '', () => { location.href = '../index.html'; }], [newArm > 0 ? 'Tap again to start over' : 'Hold the meeting again', '', restart]]],
   ];
 }
 let menuSig = '';

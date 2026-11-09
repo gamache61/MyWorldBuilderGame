@@ -57,6 +57,7 @@
 </style>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="../projects/projects.js" onerror="this.remove()"></script>
+<script src="../projects/chapterlock.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -915,7 +916,7 @@ function askKeeper(q = 0) {
   say(m, Q[1], () => { hideSay(); sitDown(m); heartPulse = 1; setTimeout(() => keeperLine(Q[2], () => { hideSay(); setTimeout(() => askKeeper(q + 1), 1500); }), 1200); });
 }
 function finish() {
-  G.done = true; G.phase = 'done'; save(); applause(6, 1.4); $('report').style.opacity = 0;
+  G.done = true; G.phase = 'done'; save(); window.WB_chapterDone && window.WB_chapterDone(); applause(6, 1.4); $('report').style.opacity = 0;
   banner('THE COUNCIL HAS CHOSEN', PROPS[G.choice].name + ' · UNITY\'S NEXT GREAT BUILD');
 }
 let heartPulse = 0, bannerT = 0;

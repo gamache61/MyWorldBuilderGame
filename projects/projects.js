@@ -2,20 +2,21 @@
    MY SPACE BUILDERS GAMES · PROJECT LIST
    Keep this file at projects/projects.js.
    The front page (index.html) shows one card per project below.
-   To add a project: make its HTML file next to index.html, its
-   build files in projects/<folder>, then add one entry here.
+   To add a project: make its HTML file next to index.html (named with
+   its chapter number, like 40-name.html), its build files in
+   projects/<folder>, then add one entry here.
    ============================================================ */
 window.SPACE_PROJECTS = [
   {
     name: 'THE SEEKER · SHIPYARD',
-    html: 'seeker.html',
+    html: '01-seeker.html',
     brief: 'Where the story begins. Build the explorer ship the Seeker in a shipyard beside the parts depot on Earth — trucks bring every part and a giant gantry crane lifts it into place. Then launch it into deep space to find The Keeper.',
     builds: 14,
     color: '#5fe8d8',
   },
   {
     name: "THE SEEKER'S VOYAGE",
-    html: 'voyage.html',
+    html: '02-voyage.html',
     brief: 'Fly the finished Seeker into deep space. Stop above strange planets, send the drones down to scan them, find an empty green world — then follow a bright light, light years away, to The Keeper.',
     builds: 6,
     label: '6 STOPS',
@@ -23,35 +24,35 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'AEGIS ARK · SHIPYARD',
-    html: 'arkyard.html',
+    html: '03-arkyard.html',
     brief: 'Build the cargo ship that hauls every part to every build. Trucks bring the parts from the depot and a giant gantry crane lifts them onto the Aegis Ark — hull, armour, bay doors, engines and turrets — then launch it.',
     builds: 14,
     color: '#ffb040',
   },
   {
     name: 'STATION-7 HAVENREACH',
-    html: 'havenreach.html',
+    html: '04-havenreach.html',
     brief: 'A stacked disc sky station 4.4 km across — landing deck on top, the Heartforge engine at its heart, gardens and living districts for 2.5 million people.',
     builds: 13,
     color: '#40d0ff',
   },
   {
     name: 'KRYOS CITY · PLANET UNITY',
-    html: 'kryoscity.html',
+    html: '05-kryoscity.html',
     brief: 'A futuristic city on the green planet Unity — no cars, only spacecraft, surrounded by lush forest. Gardens, recycling and its own power core make it fully self-sustaining.',
     builds: 13,
     color: '#5fe0a0',
   },
   {
     name: 'SEASHORE · PLANET UNITY',
-    html: 'seashore.html',
+    html: '06-seashore.html',
     brief: 'A harbour town on the coast of Unity — breakwater and lighthouse, tidal power, docks, cargo ships and ferries, a floating marina, a beach resort and a glass skyline by the sea.',
     builds: 16,
     color: '#4fb0ff',
   },
   {
     name: 'ELECTION DAY · PLANET UNITY',
-    html: 'election.html',
+    html: '07-election.html',
     brief: 'The people of Unity choose their council. Day 1 the candidates speak, day 2 everyone votes — you too — and day 3 the votes are counted. Eleven seats go to the winners, and the Keeper chooses one more.',
     builds: 3,
     label: '3 DAYS',
@@ -59,7 +60,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE COUNCIL HALL · PLANET UNITY',
-    html: 'councilhall.html',
+    html: '08-councilhall.html',
     brief: 'The heart of the new world. Build the great round Council Hall under a glass dome, with a seat for every voice, and set the Heart of Unity — an echo of the Keeper — at its centre to power all of Unity.',
     builds: 11,
     color: '#ffd060',
@@ -74,7 +75,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: "THE KEEPER'S GATE · PLANET UNITY",
-    html: 'keepersgate.html',
+    html: '10-keepersgate.html',
     brief: 'The council has chosen. Build a great golden ring 256 m across on the gate site — foundations, pylons, twenty-four ring segments and the keystone — link it to the Heart of Unity, then open it onto the Keeper\'s world.',
     builds: 6,
     color: '#ffd060',
@@ -89,7 +90,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'FARMLANDS OF UNITY',
-    html: 'farmlands.html',
+    html: '12-farmlands.html',
     brief: 'The council has chosen again. Turn the meadow into farmland — a reservoir and canals, twelve fields tended by farm robots, glass greenhouses, a harvest hall and silos — then send the first harvest to Kryos on the sky-pod line.',
     builds: 6,
     color: '#6fe08a',
@@ -104,7 +105,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE MOON MINES · MOON VESH',
-    html: 'moonmines.html',
+    html: '14-moonmines.html',
     brief: 'The council has chosen the moon. Fly the Aegis Ark to Vesh — habitat domes for the miners, a terraced ore pit and drill rigs, an ore depot — then fill the Ark to the top with raw ore under the loading gantry and fly it to Unity.',
     builds: 5,
     color: '#b8c4d0',
@@ -119,7 +120,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE UNITY ORE DEPOT · PLANET UNITY',
-    html: 'oredepot.html',
+    html: '16-oredepot.html',
     brief: 'Somewhere to put the moon ore. Bore a great shaft into the plateau, carve a cavern store beneath it with skylights, vents and a tunnel, run ore galleries out to the future factory district — then the Ark opens its belly over the shaft and drops 24,000 t of ore inside.',
     builds: 4,
     color: '#e0a070',
@@ -134,7 +135,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE RETURN FLEET · PLANET UNITY',
-    html: 'returnfleet.html',
+    html: '18-returnfleet.html',
     brief: 'Bring the families home. Build a spaceport with two Ark pads, a control tower and a glass welcome terminal, a fleet shipyard with bridge cranes — then build the first new Ark, AXA-403 Homeward, launch it to Earth and watch it come home full of families.',
     builds: 6,
     color: '#ffb040',
@@ -149,7 +150,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE FACTORY DISTRICT · PLANET UNITY',
-    html: 'factorydistrict.html',
+    html: '20-factorydistrict.html',
     brief: 'Make something of the moon ore. An ore line from the depot to a smokeless smelter, a rolling mill and foundry, three parts factories, four warehouses and a freight yard — then the first parts made on Unity are beamed into the Aegis Ark.',
     builds: 6,
     color: '#ffc850',
@@ -164,7 +165,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE TOWN ON VESH · MOON VESH',
-    html: 'veshtown.html',
+    html: '22-veshtown.html',
     brief: 'Bring the miners\u2019 families to the moon. An ice mine and water works for water and air, a moon spaceport, a town of home domes with a school and a park, and an observatory on the crater rim \u2014 then the first families fly in from Unity.',
     builds: 5,
     color: '#8fe8ff',
@@ -179,7 +180,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE HOMEWARD FLEET · PLANET UNITY',
-    html: 'homewardfleet.html',
+    html: '24-homewardfleet.html',
     brief: 'Three more Arks built from Unity-made parts. Three building berths and yard towers, bridge cranes, fuel and a fleet terminal, three hulls and fifteen engines \u2014 then Kindred, Harmony and New Dawn sail for Earth together and come home with 9,000 families.',
     builds: 5,
     color: '#ffb040',
@@ -194,9 +195,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE CHILDREN\u2019S PLAYLAND · PLANET UNITY',
-    html: 'childrensplayland.html',
+    html: '26-childrensplayland.html',
     brief: 'A place for the children of Unity to gather and have fun, in Kryos city beside the landing field. Four playgrounds, a splash pond and a carousel, a big wheel and two sports fields, the children\u2019s own clubhouse and a rainbow gate \u2014 then opening day.',
-    builds: 4,
+    builds: 5,
     color: '#ff90c0',
   },
   {
@@ -209,9 +210,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE GREAT SCHOOL OF UNITY · PLANET UNITY',
-    html: 'greatschool.html',
+    html: '28-greatschool.html',
     brief: 'The council has chosen learning. In Kryos city, across the landing field from the playland: the domed Great Hall and the library bell tower, a workshop hall and building yard, teaching greenhouses and the Healing School, four classroom wings \u2014 then the first day of school, open to everyone of every age.',
-    builds: 4,
+    builds: 5,
     color: '#90f0b0',
   },
   {
@@ -224,9 +225,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'NEW HOMES FOR THE FAMILIES · PLANET UNITY',
-    html: 'newhomes.html',
+    html: '30-newhomes.html',
     brief: 'Homes at last for the nine thousand families. On the open strip north of the Kryos landing field: garden streets and rows of family houses, six terraced apartment blocks, a district school, a market hall and community gardens, Homeward Park \u2014 then moving-in day.',
-    builds: 4,
+    builds: 5,
     color: '#e8a0e8',
   },
   {
@@ -239,9 +240,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE HOUSE OF HEALING · PLANET UNITY',
-    html: 'houseofhealing.html',
+    html: '32-houseofhealing.html',
     brief: 'A hospital for every family on Unity, on the open strip south of the Kryos landing field. The main hospital and its tree-filled atrium, two ward towers and the Children\u2019s Wing, healing gardens and the Birth House, a sky-pod pad for the healing pods \u2014 then opening day.',
-    builds: 4,
+    builds: 5,
     color: '#80f0e0',
   },
   {
@@ -254,9 +255,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE KRYOS SHOPPING CENTRE · PLANET UNITY',
-    html: 'shoppingcentre.html',
+    html: '34-shoppingcentre.html',
     brief: 'The Steward of Numbers showed Kryos needed shops. At the west end of the boulevard: a great glass hall with sixty-four shops, a golden-domed food hall and two caf\u00e9s, a row of workshops and an open market square, a roof garden \u2014 then opening day.',
-    builds: 4,
+    builds: 5,
     color: '#ffc890',
   },
   {
@@ -269,9 +270,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE ORE RUN \u00b7 PLANET UNITY',
-    html: 'orerun.html',
+    html: '36-orerun.html',
     brief: 'A freighter yard beside the Ore Depot. Four freighter pads and a yard tower, two ore hoppers and a conveyor down to the depot, four ore freighters and a Crew Hall for the crews from Vesh, a hangar and a fuel depot \u2014 then the first run.',
-    builds: 4,
+    builds: 5,
     color: '#f0b070',
   },
   {
@@ -284,9 +285,9 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE ANIMAL CARE CENTRE \u00b7 PLANET UNITY',
-    html: 'animalcare.html',
+    html: '38-animalcare.html',
     brief: 'Care for every creature on Unity, at the east end of the Kryos boulevard where the city meets the forest. An animal clinic and a farm barn, a wildlife refuge with three enclosures, a ranger station and an aviary, a green bridge for the animals \u2014 then release day.',
-    builds: 4,
+    builds: 5,
     color: '#b8f090',
   },
   {
