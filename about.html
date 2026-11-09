@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Builder — About / How to Play</title>
+<style>
+  :root { --ink: #d8ecff; --dim: #8fb0c8; --line: rgba(127, 216, 255, .35); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #02050a; color: var(--ink); font-family: Arial, sans-serif; }
+  #stars { position: fixed; inset: 0; z-index: 0; }
+  main { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 56px 24px 48px; }
+  h1 { margin: 0; text-align: center; font-weight: 600; letter-spacing: 10px; font-size: clamp(24px, 5vw, 42px); color: #fff; text-shadow: 0 0 24px rgba(64, 208, 255, .45); }
+  .sub { text-align: center; color: #7fd8ff; letter-spacing: 4px; font-size: 13px; margin: 14px 0 34px; }
+  section { background: rgba(6,14,24,.85); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 18px; }
+  h2 { margin: 0 0 10px; color: #fff; letter-spacing: 3px; font-size: 16px; }
+  p, li { color: var(--dim); font-size: 14px; line-height: 1.65; }
+  p { margin: 6px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  b { color: #fff; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 6px 8px; border-bottom: 1px solid rgba(127,216,255,.12); color: var(--dim); }
+  td:first-child { color: #fff; white-space: nowrap; width: 90px; }
+  .back { display: block; width: max-content; margin: 26px auto 0; padding: 10px 20px; border-radius: 6px; border: 1px solid #40d0ff; background: rgba(64,208,255,.18); color: #fff; text-decoration: none; letter-spacing: 1px; }
+  .back:hover { background: rgba(64,208,255,.35); }
+  footer { text-align: center; color: #4f6b82; font-size: 11px; letter-spacing: 3px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<main>
+  <h1>WORLD BUILDER</h1>
+  <div class="sub">ABOUT / HOW TO PLAY</div>
+
+  <section>
+    <h2>THE STORY</h2>
+    <p>Earth is a world of violence and wars. Billions of years ago, <b>The Keeper</b> sent an object down to Earth that only one person could ever power on. A man mining for gold found it — golden rings turning around a golden ball, a small copy of The Keeper itself. It spoke to him and gave him the plan for a new world of peace. That man is <b>the Builder</b> — and the Builder is you.</p>
+    <p>The plan begins with the explorer ship <b>the Seeker</b>. You build it on Earth and fly it into deep space, where it finds The Keeper and the empty green planet <b>Unity</b> — the place where the new world will be built.</p>
+    <p>Then you build the cargo ship <b>the Aegis Ark</b>, and chapter by chapter you build everything the new world needs: a sky station, cities, a council hall, farms, mines, schools, homes and more. Between chapters, the <b>Unity Council</b> meets to decide what to build next — and sometimes the deciding vote is yours.</p>
+  </section>
+
+  <section>
+    <h2>CHAPTERS</h2>
+    <ul>
+      <li>The story is played <b>in order</b>, one chapter at a time. Your place is saved, so <b>CONTINUE</b> on the front page takes you back to where you were.</li>
+      <li>Every build in a chapter is <b>one day</b> in the story, with day and night, sunrise and sunset.</li>
+      <li>When a chapter is finished it is marked <b>COMPLETE</b> and you can go straight on to the next one.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>HOW TO PLAY</h2>
+    <ul>
+      <li>The <b>NEXT STEP</b> at the top middle of the screen always tells you what to do next — click its button or press its key.</li>
+      <li>All the controls are in the <b>drop-down menu</b>, grouped by category (press <b>M</b> to open or close it). Each control shows its key.</li>
+      <li>In the shipyard chapters, trucks bring the parts and the gantry crane lifts them into place.</li>
+      <li>Once the Aegis Ark is built, it brings the parts from the warehouse on Earth. Load the cargo bay, warp to the build site, and unload the parts with the crane or the transporter.</li>
+      <li>In the council meetings, listen to the council and cast your vote when they ask you.</li>
+    </ul>
+    <table>
+      <tr><td>M</td><td>Open / close the menu</td></tr>
+      <tr><td>H</td><td>Hide / show the information on screen</td></tr>
+      <tr><td>L</td><td>Finish a build · land / lift off</td></tr>
+      <tr><td>T</td><td>Transporter — beam the cargo</td></tr>
+      <tr><td>B</td><td>Open / close the cargo bay doors</td></tr>
+      <tr><td>W</td><td>Warp between Earth and the build site</td></tr>
+      <tr><td>X</td><td>Get off the ship and walk around (arrow keys)</td></tr>
+      <tr><td>1 – 9</td><td>Camera views</td></tr>
+    </table>
+    <p>Not every key is used in every chapter — check the menu.</p>
+  </section>
+
+  <section>
+    <h2>BUYING</h2>
+    <ul>
+      <li><b>Demo:</b> try Chapter 1 free for 1 minute.</li>
+      <li><b>The Beginning — $4.89:</b> Chapters 1 to 5.</li>
+      <li><b>Each chapter after that — $1.99</b>, unlocked one at a time, in order.</li>
+      <li>After you buy, you get an <b>unlock code</b>. Type it in the box on the front page and press <b>UNLOCK</b>.</li>
+    </ul>
+  </section>
+
+  <a class="back" href="index.html">◀ BACK TO THE MAIN MENU</a>
+  <footer>GAMACHE GAMES</footer>
+</main>
+<script>
+  const cv = document.getElementById('stars'), cx = cv.getContext('2d');
+  let W, H, stars = [];
+  function size() {
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    stars = Array.from({ length: Math.round(W * H / 2600) }, () => ({ x: Math.random() * W, y: Math.random() * H, z: Math.random() * 0.9 + 0.1 }));
+  }
+  addEventListener('resize', size); size();
+  (function draw() {
+    cx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      s.x -= s.z * 0.15; if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+      cx.fillStyle = `rgba(200,230,255,${0.25 + s.z * 0.7})`; cx.fillRect(s.x, s.y, s.z * 1.8, s.z * 1.8);
+    }
+    requestAnimationFrame(draw);
+  })();
+</script>
+</body>
+</html>

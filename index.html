@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Builder — TEST COPY</title>
+<style>
+  :root { --ink: #d8ecff; --dim: #8fb0c8; --line: rgba(127, 216, 255, .35); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(ellipse at 50% 120%, #10263d 0%, #050b14 55%, #02050a 100%);
+    color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; overflow-x: hidden; min-height: 100%;
+  }
+  #stars { position: fixed; inset: 0; z-index: 0; }
+  main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 64px 24px 48px; }
+  h1 { margin: 0; text-align: center; font-weight: 600; letter-spacing: 10px; font-size: clamp(26px, 5vw, 48px); color: #fff; text-shadow: 0 0 24px rgba(64, 208, 255, .45); }
+  .sub { text-align: center; color: #7fd8ff; letter-spacing: 4px; font-size: 13px; margin: 14px 0 24px; }
+  .unlock-bar { max-width: 720px; margin: 0 auto 36px; background: rgba(6,14,24,.85); border: 1px solid var(--line); border-radius: 10px; padding: 18px; text-align: center; }
+  .unlock-bar h3 { margin: 0 0 6px; color: #fff; letter-spacing: 2px; font-size: 16px; }
+  .unlock-bar p { margin: 6px 0; color: var(--dim); font-size: 13px; line-height: 1.6; }
+  .unlock-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .unlock-row input { padding: 10px 12px; font-size: 15px; border-radius: 6px; border: 1px solid var(--line); background: #02050a; color: #fff; min-width: 220px; text-transform: uppercase; }
+  .btn { padding: 10px 18px; border-radius: 6px; border: 1px solid #40d0ff; background: rgba(64,208,255,.18); color: #fff; cursor: pointer; font-size: 14px; letter-spacing: 1px; }
+  .btn:hover { background: rgba(64,208,255,.35); }
+  .btn-gold { border-color: #ffb040; background: rgba(255,176,64,.18); }
+  .btn-gold:hover { background: rgba(255,176,64,.32); }
+  .btn-green { border-color: #3ddc84; background: rgba(61,220,132,.18); }
+  .btn-green:hover { background: rgba(61,220,132,.32); }
+  .continue-banner { max-width: 720px; margin: 0 auto 22px; text-align: center; background: linear-gradient(160deg, rgba(14,34,54,.95), rgba(6,14,24,.95)); border: 1px solid #40d0ff; border-radius: 10px; padding: 20px; }
+  .continue-banner h2 { margin: 0 0 8px; color: #fff; letter-spacing: 2px; font-size: 18px; }
+  .continue-banner p { margin: 0 0 14px; color: var(--dim); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+  .card {
+    position: relative; display: flex; flex-direction: column; gap: 14px; padding: 26px 24px 22px;
+    background: linear-gradient(160deg, rgba(14, 34, 54, .88), rgba(6, 14, 24, .92));
+    border: 1px solid var(--line); border-radius: 8px; color: inherit; text-decoration: none;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 8px 0 0 8px; background: var(--c); }
+  .card.locked { opacity: .92; }
+  .card.current { border-color: var(--c); box-shadow: 0 0 22px rgba(64,208,255,.25); }
+  .card h2 { margin: 0; font-size: 19px; letter-spacing: 3px; color: #fff; font-weight: 600; }
+  .card p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.55; flex: 1; }
+  .meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; letter-spacing: 2px; gap: 10px; }
+  .meta span { color: var(--c); }
+  .go { padding: 8px 16px; border: 1px solid var(--c); border-radius: 4px; color: #fff; background: rgba(64,208,255,.18); white-space: nowrap; }
+  .go.locked-btn { background: rgba(255,176,64,.18); border-color: #ffb040; }
+  .status { font-size: 11px; letter-spacing: 2px; color: #7fd8ff; }
+  .status.done { color: #3ddc84; }
+  .status.locked { color: #ffb040; }
+  .empty { text-align: center; color: #ffb040; letter-spacing: 2px; font-size: 14px; line-height: 1.8; }
+  .more { text-align: center; color: var(--dim); letter-spacing: 2px; margin-top: 22px; font-size: 13px; }
+  footer { text-align: center; color: #4f6b82; font-size: 11px; letter-spacing: 3px; margin-top: 56px; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<main>
+  <h1>WORLD BUILDER</h1>
+  <div class="sub">CONTINUE YOUR STORY — IN ORDER</div>
+
+  <!-- CONTINUE BANNER - shows where they are in the chain -->
+  <div id="continueBanner" class="continue-banner" style="display:none;"></div>
+
+  <!-- UNLOCK BAR - Beginning $4.89, Next $1.99 each -->
+  <div class="unlock-bar">
+    <h3 id="unlockTitle">WORLD BUILDER — THE BEGINNING</h3>
+    <p id="unlockText">Chapters 1–5 included. Demo: Chapter 1. After Chapter 5, each next chapter is $1.99 — one at a time, in order.</p>
+    <div class="unlock-row">
+      <input id="codeInput" placeholder="ENTER UNLOCK CODE" autocomplete="off">
+      <button class="btn btn-green" onclick="enterCode()">UNLOCK ▶</button>
+    </div>
+    <p id="codeMessage" style="min-height:18px;"></p>
+    <div class="unlock-row">
+      <button class="btn btn-gold" onclick="goBuyBeginning()">BUY THE BEGINNING — $4.89</button>
+      <button class="btn" onclick="goBuyNext()">BUY NEXT CHAPTER — $1.99</button>
+    </div>
+    <div class="unlock-row">
+      <button class="btn" onclick="window.location.href='about.html'">ABOUT / HOW TO PLAY</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div id="moreText" class="more"></div>
+  <footer>GAMACHE GAMES</footer>
+</main>
+<script src="projects/projects.js"></script>
+<script>
+  // ===== WORLD BUILDER - CHAIN SYSTEM =====
+  // Beginning = Chapters 1-5 for $4.89
+  // Each chapter after that = $1.99 each, +1 at a time, in order.
+  // The order comes from projects/projects.js (window.SPACE_PROJECTS).
+  // To add Chapter 36 later: just add it to projects.js. No menu change needed.
+
+  const BEGINNING_COUNT = 5;
+
+  let save = JSON.parse(localStorage.getItem('worldBuilderSave') || 'null') || {
+    currentChapter: 1,
+    ownedUpTo: 0,
+    progress: {}
+  };
+
+  function saveGame() {
+    localStorage.setItem('worldBuilderSave', JSON.stringify(save));
+  }
+
+  function getList() {
+    if (window.SPACE_PROJECTS && window.SPACE_PROJECTS.length) return window.SPACE_PROJECTS;
+    return [
+      { name: 'THE SEEKER · SHIPYARD', brief: 'Where the story begins...', builds: 14, color: '#40d0ff', html: '#' },
+      { name: "THE SEEKER'S VOYAGE", brief: 'Fly the finished Seeker...', builds: 6, color: '#ffb040', html: '#' },
+      { name: 'AEGIS ARK · SHIPYARD', brief: 'Build the cargo ship...', builds: 14, color: '#ff7a40', html: '#' },
+      { name: 'STATION-7 HAVENREACH', brief: 'Build the station...', builds: 0, color: '#3ddc84', html: '#' },
+      { name: 'KRYOS CITY · PLANET UNITY', brief: 'Build the city...', builds: 0, color: '#7fb0ff', html: '#' },
+      { name: 'SEASHORE · PLANET UNITY', brief: 'Build the seashore...', builds: 0, color: '#ffd040', html: '#' },
+    ];
+  }
+
+  async function enterCode() {
+    const input = document.getElementById('codeInput');
+    const msg = document.getElementById('codeMessage');
+    const code = (input.value || '').trim().toUpperCase();
+    if (!code) { msg.textContent = 'Type a code first.'; return; }
+
+    // TEST CODES - only work when the game is opened from your own computer (not on the website)
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (isLocal && code === 'WB-RESET-TEST') {
+      save = { currentChapter: 1, ownedUpTo: 0, progress: {} };
+      msg.textContent = 'Reset — back to the demo.';
+      input.value = '';
+      saveGame();
+      try { renderMenu(); } catch(e) { console.error(e); }
+      return;
+    }
+    if (isLocal && code === 'WB-ALL-TEST') {
+      save.ownedUpTo = getList().length;
+      msg.textContent = 'All ' + save.ownedUpTo + ' chapters unlocked for testing.';
+      input.value = '';
+      saveGame();
+      try { renderMenu(); } catch(e) { console.error(e); }
+      return;
+    }
+    if (isLocal && code === 'WB-BASE-TEST') {
+      save.ownedUpTo = Math.max(save.ownedUpTo, BEGINNING_COUNT);
+      msg.textContent = 'Beginning Unlocked! Chapters 1–5 unlocked.';
+      input.value = '';
+      saveGame();
+      try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+      return;
+    }
+    if (isLocal && code === 'WB-NEXT-TEST') {
+      if (save.ownedUpTo < BEGINNING_COUNT) {
+        msg.textContent = 'Buy The Beginning first ($4.89) — then you can buy Next Chapters.';
+        return;
+      }
+      save.ownedUpTo = save.ownedUpTo + 1;
+      msg.textContent = 'Next Chapter Unlocked! You now own up to Chapter ' + save.ownedUpTo + '.';
+      input.value = '';
+      saveGame();
+      try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+      return;
+    }
+
+    // REAL STRIPE CODES - e.g. WBB-USBK-MV3T - check with Worker
+    msg.textContent = 'Checking code...';
+    try {
+      let device = localStorage.getItem('wbDeviceId');
+      if (!device) {
+        device = 'wb-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('wbDeviceId', device);
+      }
+      const res = await fetch('https://gamache-downloads.gamacheapps.workers.dev/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: code, app: 'WBB', device: device })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) {
+        save.ownedUpTo = Math.max(save.ownedUpTo, BEGINNING_COUNT);
+        msg.textContent = 'Beginning Unlocked! Chapters 1–5 unlocked.';
+        input.value = '';
+        saveGame();
+        try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+      } else {
+        msg.textContent = data.error || data.message || 'Code not recognised. Check spelling.';
+      }
+    } catch(e) {
+      msg.textContent = 'Could not reach unlock server. Try again.';
+      console.error(e);
+    }
+  }
+
+  function goBuyBeginning() {
+    window.open('https://gamache61.github.io/MyGamacheAppsWebsite/', '_blank');
+  }
+  function goBuyNext() {
+    window.open('https://gamache61.github.io/MyGamacheAppsWebsite/', '_blank');
+  }
+
+  function playChapter(index1Based, project) {
+    if (index1Based > save.ownedUpTo && !(save.ownedUpTo === 0 && index1Based === 1)) {
+      document.getElementById('codeMessage').textContent = 'That chapter is locked. Buy it to continue.';
+      return;
+    }
+    save.currentChapter = index1Based;
+    saveGame();
+    if (project && project.html && project.html !== '#') window.location.href = project.html;
+    else if (project && project.html === '#') { document.getElementById('codeMessage').textContent = 'Demo preview — copy this file next to your projects/ folder to play the real Chapter ' + index1Based; }
+  }
+
+  function completeChapter(id1Based) {
+    save.progress[String(id1Based)] = 'complete';
+    save.currentChapter = id1Based + 1;
+    saveGame();
+    try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+  }
+  window.completeChapter = completeChapter;
+
+  function renderMenu() {
+    const list = getList();
+    const grid = document.getElementById('grid');
+    const banner = document.getElementById('continueBanner');
+    const more = document.getElementById('moreText');
+    const unlockTitle = document.getElementById('unlockTitle');
+    const unlockText = document.getElementById('unlockText');
+
+    if (!list.length) {
+      grid.innerHTML = '<div class="empty">NO PROJECTS FOUND<br>PUT projects.js IN THE projects FOLDER NEXT TO index.html</div>';
+      return;
+    }
+
+    if (save.ownedUpTo > list.length) save.ownedUpTo = list.length;
+
+    if (save.ownedUpTo === 0) {
+      unlockTitle.textContent = 'WORLD BUILDER — TRY THE DEMO';
+      unlockText.textContent = 'Try Chapter 1 Demo (1 min). No progress saved yet. To keep going, buy The Beginning (Chapters 1–5) for $4.89.';
+    } else if (save.ownedUpTo < list.length) {
+      unlockTitle.textContent = 'YOU OWN UP TO CHAPTER ' + save.ownedUpTo + ' — KEEP GOING';
+      unlockText.textContent = 'Next locked chapter: Chapter ' + (save.ownedUpTo + 1) + '. Buy it for $1.99 to continue in order.';
+    } else {
+      unlockTitle.textContent = 'YOU OWN ALL ' + list.length + ' CHAPTERS';
+      unlockText.textContent = 'New chapters you add later will appear here. Demo players still see them as locked.';
+    }
+
+    const hasStarted = save.ownedUpTo > 0 || Object.keys(save.progress || {}).length > 0;
+    if (!hasStarted) {
+      banner.style.display = 'none'; banner.innerHTML = '';
+    } else {
+      const curIdx = Math.min(Math.max(save.currentChapter, 1), list.length);
+      const cur = list[curIdx - 1];
+      const isCurOwned = curIdx <= save.ownedUpTo;
+      if (cur) {
+        banner.style.display = 'block';
+        banner.innerHTML =
+          '<h2>CONTINUE — CHAPTER ' + curIdx + ' · ' + (cur.name || '') + '</h2>' +
+          '<p>' + (isCurOwned ? 'You are here. Press Continue to keep building in order.' : 'This chapter is locked. Buy it to continue.') + '</p>' +
+          '<button class="btn ' + (isCurOwned ? 'btn-green' : 'btn-gold') + '" onclick="playChapter(' + curIdx + ', getList()[' + (curIdx-1) + '])">' +
+          (isCurOwned ? 'CONTINUE ▶' : (save.ownedUpTo < 5 ? 'BUY THE BEGINNING — $4.89' : 'BUY NEXT CHAPTER — $1.99')) +
+          '</button>';
+      } else { banner.style.display = 'none'; }
+    }
+
+    grid.innerHTML = '';
+    let shown = 0;
+    list.forEach((p, i) => {
+      const id = i + 1;
+      const isComplete = save.progress[String(id)] === 'complete';
+      const isOwned = id <= save.ownedUpTo;
+      const isDemo = save.ownedUpTo === 0 && id === 1;
+      const isNextLocked = save.ownedUpTo === 0 ? (id === 2) : (id === save.ownedUpTo + 1);
+      const isBeginningPreview = id <= BEGINNING_COUNT;
+
+      if (!isOwned && !isNextLocked && !isDemo && !isBeginningPreview) return;
+
+      shown++;
+      const a = document.createElement('div');
+      a.className = 'card' + (!isOwned && !isDemo ? ' locked' : '') + (id === save.currentChapter && isOwned ? ' current' : '');
+      a.style.setProperty('--c', p.color || '#40d0ff');
+
+      const h = document.createElement('h2');
+      h.textContent = 'CHAPTER ' + id + ' · ' + p.name;
+
+      const status = document.createElement('div');
+      status.className = 'status' + (isComplete ? ' done' : (!isOwned ? ' locked' : ''));
+      status.textContent = isComplete ? '✓ COMPLETE' : (isDemo ? '▶ DEMO (1 MIN)' : (id === save.currentChapter && isOwned ? '▶ PLAYING NOW' : (isOwned ? 'READY' : (id <= BEGINNING_COUNT ? '🔒 LOCKED — PART OF BEGINNING $4.89' : '🔒 LOCKED — $1.99'))));
+
+      const d = document.createElement('p');
+      d.textContent = p.brief || '';
+
+      const m = document.createElement('div');
+      m.className = 'meta';
+      const b = document.createElement('span');
+      b.textContent = p.label || ((p.builds || 0) + ' BUILDS');
+      const g = document.createElement('button');
+      g.className = 'go' + (!isOwned ? ' locked-btn' : '');
+      if (isComplete) g.textContent = 'COMPLETE ✓';
+      else if (isDemo) g.textContent = 'TRY DEMO (1 MIN) ▶';
+      else if (isOwned) g.textContent = (id === save.currentChapter ? 'CONTINUE ▶' : 'PLAY ▶');
+      else if (save.ownedUpTo === 0) g.textContent = 'BUY BEGINNING — $4.89';
+      else g.textContent = 'BUY NEXT — $1.99';
+      g.onclick = () => {
+        if (isOwned || isDemo) playChapter(id, p);
+        else if (save.ownedUpTo === 0) goBuyBeginning();
+        else goBuyNext();
+      };
+      m.append(b, g);
+      a.append(h, status, d, m);
+      grid.appendChild(a);
+    });
+
+    const hidden = list.length - shown;
+    more.textContent = hidden > 0 ? '+ ' + hidden + ' MORE CHAPTERS INSIDE — THEY UNLOCK IN ORDER AS YOU BUY THEM' : 'YOU HAVE REACHED THE END — NEW CHAPTERS WILL APPEAR HERE WHEN YOU ADD THEM';
+  }
+
+  try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+
+  // drifting star field (unchanged)
+  const cv = document.getElementById('stars'), cx = cv.getContext('2d');
+  let W, H, stars = [];
+  function size() {
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    stars = Array.from({ length: Math.round(W * H / 2600) }, () => ({ x: Math.random() * W, y: Math.random() * H, z: Math.random() * 0.9 + 0.1 }));
+  }
+  addEventListener('resize', size); size();
+  (function draw() {
+    cx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      s.x -= s.z * 0.15; if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+      cx.fillStyle = `rgba(200,230,255,${0.25 + s.z * 0.7})`; cx.fillRect(s.x, s.y, s.z * 1.8, s.z * 1.8);
+    }
+    requestAnimationFrame(draw);
+  })();
+</script>
+</body>
+</html>
