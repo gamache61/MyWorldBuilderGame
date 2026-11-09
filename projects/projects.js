@@ -293,7 +293,22 @@ window.SPACE_PROJECTS = [
   {
     name: 'THE SIXTEENTH COUNCIL MEETING',
     html: 'councilmeeting/councilmeeting16.html',
-    brief: 'The Animal Care Centre is open. The Steward says what has changed and shows the budget \u2014 rent of 1,000 credits a month, what comes in and goes out, and what each next build costs \u2014 then the council chooses: the Sky Rail, Homeward Two, or the Earth Trade Port.',
+    brief: 'The Animal Care Centre is open. The Steward says what has changed and opens the treasury the Builder gave \u2014 what every build has cost, what comes in and goes out each month with homes still free, and what each next build costs \u2014 then the council chooses: the Sky Rail, Homeward Two, or the Earth Trade Port.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
+  {
+    name: 'THE SKY RAIL \u00b7 PLANET UNITY',
+    html: '40-skyrail.html',
+    brief: 'The council has chosen. Build a station in the south-east of Kryos, a line of tall white pylons high above the city, a forest line with green bridges so the animals can cross, and a great viaduct across the valley \u2014 then ride the first sky pod toward Seashore, the Farmlands and the factories.',
+    builds: 5,
+    color: '#9fffd8',
+  },
+  {
+    name: 'THE SEVENTEENTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting17.html',
+    brief: 'The Sky Rail is running. The Steward says what has changed and opens the treasury, the council asks the Heart a question, and then it chooses what comes next.',
     builds: 1,
     label: '1 DAY',
     color: '#ffe08a',
