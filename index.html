@@ -133,6 +133,14 @@
       try { renderMenu(); } catch(e) { console.error(e); }
       return;
     }
+    if (isLocal && code === 'WB-ALL-TEST') {
+      save.ownedUpTo = getList().length;
+      msg.textContent = 'All ' + save.ownedUpTo + ' chapters unlocked for testing.';
+      input.value = '';
+      saveGame();
+      try { renderMenu(); } catch(e) { console.error(e); }
+      return;
+    }
     if (isLocal && code === 'WB-BASE-TEST') {
       save.ownedUpTo = Math.max(save.ownedUpTo, BEGINNING_COUNT);
       msg.textContent = 'Beginning Unlocked! Chapters 1–5 unlocked.';
