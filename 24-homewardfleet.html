@@ -1580,7 +1580,7 @@ for (let n = 1; n <= 4; n++) KIT_TYPES['SUPPLY' + n] = { code: 'SU', name: n + '
 const isSupply = t => !!(KIT_TYPES[t] && KIT_TYPES[t].supply);
 KIT_TYPES.MAT = { code: 'MT', name: 'PART MATERIAL', col: '#6c757d', w: 2.44, d: 12.2, h: 2.6, mat: true };
 const isMat = t => t === 'MAT';
-const SUPPLY_SHARE = 0.10;   // share of every load that is supply crates for the Vault
+const SUPPLY_SHARE = 0.25;   // share of every load that is supply crates for the Vault
 const kits = [];
 const kitGeo = new THREE.BoxGeometry(2.44, 2.6, 12.2);
 const kitMatCache = {};
@@ -1864,6 +1864,7 @@ function deploy(kit, x, z, rot, beam = false) {
     kit.m.visible = false; const T = KIT_TYPES[kit.type], sl = p.s !== undefined ? B.slots[p.s] : null;
     sparkle(siteGroup, sl && sl.fx ? target.clone().add(sl.fx) : target.clone().add(V(0, Math.min(T.h || 3, 30) / 2, 0)), Math.max(1, (T.fx || Math.max(T.w || 3, T.d || 3)) / 12));
   }
+  if (!isSupply(kit.type) && !isMat(kit.type)) p._need = ucNeedFor(kit);
   const piece = makePiece(p); piece.scale.setScalar(0.02); piece.position.copy(from); siteGroup.add(piece);
   p.piece = piece; kit.state = 'placed'; kit.p = p; placed.push(p);
   deploys.push({ kit, p, piece, from, target, t: 0, beam });
@@ -1881,6 +1882,7 @@ function absorbMat(list, beam = false) {
     const from = k.m.getWorldPosition(new THREE.Vector3());
     if (beam) sparkle(k.m.parent, k.m.position.clone(), 1); else sparkle(siteGroup, siteGroup.worldToLocal(from.clone()), 0.8);
     releaseSpot(k); k.m.visible = false; k.state = 'placed';
+    const uu = ucFor(k.v); if (uu) { ucAdd(uu); sparkle(siteGroup, V(uu.p.piece.position.x, ucLevelWorld(uu) - siteGroup.getWorldPosition(new THREE.Vector3()).y, uu.p.piece.position.z), 1.2); continue; }
     if (mine.length) { const p = mine[(Math.random() * mine.length) | 0]; const sl = p.s !== undefined && B.slots ? B.slots[p.s] : null; const w = p.piece.position.clone().add(sl && sl.fx ? sl.fx : V(0, 3, 0)); sparkle(siteGroup, w, 1.2); }
   }
   save();
@@ -1888,7 +1890,49 @@ function absorbMat(list, beam = false) {
 function placeInstant(p) {
   p.piece = makePiece(p); siteGroup.add(p.piece); p.busy = false; placed.push(p);
 }
+/* ---------- building piece by piece: each part-material crate adds the next layer to a part ----------
+   A part goes up from the ground: its first crate sets the base, then every part-material crate
+   that belongs to it adds one more layer, until the part is whole. */
+renderer.localClippingEnabled = true;
+const UC = new Map();   // part -> { need, got, y0, y1, show, goal, plane }
+function ucNeedFor(kit) {
+  // the part-material crates of this kind still to come, shared between the parts of this kind still to come
+  const mats = kits.filter(k => isMat(k.type) && k.v === kit.type && k.state !== 'placed').length;
+  const parts = kits.filter(k => k.type === kit.type && k.state !== 'placed').length || 1;
+  return Math.ceil(mats / parts);
+}
+function ucStart(p) {
+  if (!p._need || !p.piece || UC.has(p)) return;
+  const box = new THREE.Box3().setFromObject(p.piece); if (!isFinite(box.min.y) || box.max.y - box.min.y < 0.5) return;
+  const base = siteGroup.getWorldPosition(new THREE.Vector3()).y;
+  const plane = new THREE.Plane(V(0, -1, 0), box.min.y);
+  const clip = m => { const c = m.clone(); c.clippingPlanes = [plane]; c.clipShadows = true; return c; };
+  p.piece.traverse(o => { if (!o.material || o.userData.ucMat) return; o.userData.ucMat = o.material; o.material = Array.isArray(o.material) ? o.material.map(clip) : clip(o.material); });
+  const u = { p, need: p._need, got: 0, y0: box.min.y - base, y1: box.max.y - base + 0.5, show: 0, goal: 1 / (p._need + 1), plane };
+  UC.set(p, u);
+}
+function ucDone(u) {
+  u.p.piece.traverse(o => { if (!o.userData.ucMat) return; const c = o.material; (Array.isArray(c) ? c : [c]).forEach(m => m.dispose()); o.material = o.userData.ucMat; delete o.userData.ucMat; });
+  UC.delete(u.p);
+}
+// the part that is waiting for a part-material crate of this kind (the one furthest behind first)
+function ucFor(type) { let best = null; for (const u of UC.values()) if (u.p.type === type && u.got + (u.coming || 0) < u.need && (!best || u.got < best.got)) best = u; return best; }
+function ucAdd(u) { u.coming = Math.max(0, (u.coming || 0) - 1); u.got++; u.goal = Math.min(1, (u.got + 1) / (u.need + 1)); }
+function ucLevelWorld(u) { return siteGroup.getWorldPosition(new THREE.Vector3()).y + u.y0 + (u.y1 - u.y0) * u.show; }
+function ucTick(dt) {
+  if (!UC.size) return;
+  // once every crate of this trip is out of the bay, every part finishes going up
+  const waiting = kits.some(k => k.state !== 'placed');
+  for (const u of [...UC.values()]) {
+    if (!u.p.piece || !u.p.piece.parent) { UC.delete(u.p); continue; }
+    if (!waiting && !deploys.length) u.goal = 1;
+    u.show += (u.goal - u.show) * Math.min(1, dt * 2.5);
+    if (u.goal >= 1 && u.show > 0.995) { ucDone(u); continue; }
+    u.plane.constant = ucLevelWorld(u);
+  }
+}
 function stepDeploys(dt, t) {
+  ucTick(dt);
   let active = null;
   for (let i = deploys.length - 1; i >= 0; i--) {
     const d = deploys[i]; d.t += dt / (d.beam ? 2.2 : 3.0); const k = Math.min(1, d.t), e = k * k * (3 - 2 * k);
@@ -1900,7 +1944,7 @@ function stepDeploys(dt, t) {
     d.piece.scale.setScalar(0.02 + 0.98 * e);
     if (d.beam) d.piece.visible = k > 0.15 && (k > 0.7 || Math.sin(d.t * 90) > -0.3);
     active = d;
-    if (k >= 1) { d.kit.m.visible = false; d.piece.visible = true; d.p.busy = false; deploys.splice(i, 1); save(); }
+    if (k >= 1) { d.kit.m.visible = false; d.piece.visible = true; d.p.busy = false; deploys.splice(i, 1); ucStart(d.p); save(); }
   }
   drones.forEach((dr, i) => {
     dr.visible = !!active;
@@ -2263,7 +2307,7 @@ function updateParking() {
 }
 function startSiteTransport() {
   const why = siteTxBlock(); if (why) { txMsg = why; txMsgT = 3; return; }
-  autoMode = false; STX.on = true; STX.next = 0.6; STX.cur = null; STX.fast = false; STX.supShot = false; STX.matShot = false; stxMsg = '';
+  autoMode = false; STX.on = true; STX.next = 0.6; STX.cur = null; STX.mat = null; STX.matPiece = null; STX.fast = false; STX.supShot = false; STX.matShot = false; stxMsg = '';
   followHook = null; camGoal = null; if (viewMode) setView(0);
 }
 // camera director: show each part leave the cargo bay, then show where it is being built
@@ -2323,8 +2367,26 @@ function updateSiteTransport(dt) {
     } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.2 : 2.6)) STX.cur = null;
     return;
   }
+  if (STX.mat) {
+    const c = STX.mat; c.t += dt;
+    if (c.stage === 'bay' && c.t >= (STX.fast ? 0.08 : 0.7)) {
+      releaseSpot(c.k); c.k.m.visible = false; c.k.state = 'placed'; ucAdd(c.u);
+      const w = V(c.u.p.piece.position.x, 0, c.u.p.piece.position.z); w.y = ucLevelWorld(c.u) - siteGroup.getWorldPosition(new THREE.Vector3()).y;
+      sparkle(siteGroup, w, Math.max(1, (KIT_TYPES[c.u.p.type].fx || 3) / 3));
+      c.stage = 'site'; c.t = 0;
+    } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.1 : 1.0)) { STX.mat = null; save(); }
+    return;
+  }
   STX.next -= dt; if (STX.next > 0) return;
   STX.next = 0.3;
+  for (const u of UC.values()) {
+    if (u.got + (u.coming || 0) >= u.need) continue;
+    const k = left.find(k2 => isMat(k2.type) && k2.v === u.p.type); if (!k) continue;
+    u.coming = (u.coming || 0) + 1; STX.mat = { k, u, stage: 'bay', t: 0 };
+    sparkle(k.m.parent, k.m.position.clone(), 1);
+    if (!STX.fast && STX.matPiece !== u.p) { STX.matPiece = u.p; const T = KIT_TYPES[u.p.type]; stxShot(u.p.piece.getWorldPosition(new THREE.Vector3()), u.p.piece.getWorldPosition(new THREE.Vector3()).add(V(0, Math.min(T.h || 6, 40) / 3, 0)), Math.max(T.w || 10, T.d || 10, T.h || 10) * 0.8); }
+    return;
+  }
   if (!left.length) {
     STX.on = false; save();
     if (parked && landed) bayOpen = false;   // stay parked; W lifts off and warps
@@ -2346,8 +2408,8 @@ function updateSiteTransport(dt) {
   // --- part material: drones take it straight from the bay into the build ---
   const mat = left.filter(k => isMat(k.type));
   if (mat.length) {
-    absorbMat(mat.slice(0, 4), true);
-    STX.next = STX.fast ? 0.05 : 0.25;
+    absorbMat(mat.slice(0, 1), true);
+    STX.next = STX.fast ? 0.05 : 0.5;
     if (!STX.fast && !STX.matShot) { STX.matShot = true; stxBayShot(mat[0]); }
     return;
   }
@@ -3301,7 +3363,7 @@ document.getElementById('cYes').onclick = () => { document.getElementById('confi
 function restartBuild() {
   const B = curBuild(); if (!B) return;
   // stop anything in progress
-  autoMode = false; STX.on = false; STX.cur = null; STORE.on = false; FIN.on = false; TX.on = false; warp = null; warpY = warpZ = 0;
+  autoMode = false; STX.on = false; STX.cur = null; STX.mat = null; STORE.on = false; FIN.on = false; TX.on = false; warp = null; warpY = warpZ = 0;
   for (const d of deploys) { siteGroup.remove(d.piece); } deploys.length = 0;
   // take down this build's parts
   for (const p of placed.filter(p => p.b === B.id)) { siteGroup.remove(p.piece); placed.splice(placed.indexOf(p), 1); }
@@ -3359,7 +3421,7 @@ function updateGameHUD(dt) {
     else if (STX.on) {
       head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
       const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE FLEET YARD') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
+      sub = (STX.mat ? 'PART MATERIAL ' + Math.min(STX.mat.u.got + 1, STX.mat.u.need) + ' OF ' + STX.mat.u.need + ' · ADDING TO THE ' + KIT_TYPES[STX.mat.u.p.type].name : STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE FLEET YARD') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
     }
     else if (parked) {
       head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
