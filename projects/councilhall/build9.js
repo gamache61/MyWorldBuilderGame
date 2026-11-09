@@ -1,8 +1,9 @@
 /* ============================================================
    THE COUNCIL HALL · BUILD 9 · THE HEART OF UNITY
    Keep this file in projects/councilhall next to councilhall.html.
-   The Heart of Unity — a small echo of the Keeper and the power
-   of the whole world — set above the speaking floor.
+   The Heart of Unity — the golden rings and ball the Builder found
+   in the gold mine on Earth, the Keeper's own copy — set above the
+   speaking floor to power the whole world.
    Build 9 ends when you ignite the Heart (press L): it glows, its
    rings start turning and a column of light rises through the
    eye of the dome.
@@ -11,7 +12,7 @@
   const K = KRYOS, TAU = Math.PI * 2;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(K.cityBuild({
     id: 9, name: 'THE HEART OF UNITY',
-    brief: 'The Heart of Unity, a small echo of the Keeper: a burning heart inside three turning rings, set above the speaking floor. It powers the whole of Unity.',
+    brief: 'The golden rings and ball the Builder found in the mine on Earth, the Keeper\'s own copy, become the Heart of Unity: a burning heart inside three turning rings, set above the speaking floor. It powers the whole of Unity.',
     finishLabel: 'IGNITE THE HEART', flags: ['heart'], status: ['THE HEART', 'BURNING'],
     finishCam: [[K.HX, K.HZ], 170], lookUp: 50,
     parts: {

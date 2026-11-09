@@ -468,7 +468,7 @@ const DN = (() => {
 /* ============================================================
    THE SIXTEENTH COUNCIL MEETING · PLANET UNITY
    The Animal Care Centre is open. The Steward of Numbers says what has changed, then opens the treasury:
-   the 500,000,000,000 credits Earth sent with us, what every build so far has cost, what is left,
+   the 500,000,000,000 credits the Builder gave from the gold found in the mine, what every build so far has cost, what is left,
    what comes in and goes out each month (no rent for now), money-making ideas, and what each next build costs.
    The treasury is updated at every meeting from now on.
    The council agrees how it all balances, then decides what to build next.
@@ -748,23 +748,24 @@ function buildScript() {
   S.push([head, 'Steward, what has changed since we last met?']);
   S.push([steward, 'Five hundred more people, so Kryos has fifty-three thousand nine hundred. Only four hundred and fifty homes stand empty now.', 'census']);
   S.push([steward, 'A hundred and twenty new jobs at the Animal Care Centre, and forty-six animal healers trained. Jobs and food are still in balance.']);
-  S.push([head, 'Now the treasury. When Earth agreed to send us here, it sent five hundred billion credits with us to build a world. Steward, how much is left?']);
+  S.push([head, 'Now the treasury. When we came here, the Builder gave five hundred billion credits from the gold found in the mine on Earth, to build this world. Steward, how much is left?']);
   S.push([steward, 'Every build since we landed has been paid from it. Kryos City was the largest, nearly ten billion. All together we have spent thirty-two billion six hundred and fifty million.', 'treasury']);
   S.push([steward, 'That leaves four hundred and sixty-seven billion three hundred and fifty million credits. I will show this at every meeting, and take off the cost of each new build.']);
   S.push([head, 'And each month?']);
-  S.push([steward, 'There is no rent. Homes stay free. A hundred and eighty million comes in each month from the shops, our trade with Earth, ore from Vesh and parts from the factories.', 'budget']);
+  S.push([steward, 'There is no rent. Homes stay free. A hundred and eighty million comes in each month from the shops, our trade with the peaceful towns of Earth, ore from Vesh and parts from the factories.', 'budget']);
   S.push([steward, 'Two hundred and thirty-nine million goes out, for upkeep and for everything we give free, food, healing and schools. So each month we spend fifty-nine million more than we earn, and it comes out of the treasury.']);
   S.push([say2(['SOFIA LINDQVIST', 'GRACE TAYLOR', 'PRIYA NAIR']), 'Then we keep our promise. No rent. Homes stay free for every family.']);
   S.push([say2(['MATEO SILVA', 'OWEN BRANDT', 'TOMAS REYES']), 'But the treasury will not last forever. We need ways to earn, not just to spend.']);
   S.push([steward, 'I have gathered the money-making ideas the people sent in.', 'ideas']);
-  S.push([say2(['NOOR HADDAD', 'HANA KIM', 'LIAM HARTLEY']), 'Our farms grow more food than we eat. We can sell the extra to the Earth ships, and the ore and the moon metal too.']);
-  S.push([say2(['AMARA OKAFOR', 'AYO BANKOLE', 'ELENA VASQUEZ']), 'And every Earth ship that docks at Station-7 can pay a docking fee. Visitors from Earth could come to see Seashore and the wild animals, and pay to stay.']);
+  S.push([say2(['NOOR HADDAD', 'HANA KIM', 'LIAM HARTLEY']), 'Our farms grow more food than we eat. We can sell the extra to the peaceful towns of Earth, and the ore and the moon metal too.']);
+  S.push([say2(['AMARA OKAFOR', 'AYO BANKOLE', 'ELENA VASQUEZ']), 'And every ship from those towns that docks at Station-7 can pay a docking fee. Their people could come to see Seashore and the wild animals, and pay to stay.']);
+  S.push([mira, 'Earth is still at war. We trade only with the towns that keep the peace, and no weapons ever come through our ports.']);
   S.push([head, 'So it is agreed. No rent for now, homes stay free, and we start earning before the treasury runs low. Every credit spent is shown at every meeting. Now, three proposals, and the Steward has the cost of each.']);
   S.push([pick(['MATEO SILVA', 'OWEN BRANDT', 'ELENA VASQUEZ']), 'The Sky Rail, joining Kryos, Seashore, the Farmlands and the factories, with green bridges for the animals.', 0]);
   S.push([steward, 'Two billion four hundred million credits from the treasury.', 0]);
   S.push([pick(['KENJI MORI', 'TOMAS REYES', 'LIAM HARTLEY', 'DARIUS COLE']), 'Homeward Two. Only four hundred and fifty homes are left, and we promised homes are built before families arrive.', 1]);
   S.push([steward, 'One billion five hundred million credits from the treasury.', 1]);
-  S.push([pick(['GRACE TAYLOR', 'AYO BANKOLE', 'NOOR HADDAD']), 'The Earth Trade Port at Seashore. We trade our spare ore and parts with Earth for what we cannot make yet, and it earns more for every build after it.', 2]);
+  S.push([pick(['GRACE TAYLOR', 'AYO BANKOLE', 'NOOR HADDAD']), 'The Earth Trade Port at Seashore. We trade our spare ore and parts with the peaceful towns of Earth for what we cannot make yet, and it earns more for every build after it.', 2]);
   S.push([steward, 'Nine hundred million credits. It earns sixty million more every month, so we would almost stop losing money each month.', 2]);
   S.push([head, 'The council will now vote.', 'vote']);
   S.push([mira, 'Twelve voices, three proposals, four votes each. We are tied once more. Builder, the deciding vote is yours again.', 'ballot']);
@@ -783,7 +784,7 @@ const CENSUS = {
   bars: [['HOMES IN USE', 16350 / 16800]],
   verdict: 'HOUSING IS NOW TIGHT · EVERYTHING ELSE IN BALANCE',
 };
-// the treasury Earth sent with us, and what every build so far has cost · updated at every meeting
+// the treasury the Builder gave from the gold mine, and what every build so far has cost · updated at every meeting
 const TREASURY = {
   start: 500000000000,
   spent: [['KRYOS CITY', 9800000000], ['SEASHORE', 1200000000], ['THE COUNCIL HALL', 350000000], ['FARMLANDS OF UNITY', 1400000000], ['THE MOON MINES', 2600000000],
@@ -794,14 +795,14 @@ const TREASURY = {
 // one month, in Unity credits · no rent for now
 const BUDGET = {
   title: 'EACH MONTH', unit: 'UNITY CREDITS · NO RENT FOR NOW',
-  inc: [['SHOPS & CAFÉS (SHARE)', 40000000], ['TRADE WITH EARTH', 85000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000]],
+  inc: [['SHOPS & CAFÉS (SHARE)', 40000000], ['TRADE · PEACEFUL TOWNS OF EARTH', 85000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000]],
   out: [['UPKEEP · CITY & HOMES', 95000000], ['FREE FOR ALL · FOOD, HEALING, SCHOOLS', 140000000], ['ANIMAL CARE CENTRE', 4000000]],
   builds: [['SKY RAIL', 2400000000, 'FROM THE TREASURY'], ['HOMEWARD TWO', 1500000000, 'FROM THE TREASURY'], ['EARTH TRADE PORT', 900000000, 'EARNS +60,000,000 A MONTH']],
   pay: 'HOMES STAY FREE · THE DIFFERENCE COMES FROM THE TREASURY',
 };
 const IDEAS = {
-  title: 'MONEY-MAKING IDEAS', rows: [['SELL SPARE FOOD TO EARTH SHIPS', '+20,000,000'], ['SELL ORE & MOON METAL', '+35,000,000'], ['DOCKING FEES AT STATION-7', '+8,000,000'],
-    ['VISITORS FROM EARTH · SEASHORE & WILDLIFE', '+15,000,000'], ['THE EARTH TRADE PORT', '+60,000,000']],
+  title: 'MONEY-MAKING IDEAS', rows: [['SELL SPARE FOOD TO PEACEFUL TOWNS', '+20,000,000'], ['SELL ORE & MOON METAL', '+35,000,000'], ['DOCKING FEES AT STATION-7', '+8,000,000'],
+    ['VISITORS · SEASHORE & WILDLIFE', '+15,000,000'], ['THE EARTH TRADE PORT', '+60,000,000']],
   note: 'A MONTH, ONCE EACH IS RUNNING',
 };
 const f$ = n => n.toLocaleString('en-US');
@@ -811,7 +812,7 @@ const sub$ = (t, c) => '<div style="color:' + c + ';font-size:11px;letter-spacin
 function showPanel(html) { const r = $('report'); censusOn = true; r.innerHTML = html; r.style.opacity = 1; r.style.pointerEvents = 'none'; }
 function showTreasury() {
   const T = TREASURY, sp = T.spent.reduce((a, x) => a + x[1], 0);
-  showPanel(head$('THE TREASURY', 'UNITY CREDITS') + row$('SENT BY EARTH', f$(T.start), '#7dff9a') + sub$('SPENT ON BUILDS SO FAR', '#ffb070') +
+  showPanel(head$('THE TREASURY', 'UNITY CREDITS') + row$('GIVEN BY THE BUILDER', f$(T.start), '#7dff9a') + sub$('SPENT ON BUILDS SO FAR', '#ffb070') +
     '<div style="font-size:10.5px;line-height:1.45">' + T.spent.map(([a, n]) => row$(a, f$(n))).join('') + '</div>' +
     row$('TOTAL SPENT', '−' + f$(sp), '#ffb070') + row$('LEFT IN THE TREASURY', f$(T.start - sp), '#7dff9a') +
     '<div class="vd">' + Math.round((T.start - sp) / T.start * 100) + '% LEFT · UPDATED AT EVERY MEETING</div>');

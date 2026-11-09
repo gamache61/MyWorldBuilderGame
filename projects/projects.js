@@ -61,7 +61,7 @@ window.SPACE_PROJECTS = [
   {
     name: 'THE COUNCIL HALL · PLANET UNITY',
     html: '08-councilhall.html',
-    brief: 'The heart of the new world. Build the great round Council Hall under a glass dome, with a seat for every voice, and set the Heart of Unity — an echo of the Keeper — at its centre to power all of Unity.',
+    brief: 'The heart of the new world. Build the great round Council Hall under a glass dome, with a seat for every voice, and set the Heart of Unity — the golden rings the Builder found in the mine, the Keeper\'s own copy — at its centre to power all of Unity.',
     builds: 11,
     color: '#ffd060',
   },
