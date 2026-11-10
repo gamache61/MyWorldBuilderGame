@@ -173,6 +173,7 @@ window.YARD = window.YARD || {
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
+    for (let w = 0; w < 300 && (window.AEGIS_BUILDS || []).length < 5; w++) await new Promise(r => setTimeout(r, 200));   // let this chapter's own five builds finish loading first
     const parent = land.piece.parent, keep = window.AEGIS_BUILDS;
     const bgApi = Object.create(api, { flag: { value: () => true }, setFlag: { value: () => { } }, count: { value: () => 99 }, kitsLeft: { value: () => 0 } });
     // bring one finished project in from its own build files and put every part of it in the world
