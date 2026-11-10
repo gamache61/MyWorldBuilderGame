@@ -204,7 +204,7 @@ window.YARD = window.YARD || {
     this.bgBuilds = [];
     try { this.bgBuilds = await bring('factorydistrict', 'Factory District', 1, false); } catch (e) { console.warn('Mines: finished Factory District', e); }
     // Seashore's ships, ferries and lights keep moving
-    this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick) try { B.tick(bgApi, dt, t); } catch (e) { } };
+    this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick && B.id !== 6) try { B.tick(bgApi, dt, t); } catch (e) { } };
   };
 
   /* ---------- ships: one shape for every water ship the yard builds ---------- */
