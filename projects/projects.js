@@ -328,4 +328,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'HOMEWARD TWO \u00b7 PLANET UNITY',
+    html: '44-homewardtwo.html',
+    brief: 'The council has chosen. Beside Kryos, build a second district for the families still waiting: a street of family homes, courtyard apartments, a school and market hall, a park, and a Sky Rail stop \u2014 then welcome the first families home.',
+    builds: 5,
+    color: '#ffb870',
+  },
+  {
+    name: 'THE NINETEENTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting19.html',
+    brief: 'Homeward Two is open. The Steward says what has changed and opens the treasury, the council talks about the new district, then chooses what comes next.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
