@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Builder's Extras — World Builder</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #02060c; font-family: "Segoe UI", Arial, sans-serif; color: #d8ecff; user-select: none; }
+  canvas { display: block; }
+  #top { position: fixed; z-index: 5; left: 0; right: 0; top: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; padding: 8px 14px; background: rgba(6,14,24,.85); border-bottom: 1px solid rgba(64,208,255,.35); font-size: 12px; letter-spacing: 2px; }
+  #top h1 { margin: 0; font-size: 15px; letter-spacing: 4px; color: #fff; }
+  #top b { color: #ffd9a0; font-weight: 600; }
+  #top a { color: #9fe8ff; text-decoration: none; margin-left: auto; border: 1px solid rgba(64,208,255,.6); padding: 6px 12px; border-radius: 4px; }
+  #list { position: fixed; z-index: 4; left: 12px; top: 60px; bottom: 12px; width: 270px; overflow-y: auto; }
+  .card { margin-bottom: 8px; padding: 10px 12px; background: rgba(6,14,24,.82); border: 1px solid rgba(64,208,255,.3); border-radius: 6px; cursor: pointer; }
+  .card:hover { border-color: #40d0ff; }
+  .card.sel { border-color: #ffb040; background: rgba(40,28,10,.85); }
+  .card h3 { margin: 0 0 3px; font-size: 13px; letter-spacing: 3px; color: #fff; }
+  .card .meta { font-size: 11px; color: #8fb0c8; letter-spacing: 1px; }
+  .card .tag { float: right; font-size: 10px; letter-spacing: 2px; padding: 2px 6px; border-radius: 3px; border: 1px solid #3ddc84; color: #3ddc84; }
+  .card .tag.pend { border-color: #ffb040; color: #ffb040; }
+  #info { position: fixed; z-index: 4; right: 12px; top: 60px; width: 330px; padding: 14px 16px; background: rgba(6,14,24,.85); border: 1px solid rgba(64,208,255,.35); border-radius: 6px; font-size: 13px; line-height: 1.55; }
+  #info h2 { margin: 0 0 2px; font-size: 17px; letter-spacing: 4px; color: #fff; }
+  #info .sz { color: #5fe8d8; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
+  #info select { width: 100%; margin: 6px 0 10px; padding: 7px; background: #0a1a2a; color: #fff; border: 1px solid #40d0ff; border-radius: 4px; font-size: 13px; }
+  button { font: 600 13px "Segoe UI", Arial; padding: 9px 14px; margin: 3px 3px 3px 0; letter-spacing: 2px; border: 1px solid #5fe8d8; border-radius: 4px; background: rgba(47,184,200,.25); color: #fff; cursor: pointer; }
+  button:hover { background: rgba(47,184,200,.5); }
+  button.gold { border-color: #ffb040; background: rgba(255,176,64,.22); }
+  button:disabled { opacity: .4; cursor: default; }
+  #council { position: fixed; z-index: 8; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(2,6,12,.88); }
+  #council .box { width: min(640px, 92vw); padding: 24px; background: linear-gradient(160deg, rgba(14,34,54,.98), rgba(6,14,24,.98)); border: 1px solid #40d0ff; border-radius: 10px; text-align: center; }
+  #council h2 { margin: 0 0 12px; letter-spacing: 5px; color: #fff; font-size: 18px; }
+  #council .say { min-height: 70px; font-size: 16px; line-height: 1.55; color: #fff4dc; font-style: italic; }
+  #council .say .who { display: block; font-style: normal; font-size: 12px; letter-spacing: 5px; color: #ffd9a0; margin-bottom: 4px; }
+  #seats { display: flex; justify-content: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+  .seat { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #4a6a88; background: #0a1a2a; transition: all .3s; }
+  .seat.yes { background: #3ddc84; border-color: #b8ffd8; box-shadow: 0 0 14px #3ddc84; }
+  .seat.no { background: #e05a4a; border-color: #ffc0b8; box-shadow: 0 0 14px #e05a4a; }
+  #code { display: none; margin-top: 8px; }
+  #code input { width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 6px; background: #0a1a2a; color: #fff; border: 1px solid #40d0ff; border-radius: 4px; letter-spacing: 2px; text-transform: uppercase; }
+  #msg { min-height: 18px; margin-top: 8px; color: #ffe0a0; font-size: 12px; }
+  #ride { position: fixed; z-index: 6; left: 50%; bottom: 24px; transform: translateX(-50%); display: none; }
+  #banner { position: fixed; z-index: 3; left: 0; right: 0; bottom: 70px; text-align: center; pointer-events: none; color: #fff; text-shadow: 0 0 14px #000; letter-spacing: 6px; font-size: 20px; }
+  @media (max-width: 900px) { #list { width: 150px; } #info { width: 230px; font-size: 12px; } }
+</style>
+<script src="extras.js"></script>
+<script>(window.WB_EXTRA_FILES || []).forEach(function (f) { document.write('<script src="' + f + '"><\/script>'); });</script>
+<script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="top">
+  <h1>BUILDER'S EXTRAS</h1>
+  <span>FREE BUILD POINTS LEFT: <b id="pts">10</b> / 10</span>
+  <span>COUNCIL TREASURY: <b id="tre">0</b></span>
+  <a href="../index.html">◀ MAIN MENU</a>
+</div>
+<div id="list"></div>
+<div id="info"></div>
+<div id="banner"></div>
+<button id="ride" class="gold"></button>
+
+<div id="council"><div class="box">
+  <h2>THE COUNCIL MEETS</h2>
+  <div class="say" id="say"></div>
+  <div id="seats"></div>
+  <div id="cbtn"></div>
+</div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ---------- saved state ---------- */
+var KEY = 'worldBuilderExtras';
+function load() {
+  var s = null; try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { }
+  s = s || {}; s.used = s.used || 0; s.spent = s.spent || 0; s.built = s.built || {}; s.unlocked = s.unlocked || {};
+  return s;
+}
+var S = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+function chaptersDone() {
+  var n = 0, w = null; try { w = JSON.parse(localStorage.getItem('worldBuilderSave') || 'null'); } catch (e) { }
+  if (w && w.progress) for (var k in w.progress) if (w.progress[k] === 'complete') n++;
+  return n;
+}
+// The council's treasury: 20 to start, +5 for every chapter you have finished, minus what extras have cost.
+function treasury() { return 20 + 5 * chaptersDone() - S.spent; }
+function freeLeft() { return Math.max(0, window.WB_FREE_POINTS - S.used); }
+var X = {}; window.WB_EXTRAS.forEach(function (e) { X[e.id] = e; e.sz = window.WB_SIZES[e.size]; });
+var cur = window.WB_EXTRAS[0];
+
+/* ---------- 3D ---------- */
+var renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true; document.body.prepend(renderer.domElement);
+var scene = new THREE.Scene(); scene.background = new THREE.Color(0x9fd0ee); scene.fog = new THREE.Fog(0x9fd0ee, 70, 180);
+var cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, .1, 400);
+var ctl = new OrbitControls(cam, renderer.domElement); ctl.enableDamping = true; ctl.maxPolarAngle = Math.PI / 2 - .03;
+scene.add(new THREE.HemisphereLight(0xdff0ff, 0x586a4a, .9));
+var sun = new THREE.DirectionalLight(0xfff0d0, 1.5); sun.position.set(30, 50, 20); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = sc.bottom = -40; sc.right = sc.top = 40; sc.far = 140; scene.add(sun);
+var ground = new THREE.Mesh(new THREE.CircleGeometry(160, 48), new THREE.MeshStandardMaterial({ color: 0x5c9a52, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+var waterM = new THREE.MeshStandardMaterial({ color: 0x2f8fd0, roughness: .2, metalness: .1, transparent: true, opacity: .92 });
+var lake = new THREE.Mesh(new THREE.CircleGeometry(60, 48), waterM); lake.rotation.x = -Math.PI / 2; lake.position.y = .02; lake.visible = false; scene.add(lake);
+var holder = null, riding = false, rideT0 = 0, clock = new THREE.Clock(), built01 = 1;
+
+function show(e) {
+  stopRide();
+  cur = e;
+  if (holder) scene.remove(holder);
+  holder = new THREE.Group(); scene.add(holder);
+  e.build(THREE, holder);
+  lake.visible = e.ground === 'water'; ground.material.color.set(e.ground === 'water' ? 0x6aa65a : 0x5c9a52);
+  var v = e.view; cam.position.set(v.cam[0], v.cam[1], v.cam[2]); ctl.target.set(v.target[0], v.target[1], v.target[2]); ctl.update();
+  built01 = S.built[e.id] ? 1 : 0; if (S.built[e.id]) built01 = 1; else built01 = 1;
+  var r = holder.userData.ride, b = document.getElementById('ride');
+  b.style.display = (r && S.built[e.id]) ? 'block' : 'none'; if (r) b.textContent = r.label + ' ▶';
+  drawList(); drawInfo();
+}
+function startRide() {
+  var r = holder.userData.ride; if (!r) return;
+  riding = true; ctl.enabled = false; rideT0 = clock.elapsedTime; r.start(rideT0);
+  var b = document.getElementById('ride'); b.textContent = '◀ STOP — BACK TO LOOKING AROUND';
+}
+function stopRide() {
+  if (!riding) return;
+  riding = false; ctl.enabled = true;
+  if (holder && holder.userData.ride) holder.userData.ride.stop();
+  var v = cur.view; cam.position.set(v.cam[0], v.cam[1], v.cam[2]); ctl.target.set(v.target[0], v.target[1], v.target[2]); ctl.update();
+  var b = document.getElementById('ride'); b.textContent = holder.userData.ride.label + ' ▶';
+}
+document.getElementById('ride').onclick = function () { riding ? stopRide() : startRide(); };
+
+/* ---------- screen ---------- */
+function drawList() {
+  var h = '';
+  window.WB_EXTRAS.forEach(function (e) {
+    var bl = S.built[e.id];
+    h += '<div class="card' + (e === cur ? ' sel' : '') + '" data-id="' + e.id + '"><span class="tag' + (bl ? '' : ' pend') + '">' + (bl ? 'BUILT' : 'NOT BUILT') + '</span><h3>' + e.name.toUpperCase() + '</h3><div class="meta">' + e.size.toUpperCase() + ' · ' + e.sz.points + ' POINTS · ' + e.sz.price + '</div></div>';
+  });
+  var l = document.getElementById('list'); l.innerHTML = h;
+  l.querySelectorAll('.card').forEach(function (c) { c.onclick = function () { show(X[c.getAttribute('data-id')]); }; });
+  document.getElementById('pts').textContent = freeLeft();
+  document.getElementById('tre').textContent = treasury();
+}
+function drawInfo() {
+  var e = cur, bl = S.built[e.id], h = '<h2>' + e.name.toUpperCase() + '</h2><div class="sz">' + e.size.toUpperCase() + ' · ' + e.sz.points + ' BUILD POINTS · COUNCIL COST ' + e.sz.cost + '</div><div>' + e.brief + '</div>';
+  if (bl) {
+    h += '<p style="color:#3ddc84;letter-spacing:2px">BUILT — ' + bl.toUpperCase() + '</p>';
+  } else {
+    h += '<p style="color:#8fb0c8;font-size:12px">' + (freeLeft() >= e.sz.points ? 'Free — you have enough free build points.' : (S.unlocked[e.id] ? 'Unlocked — ready to build.' : 'Not enough free points left. This one is ' + e.sz.price + '.')) + '</p>';
+    h += '<div style="font-size:12px;letter-spacing:2px;color:#9fe8ff">WHERE SHOULD IT GO?</div><select id="place">' + window.WB_PLACES.map(function (p) { return '<option>' + p + '</option>'; }).join('') + '</select>';
+    h += '<button class="gold" id="propose">PROPOSE TO THE COUNCIL</button>';
+  }
+  h += '<div id="code"><input id="codeIn" placeholder="ENTER UNLOCK CODE" autocomplete="off"><button id="codeGo">UNLOCK ▶</button><button id="codeBuy">BUY ' + e.sz.price + '</button></div><div id="msg"></div>';
+  document.getElementById('info').innerHTML = h;
+  var p = document.getElementById('propose'); if (p) p.onclick = propose;
+  document.getElementById('codeGo').onclick = enterCode;
+  document.getElementById('codeBuy').onclick = function () { window.open('https://gamache61.github.io/MyGamacheGamesWebsite/', '_blank'); };
+}
+function say(who, text) { document.getElementById('say').innerHTML = '<span class="who">' + who + '</span>' + text; }
+
+/* ---------- the council meeting ---------- */
+var SEATS = 12;
+function propose() {
+  var e = cur, place = document.getElementById('place').value, t = treasury(), after = t - e.sz.cost, ok = e.sz.cost <= t;
+  var co = document.getElementById('council'); co.style.display = 'flex';
+  var seats = document.getElementById('seats'); seats.innerHTML = ''; for (var i = 0; i < SEATS; i++) { var d = document.createElement('div'); d.className = 'seat'; seats.appendChild(d); }
+  var cb = document.getElementById('cbtn'); cb.innerHTML = '';
+  say('THE BUILDER', 'Council, I would like to build a ' + e.name + ' — ' + place + '.');
+  setTimeout(function () {
+    say('THE STEWARD', 'The ' + e.name + ' will cost ' + e.sz.cost + '. The treasury holds ' + t + '. ' + (ok ? 'If we build it, ' + after + ' will remain.' : 'We are ' + (e.sz.cost - t) + ' short.'));
+  }, 2600);
+  setTimeout(function () {
+    say('THE COUNCIL', 'The vote begins.');
+    var yes = ok ? (after < e.sz.cost ? SEATS - 2 : SEATS - (e.sz.cost > t * .5 ? 1 : 0)) : 3, order = []; for (var i = 0; i < SEATS; i++) order.push(i < yes);
+    var i = 0, ds = seats.children;
+    var iv = setInterval(function () {
+      ds[i].className = 'seat ' + (order[i] ? 'yes' : 'no'); i++;
+      if (i >= SEATS) {
+        clearInterval(iv);
+        setTimeout(function () {
+          if (ok) {
+            say('THE KEEPER', yes + ' for, ' + (SEATS - yes) + ' against. The council agrees — the ' + e.name + ' fits the budget.');
+            cb.innerHTML = '<button class="gold" id="goBuild">BUILD IT ▶</button> <button id="later">NOT NOW</button>';
+            document.getElementById('goBuild').onclick = function () { co.style.display = 'none'; tryBuild(e, place); };
+          } else {
+            say('THE KEEPER', yes + ' for, ' + (SEATS - yes) + ' against. The council cannot afford it yet. Finish more chapters and the treasury will grow.');
+            cb.innerHTML = '<button id="later">CLOSE</button>';
+          }
+          document.getElementById('later').onclick = function () { co.style.display = 'none'; };
+        }, 700);
+      }
+    }, 330);
+  }, 5600);
+}
+
+/* ---------- paying: free points or an unlock code ---------- */
+function tryBuild(e, place) {
+  if (freeLeft() >= e.sz.points) { S.used += e.sz.points; finish(e, place); return; }
+  if (S.unlocked[e.id]) { finish(e, place); return; }
+  S.pending = { id: e.id, place: place }; save();
+  document.getElementById('code').style.display = 'block';
+  document.getElementById('msg').textContent = 'No free points left for this one. Buy it for ' + e.sz.price + ' and type the code you get.';
+}
+function finish(e, place) {
+  S.spent += e.sz.cost; S.built[e.id] = place; delete S.pending; save();
+  drawList(); drawInfo();
+  var r = holder.userData.ride; document.getElementById('ride').style.display = r ? 'block' : 'none';
+  var bn = document.getElementById('banner'); bn.textContent = e.name.toUpperCase() + ' BUILT'; setTimeout(function () { bn.textContent = ''; }, 4000);
+}
+async function enterCode() {
+  var e = cur, input = document.getElementById('codeIn'), msg = document.getElementById('msg'), code = (input.value || '').trim().toUpperCase();
+  if (!code) { msg.textContent = 'Type a code first.'; return; }
+  var local = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  var good = false;
+  if (local && code === 'WB-EXTRA-TEST') good = true;
+  else {
+    msg.textContent = 'Checking code...';
+    try {
+      var dev = localStorage.getItem('wbDeviceId'); if (!dev) { dev = 'wb-' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('wbDeviceId', dev); }
+      var res = await fetch('https://gamache-downloads.gamacheapps.workers.dev/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: code, app: 'WBX', device: dev, extra: e.id }) });
+      var data = await res.json().catch(function () { return {}; });
+      if (data.ok) good = true; else { msg.textContent = data.error || data.message || 'Code not recognised. Check spelling.'; return; }
+    } catch (x) { msg.textContent = 'Could not reach unlock server. Try again.'; return; }
+  }
+  if (good) {
+    S.unlocked[e.id] = true; save();
+    var place = (S.pending && S.pending.id === e.id) ? S.pending.place : window.WB_PLACES[0];
+    finish(e, place);
+  }
+}
+
+/* ---------- loop ---------- */
+function fit() { renderer.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
+addEventListener('resize', fit);
+function loop() {
+  requestAnimationFrame(loop);
+  var t = clock.elapsedTime = clock.getElapsedTime();
+  if (holder && holder.userData.tick) holder.userData.tick(t);
+  if (riding && holder.userData.ride) holder.userData.ride.update(t, cam); else ctl.update();
+  waterM.color.setHSL(.57, .6, .42 + Math.sin(t * .8) * .02);
+  renderer.render(scene, cam);
+}
+show(cur); loop();
+</script>
+</body>
+</html>
