@@ -388,4 +388,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE GUARDIAN YARD',
+    html: '52-guardianyard.html',
+    brief: 'Build Unity\u2019s shield: four shield towers, three building slips, three guard ships, the shield heart and a watch hall where every decision to defend Unity is made in the open \u2014 then raise the shield on opening day.',
+    builds: 5,
+    color: '#ff9a90',
+  },
+  {
+    name: 'THE TWENTY-THIRD COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting23.html',
+    brief: 'The shield is up and a strange ship waits at the edge of the sky. The council votes on what comes next, then asks the Keeper what to do.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
