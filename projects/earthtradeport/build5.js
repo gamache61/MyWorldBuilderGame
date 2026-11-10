@@ -1,9 +1,9 @@
 /* ============================================================
    THE EARTH TRADE PORT · BUILD 5 · THE TRADE SHIPS & FIRST TRADE DAY
    Keep this file in projects/earthtradeport next to 46-earthtradeport.html.
-   Two big ships from Earth with their decks stacked with containers.
-   Ends with L: first trade day — a third ship arrives from far out at
-   sea, ties up at the deep quay and the people of Unity welcome it.
+   Two big space freighters from Earth, hovering on lift fans beside the quays with their decks stacked with containers.
+   Ends with L: first trade day — a third freighter flies in from the
+   sky, settles beside the deep quay and the people of Unity welcome it.
    ============================================================ */
 (function () {
   const P = window.YARD;
@@ -11,7 +11,7 @@
   P.findTrade = (api, last) => { const l = api.placed.filter(q => q.type === 'TRADESHIP' && q.piece); const p = last ? l[l.length - 1] : l[0]; let s = null; if (p) p.piece.traverse(o => { if (o.userData.isTrade && !s) s = o; }); return s; };
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 5, name: 'THE TRADE SHIPS & FIRST TRADE DAY',
-    brief: 'Two big trade ships from Earth tied up at the deep quays with their decks stacked with containers — then first trade day.',
+    brief: 'Two big space freighters from Earth settled beside the deep quays on their lift fans, decks stacked with containers — then first trade day.',
     types: {
       TRADESHIP: { code: 'FB', name: 'EARTH TRADE SHIP', col: '#39465a', w: 22, d: 124, h: 40 },
     },
@@ -49,13 +49,13 @@
       update(api, dt, f) {
         this.t1 += dt; const s = this.ship;
         if (s) {
-          // sail in from far out at sea along the quay, slowing down to tie up
+          // fly in from high over the sea, slowing down and sinking onto the water beside the quay on its lift fans
           const e = Math.min(1, f / 15), ease = 1 - (1 - e) * (1 - e);
-          s.position.z = this.z0 - 560 * (1 - ease); s.position.x = this.x0 + 40 * (1 - ease) * (1 - ease); s.rotation.y = -Math.PI / 2 + 0.1 * (1 - ease);
-          s.position.y = Math.sin(f * 1.2) * 0.1 + (SEA() + 2.6 - (s.parent.getWorldPosition(new api.THREE.Vector3()).y));
+          s.position.z = this.z0 - 700 * (1 - ease); s.position.x = this.x0 + 40 * (1 - ease) * (1 - ease); s.rotation.y = -Math.PI / 2 + 0.1 * (1 - ease);
+          s.position.y = 160 * (1 - ease) * (1 - ease) + Math.sin(f * 1.2) * 0.1 + (SEA() + 2.6 - (s.parent.getWorldPosition(new api.THREE.Vector3()).y));
         }
         if (this.stage === 0) {
-          P.hint('FIRST TRADE DAY · A SHIP FROM EARTH SAILS IN TO THE DEEP QUAY');
+          P.hint('FIRST TRADE DAY · A SPACE FREIGHTER FROM EARTH FLIES IN AND SETTLES AT THE DEEP QUAY');
           if (this.t1 > 16) { this.stage = 1; this.t1 = 0; P.ring && P.ring(3); }
         } else if (this.stage === 1) {
           P.hint('THE CRANES LIFT THE FIRST CONTAINERS · THE PEOPLE OF UNITY WELCOME EARTH');

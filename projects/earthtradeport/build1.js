@@ -3,7 +3,7 @@
    Keep this file in projects/earthtradeport next to 46-earthtradeport.html.
    The council chose the Earth Trade Port: a deep-water port on the
    coast south of the harbour where Unity trades its spare ore, parts
-   and food with the peaceful towns of Earth. Trade ships from Earth
+   and food with the peaceful towns of Earth. space freighters from Earth
    tie up at the deep quay, tall cranes load them, and the Sky Rail
    brings the cargo down from the cities. The landing field and
    transporter are already there, so it begins at build 2.
