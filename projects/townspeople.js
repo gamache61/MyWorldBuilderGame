@@ -52,6 +52,7 @@
     earthtradeport:   { work: 0.85, kids: 0.02, skip: ['TRADESHIP'] },
     crystalmines:     { work: 0.85, kids: 0.0 },
     guardianyard:     { work: 0.8, kids: 0.0 },
+    starwatcharray:   { work: 0.6, kids: 0.1 },
   };
   const MAX_PEOPLE = 260;       // most simple walking figures at once
   const MAX_DETAILED = 22;      // most detailed people at once (the ones nearest the camera)

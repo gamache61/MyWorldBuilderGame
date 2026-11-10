@@ -403,4 +403,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE STARWATCH ARRAY',
+    html: '54-starwatcharray.html',
+    brief: 'Build the ears of Unity: six great listening dishes, a listening hall, a visitors\u2019 dome, an answering beacon, two observatories and solar fields \u2014 then say hello to the sky for the first time.',
+    builds: 5,
+    color: '#c8b0ff',
+  },
+  {
+    name: 'THE TWENTY-FOURTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting24.html',
+    brief: 'The stranger has answered the beacon, and it is hurt. The council votes on what comes next, then asks the Keeper whether to help a stranger we do not know.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
