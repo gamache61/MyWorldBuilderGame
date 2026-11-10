@@ -343,4 +343,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE EARTH TRADE PORT',
+    html: '46-earthtradeport.html',
+    brief: 'The council has chosen. On the coast south of the harbour, build a deep-water port where ships from Earth tie up: deep quays and a Customs Hall, warehouses and ore stores, tall cargo cranes and a Sky Rail spur \u2014 then welcome the first trade ship.',
+    builds: 5,
+    color: '#7fd8ff',
+  },
+  {
+    name: 'THE TWENTIETH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting20.html',
+    brief: 'The trade port is open. The council talks about the fuel crystals that run the ships, the power in the cities, the Moon and Havenreach \u2014 and how to mine more of them.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];

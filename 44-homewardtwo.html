@@ -90,6 +90,7 @@
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
 <script src="projects/projects.js" onerror="this.remove()"></script>
 <script src="projects/chapterlock.js" onerror="this.remove()"></script>
+<script src="projects/townspeople.js" onerror="this.remove()"></script>
 <script>
   window.WB_DAY_START = (function () {
     var L = window.SPACE_PROJECTS || [], me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), d = 0;
@@ -3624,6 +3625,8 @@ function astroGoals(t) {
     }
   }
 }
+// townspeople (projects/townspeople.js): people walking about wherever people live and work
+const TOWN_ENGINE = { THREE, scene, renderer, camera, siteGroup, placed, crowd, spawnPerson, isDeck, showPeople: SHOW_PEOPLE, get atSite() { return G.loc === 'site'; }, get inside() { return HAB.inside; }, get night() { return DN.isNight; } };
 function updateCrowd(dt, t, nearBridge) {
   const atEarth = G.loc === 'earth', atSite = G.loc === 'site';
   if (!SHOW_PEOPLE) return;
@@ -4265,6 +4268,7 @@ function animate() {
   stepDeploys(dt, t);
   updateMarkers(t);
   updateCrowd(dt, t, nearBridge);
+  if (window.WB_TOWN) window.WB_TOWN.tick(TOWN_ENGINE, dt, t);
   { // day and night follow the build: sunrise as it starts, sunset halfway, night until the last parts are in
     const B = curBuild(); let day = BUILDS.length, p = 0.25;
     if (B) {
