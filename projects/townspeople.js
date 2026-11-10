@@ -50,6 +50,7 @@
     seashoreshipyard: { work: 0.80, kids: 0.02, skip: ['FERRY', 'FISHER', 'RESEARCH'] },
     homewardtwo:      { work: 0.05, kids: 0.25, density: 1.2 },
     earthtradeport:   { work: 0.85, kids: 0.02, skip: ['TRADESHIP'] },
+    crystalmines:     { work: 0.85, kids: 0.0 },
   };
   const MAX_PEOPLE = 260;       // most simple walking figures at once
   const MAX_DETAILED = 22;      // most detailed people at once (the ones nearest the camera)

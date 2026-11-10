@@ -373,4 +373,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE CRYSTAL MINES',
+    html: '50-crystalmines.html',
+    brief: 'Open the mountain mines east of Kryos: tunnels and winding towers, a power house, a refinery, a raised crystal rail to the cities and a fuelling yard \u2014 then run the first crystal train.',
+    builds: 5,
+    color: '#70f0e0',
+  },
+  {
+    name: 'THE TWENTY-SECOND COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting22.html',
+    brief: 'The Crystal Mines are open. The council votes on what comes next, then asks the Keeper: do we use weapons against unfriendly aliens?',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
