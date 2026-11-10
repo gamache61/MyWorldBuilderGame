@@ -165,7 +165,7 @@ window.YARD = window.YARD || {
     add(new T.CapsuleGeometry(0.34 * s / 0.6 * 0.6, 1.0 * s, 3, 6), C[cols[n % 7]], x, y + 0.9 * s, z, true, parent); add(new T.SphereGeometry(0.26 * s, 8, 6), C.skin || (C.skin = new T.MeshStandardMaterial({ color: [0xe0b090, 0xb07850, 0x8a5a3a, 0xf0c8a0][n % 4], roughness: 0.8 })), x, y + 1.75 * s, z, true, parent); };
 })();
 
-/* ---------- all of Seashore and the Seashore Shipyard, finished, loaded from their own build files ---------- */
+/* ---------- the finished Factory District, loaded from their own build files ---------- */
 (function () {
   const P = window.YARD;
   const me = (document.currentScript && document.currentScript.src) || '';
@@ -201,8 +201,8 @@ window.YARD = window.YARD || {
       }
       return mine;
     };
-    this.bgBuilds = await bring('seashore', 'Seashore', 1, false);
-    try { const fd = await bring('factorydistrict', 'Factory District', 1, false); this.bgBuilds = this.bgBuilds.concat(fd); } catch (e) { console.warn('Mines: finished Factory District', e); }
+    this.bgBuilds = [];
+    try { this.bgBuilds = await bring('factorydistrict', 'Factory District', 1, false); } catch (e) { console.warn('Mines: finished Factory District', e); }
     // Seashore's ships, ferries and lights keep moving
     this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick) try { B.tick(bgApi, dt, t); } catch (e) { } };
   };
