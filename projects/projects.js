@@ -358,4 +358,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE HAVENREACH SKY DOCKS',
+    html: '48-havenreachskydocks.html',
+    brief: 'The council has chosen. On the top deck of Station-7 Havenreach, build a repair and refuelling port for ships from Earth: dock arms and berths, repair hangars and fuel bays, a visitors\u2019 hall and a glass skydeck \u2014 then welcome the first visiting ship.',
+    builds: 5,
+    color: '#a8c8ff',
+  },
+  {
+    name: 'THE TWENTY-FIRST COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting21.html',
+    brief: 'The Sky Docks are open and visitors have seen strange lights beyond Havenreach. The council votes on what comes next, then asks the Keeper: is anyone else out there, and are they friendly?',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
