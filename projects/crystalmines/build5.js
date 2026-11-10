@@ -61,7 +61,7 @@
         const F = P.mats(api), cry = P._cry || [0x7ffcff, 0x9f7bff, 0x6dffb0].map(c => new T.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 1.4, roughness: 0.25 }));
         this.train = new T.Group(); grp.add(this.train);
         for (let i = 0; i < 4; i++) { const x = -i * 26; add(new T.BoxGeometry(24, 5, 6.4), F.white, x, 4.5, 0, true, this.train); add(new T.BoxGeometry(24.2, 1.2, 6.6), cry[i % 3], x, 3, 0, false, this.train); add(new T.BoxGeometry(20, 2.6, 5), cry[(i + 1) % 3], x, 7.9, 0, false, this.train); }
-        this.y0 = api.DECK_TOP + 28 + 1; this.sx = 1730; this.ex = 400; this.z = 80;
+        this.y0 = api.DECK_TOP + 28 + 1; this.sx = 1730; this.ex = 860; this.z = 80;
         this.flare = add(new T.SphereGeometry(10, 16, 10), new T.MeshBasicMaterial({ color: new T.Color(0.6, 2.0, 1.8), toneMapped: false, transparent: true, opacity: 0 }), 1480, api.DECK_TOP + 20, 190, false);
       },
       update(api, dt, f) {

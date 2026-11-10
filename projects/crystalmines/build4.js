@@ -12,10 +12,10 @@
     brief: 'The refinery where raw crystal is made into clean fuel, and a long raised Crystal Rail that carries the fuel down from the mountains to the landing field and the cities.',
     types: {
       REFINERY: { code: 'SY', name: 'REFINERY', col: '#d9731b', w: 140, d: 90, h: 60 },
-      CRYSTALRAIL: { code: 'SF', name: 'CRYSTAL RAIL', col: '#9aa3ad', w: 1500, d: 16, h: 30 },
+      CRYSTALRAIL: { code: 'SF', name: 'CRYSTAL RAIL', col: '#9aa3ad', w: 1000, d: 16, h: 30 },
     },
     order: ['REFINERY', 'CRYSTALRAIL'],
-    at: { REFINERY: [[1580, -20]], CRYSTALRAIL: [[1050, 80]] },
+    at: { REFINERY: [[1580, -20]], CRYSTALRAIL: [[1300, 80]] },
     eye: [1250, 190, 480],
     stats(api, c) { return [['REFINERY', c('REFINERY') ? 'REFINING' : 'NOT YET'], ['CRYSTAL RAIL', c('CRYSTALRAIL') ? 'RUNNING' : 'NOT YET']]; },
     make(type, k, g, add, F, api, sl) {
@@ -34,7 +34,7 @@
         for (let i = 0; i < 3; i++) P.person(g, P.civ(50400 + i), i % 2 ? 'tablet' : 'idle', -8 + i * 8, 1, 38, Math.PI);
       } else {
         // the Crystal Rail: a raised track on pylons from the mountains to the landing field, a station at each end, and a train
-        const L = 1500, h = 28, half = L / 2;
+        const L = 1000, h = 28, half = L / 2;
         add(new T.BoxGeometry(L, 1.8, 10), F.panel, 0, h, 0);
         for (const z of [-3.4, 3.4]) add(new T.BoxGeometry(L, 0.5, 0.6), F.steel, 0, h + 1.2, z);
         add(new T.BoxGeometry(L, 0.3, 0.5), cry[0], 0, h + 0.2, 4.8).castShadow = false;

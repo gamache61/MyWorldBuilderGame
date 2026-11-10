@@ -202,6 +202,7 @@ window.YARD = window.YARD || {
       return mine;
     };
     this.bgBuilds = await bring('seashore', 'Seashore', 1, false);
+    try { const fd = await bring('factorydistrict', 'Factory District', 1, false); this.bgBuilds = this.bgBuilds.concat(fd); } catch (e) { console.warn('Mines: finished Factory District', e); }
     // Seashore's ships, ferries and lights keep moving
     this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick) try { B.tick(bgApi, dt, t); } catch (e) { } };
   };
