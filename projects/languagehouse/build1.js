@@ -7,6 +7,8 @@
 /* ---------- shared by every mine build (one copy, kept on window) ---------- */
 window.YARD = window.YARD || {
   _t: -1, people: [],
+  // the Starwatch Array stands on the old site, so this chapter is built south of it: every build position is moved by OFF
+  OFF: [0, 850],
   ground(api, x, z) { return Math.max(window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 0.4, window.SEA_Y !== undefined ? window.SEA_Y : -1e9); },
   // the seabed (for piers and docks standing in the water)
   seabed(api, x, z) { return window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 30; },
@@ -65,7 +67,7 @@ window.YARD = window.YARD || {
   // def = { id, name, brief, types: { T: { code, name, col, w, d, h } }, at: { T: [[x, z], …] }, order: ['T', …],
   //         make(type, k, g, add, F, api, sl), stats(api, c), eye?, finish?: { label, cam: [[x,y,z],[x,y,z]], start(api), update(api, dt, k) -> done } }
   build(def) {
-    const PLAY = this;
+    const PLAY = this, OFF = (this.OFF || [0, 0]).slice();
     const types = {}; for (const [t, T] of Object.entries(def.types)) types[t] = { fixed: true, fx: 3, ...T };
     const kits = {}; for (const t of def.order) kits[t] = def.at[t].length;
     const B = {
@@ -75,10 +77,11 @@ window.YARD = window.YARD || {
       setup(api) {
         const V = (x, y, z) => new api.THREE.Vector3(x, y, z), E = def.eye || [-170, 120, 230];
         this.slots = [];
-        for (const t of def.order) def.at[t].forEach(([x, z], k) => {
-          this.slots.push({ type: t, k, x, z, y: PLAY.ground(api, x, z), fx: V(0, Math.min(types[t].h || 6, 30) / 2, 0), look: V(0, 6, 0), eye: V(...E) });
+        for (const t of def.order) def.at[t].forEach(([ax, az], k) => {
+          const x = ax + OFF[0], z = az + OFF[1];
+          this.slots.push({ type: t, k, x, z, y: PLAY.ground(api, x, z), fx: V(0, Math.min(types[t].h || 6, 30) / 2, 0), look: V(0, 6, 0), eye: V(E[0] + OFF[0], E[1], E[2] + OFF[1]) });
         });
-        if (def.finish) this.finishCam = [V(...def.finish.cam[0]), V(...def.finish.cam[1])];
+        if (def.finish) this.finishCam = def.finish.cam.map(c => V(c[0] + OFF[0], c[1], c[2] + OFF[1]));
       },
       rule(type, x, z, rot, api) {
         const [, d] = api.footprint(type, rot);
@@ -110,7 +113,7 @@ window.YARD = window.YARD || {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._kryos = false; return; }
     const T = api.THREE; let root = land.piece; while (root.parent) root = root.parent; const m4 = new T.Matrix4(), v = new T.Vector3(), zero = new T.Matrix4().makeScale(0, 0, 0);
     root.traverse(o => { if (!o.isInstancedMesh || o.count < 5000) return; let hit = false;
-      for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4); if (v.x > 1000 && v.x < 2200 && v.z > -600 && v.z < 600) { o.setMatrixAt(i, zero); hit = true; } }
+      for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4); if (v.x > 1000 && v.x < 2200 && v.z > -600 && v.z < 1800) { o.setMatrixAt(i, zero); hit = true; } }
       if (hit) o.instanceMatrix.needsUpdate = true; });
   },
   update(api, dt, t) {
@@ -198,7 +201,10 @@ window.YARD = window.YARD || {
       return mine;
     };
     this.bgBuilds = [];
+    const savedOff = this.OFF; this.OFF = [0, 0];   // the finished projects stand where they were built
     try { this.bgBuilds = await bring('factorydistrict', 'Factory District', 1, false); } catch (e) { console.warn('Yard: finished Factory District', e); }
+    try { await bring('starwatcharray', 'Starwatch Array', 2, true); } catch (e) { console.warn('Yard: finished Starwatch Array', e); }
+    this.OFF = savedOff;
     // the Factory District's lights keep moving
     this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick && B.id !== 6) try { B.tick(bgApi, dt, t); } catch (e) { } };
   };

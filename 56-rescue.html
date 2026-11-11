@@ -4464,7 +4464,8 @@ addEventListener('resize', () => {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
     g.textBaseline = 'middle'; g.textAlign = 'center';
     const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
-    const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - x) < 1 && Math.abs(p.z - z) < 1);
+    const OFF = (window.YARD && window.YARD.OFF) || [0, 0];
+    const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - OFF[0] - x) < 1 && Math.abs(p.z - OFF[1] - z) < 1);
     // ---- site plan of the spaceport (seen from above) ----
     const sk = 1.0, X = x => 1250 + (x - 1800) * sk, Z = z => 880 + z * sk;
     g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · THE RESCUE', X(1800), 260);

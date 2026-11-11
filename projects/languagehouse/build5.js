@@ -43,7 +43,7 @@
       start(api) {
         this.stage = 0; this.t1 = 0; this.next = 0; this.words = []; this.idx = 0; P.ring && P.ring(2);
         const T = api.THREE, par = (api.placed.find(p => p.piece && p.piece.parent) || {}).piece; if (!par) return;
-        const grp = new T.Group(); par.parent.add(grp); this.grp = grp; this.y0 = api.DECK_TOP;
+        const grp = new T.Group(); par.parent.add(grp); grp.position.set(P.OFF[0], 0, P.OFF[1]); this.grp = grp; this.y0 = api.DECK_TOP;
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         this.mk = (text, col, size) => {
           const w = Math.max(256, text.length * 40), tex = api.canvasTex(w, 96, (g2, ww, hh) => { g2.clearRect(0, 0, ww, hh); g2.font = '700 54px "Segoe UI", Arial'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.shadowColor = col; g2.shadowBlur = 18; g2.fillStyle = '#fff'; g2.fillText(text, ww / 2, hh / 2); });

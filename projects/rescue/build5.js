@@ -54,7 +54,7 @@
       start(api) {
         this.stage = 0; this.t1 = 0; P.ring && P.ring(2);
         const T = api.THREE, par = (api.placed.find(p => p.piece && p.piece.parent) || {}).piece; if (!par) return;
-        const grp = new T.Group(); par.parent.add(grp); this.grp = grp; this.y0 = api.DECK_TOP;
+        const grp = new T.Group(); par.parent.add(grp); grp.position.set(P.OFF[0], 0, P.OFF[1]); this.grp = grp; this.y0 = api.DECK_TOP;
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         // the stranger: a dark, hurt ship far out in the sky, drifting
         this.str = new T.Group(); this.str.position.set(1550, this.y0 + 6500, -9500); grp.add(this.str);
@@ -95,7 +95,7 @@
       },
       update(api, dt, f) {
         this.t1 += dt; if (!this.fleet) return this.t1 > 1;
-        const T = api.THREE, tgt = this.str.position;
+        const T = api.THREE, tgt = this.str.position; this._off = this._off || new T.Vector3(P.OFF[0], 0, P.OFF[1]);
         const fly = (o, i, u, off) => {
           // a long curve up from the pad and out toward the stranger, stopping short of it
           const e = u * u * (3 - 2 * u), sx = o.x0, sz = o.z0, ex = tgt.x + off, ez = tgt.z + 2800;
@@ -105,7 +105,7 @@
         const follow = (a, b, k, o) => {
           o = o || [230, 70, 400]; const e = new T.Vector3(a.x + o[0], a.y + o[1], a.z + o[2]), l = a.clone().lerp(b, k);
           this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 2.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 2.5)) : l.clone();
-          api.shot(this.ce, this.cl);
+          api.shot(this.ce.clone().add(this._off), this.cl.clone().add(this._off));
         };
         if (this.stage === 0) {
           P.hint('THE RESCUE · THREE CRAFT RISE FROM THE LAUNCH CIRCLES, A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD');
@@ -119,10 +119,10 @@
           const mid = this.fleet[1].c.position; this.beam.material.opacity = Math.min(0.7, this.t1 / 2) * (0.7 + Math.sin(f * 6) * 0.3);
           const a = mid, b = tgt, L = a.distanceTo(b); this.beam.scale.set(1, L, 1); this.beam.position.copy(a).lerp(b, 0.5); this.beam.lookAt(b); this.beam.rotateX(Math.PI / 2);
           { const e = new T.Vector3(mid.x + 500, mid.y - 600, mid.z + 2000), l = new T.Vector3(mid.x - 100, mid.y + 900, mid.z - 1200);
-            this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 1.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 1.5)) : l.clone(); api.shot(this.ce, this.cl); }
+            this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 1.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 1.5)) : l.clone(); api.shot(this.ce.clone().add(this._off), this.cl.clone().add(this._off)); }
           const lit = Math.min(1, Math.max(0, (this.t1 - 4) / 6));
           this.lights.forEach((l, i) => l.material.opacity = lit > i / 12 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.07;
-          if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000, 190, 540), new T.Vector3(1550, 200, -300)); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
+          if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000 + P.OFF[0], 190, 540 + P.OFF[1]), new T.Vector3(1550 + P.OFF[0], 200, -300 + P.OFF[1])); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
         } else {
           if (this.t1 > 4 && !this._h) { this._h = true; api.setFlag('rescue', true); api.setFlag('opened', true); }
           if (this.t1 > 6.5) { P.cover(false); this._h = false; return true; }

@@ -44,7 +44,7 @@
       start(api) {
         this.stage = 0; this.t1 = 0; this.next = 0; this.rockets = []; P.ring && P.ring(2);
         const T = api.THREE, par = (api.placed.find(p => p.piece && p.piece.parent) || {}).piece; if (!par) return;
-        const grp = new T.Group(); par.parent.add(grp); this.grp = grp; this.y0 = api.DECK_TOP;
+        const grp = new T.Group(); par.parent.add(grp); grp.position.set(P.OFF[0], 0, P.OFF[1]); this.grp = grp; this.y0 = api.DECK_TOP;
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         this.runners = [0xe0402e, 0x2f7fe0, 0x3fb04a, 0xf2c41a, 0xf06aa8].map(c => { const m = new T.Mesh(new T.SphereGeometry(2.2, 10, 8), new T.MeshBasicMaterial({ color: new T.Color(c).multiplyScalar(1.6), toneMapped: false })); grp.add(m); return m; });
         this.beams = []; for (const [x, z, c] of [[1430, 340, [1.8, 0.6, 1.2]], [1670, 340, [0.5, 1.6, 1.9]], [1550, 250, [1.8, 1.4, 0.4]]]) { const m = new T.Mesh(new T.CylinderGeometry(2, 9, 500, 10, 1, true), bm(new T.Color(...c))); m.position.set(x, this.y0 + 270, z); grp.add(m); this.beams.push(m); }
