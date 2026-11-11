@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 3 · THE CLASSROOMS
-   Keep this file in projects/languagehouse next to 59-languagehouse.html.
+   Keep this file in projects/languagehouse next to 60-languagehouse.html.
    Three glass-fronted classrooms for the languages of lights, of songs and of words.
    ============================================================ */
 (function () {

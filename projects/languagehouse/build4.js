@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 4 · THE LISTENING LIBRARY & THE SONG GARDEN
-   Keep this file in projects/languagehouse next to 59-languagehouse.html.
+   Keep this file in projects/languagehouse next to 60-languagehouse.html.
    A great round library of books, songs and maps, and a garden of bells and chimes where songs are learned by ear.
    ============================================================ */
 (function () {

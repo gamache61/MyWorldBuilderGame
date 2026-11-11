@@ -468,10 +468,9 @@ const DN = (() => {
 
 /* ============================================================
    THE TWENTY-SIXTH COUNCIL MEETING · PLANET UNITY
-   The Kryos Arena is open, and the Language House beside it has learned the stranger's lights. The
-   stranger has spoken in words: thirty-one travellers ask only for a place to stand. The council votes
-   on what comes next: the Gate of Welcome, the Guests' Quarter, or the Great Library. Then the council
-   asks the Keeper where a guest should stand.
+   The Kryos Arena is open and the stranger flashes its lights at Unity every night, but nobody can read
+   them. The council votes on what comes next: the Language House, the Great Library or the Gate of
+   Welcome. Then the council asks the Keeper how to answer a stranger whose language we do not have.
    ============================================================ */
 const SAVE_KEY = 'worldBuilder.councilmeeting26.v1';
 const G = { done: false, choice: -1, phase: 'ready', cam: 'auto', view: 'auto' };
@@ -583,10 +582,9 @@ const mira = members[11];
 
 /* ---------- the four proposals, shown as holograms above the Heart ---------- */
 const ALL_PROPS = [
-  { geo: 23, name: 'THE GATE OF WELCOME', short: 'GATE OF WELCOME', col: [1.9, 1.7, 0.7], css: '#ffe08a', what: 'A great gate and welcome hall at the edge of Kryos where visitors from other worlds can land, be greeted, be fed and be heard, with translators, a safe quiet room for talking and a strong door behind it. It costs 900 million credits and earns 15 million a month from visitors and trade.' },
-  { geo: 7, name: 'THE GUESTS\' QUARTER', short: 'GUESTS\' QUARTER', col: [1.6, 0.9, 1.6], css: '#e8a0e8', what: 'Forty warm homes with gardens, a kitchen and a meeting hall at the edge of Kryos, for guests and travellers who need a place to rest, and for families waiting for a home of their own. It costs 800 million credits and earns 4 million a month.' },
+  { geo: 24, name: 'THE LANGUAGE HOUSE', short: 'LANGUAGE HOUSE', col: [1.3, 1.9, 1.0], css: '#b8f0a0', what: 'A great house of words where translators, teachers and thinking machines learn the languages and lights and songs of other peoples, so that when a stranger speaks, Unity can answer. It costs 700 million credits and earns 8 million a month from the schools and visitors.' },
   { geo: 8, name: 'THE GREAT LIBRARY OF UNITY', short: 'GREAT LIBRARY', col: [0.6, 1.9, 1.0], css: '#90f0b0', what: 'A great library in Kryos that keeps every book, song, map and story, ours and anyone else\'s, with quiet rooms and a hall where people of different worlds can read and listen together. It costs 600 million credits and earns 6 million a month from the schools and visitors.' },
-  { geo: 24, name: 'THE LANGUAGE HOUSE', short: 'LANGUAGE HOUSE', col: [1.3, 1.9, 1.0], css: '#b8f0a0', what: 'A great house of words where translators, teachers and thinking machines learned the stranger\'s lights and songs, so that when a stranger speaks, Unity can answer. It cost 700 million credits from the treasury and earns 8 million a month from the schools and visitors.' },
+  { geo: 23, name: 'THE GATE OF WELCOME', short: 'GATE OF WELCOME', col: [1.9, 1.7, 0.7], css: '#ffe08a', what: 'A great gate and welcome hall at the edge of Kryos where visitors from other worlds can land, be greeted, be fed and be heard, with translators, a safe quiet room for talking and a strong door behind it. It costs 900 million credits and earns 15 million a month from visitors and trade.' },
   { geo: 19, name: 'THE KRYOS ARENA', short: 'KRYOS ARENA', col: [1.9, 1.2, 0.5], css: '#ffb060', what: 'A great open-roofed arena and sports park in Kryos, for games, races, concerts and festivals, with a running track and training fields for every school. It cost 1.1 billion credits from the treasury and earns 20 million a month from visitors and events.' },
   { geo: 25, name: 'THE RESCUE', short: 'THE RESCUE', col: [1.9, 0.9, 0.8], css: '#ff9a90', what: 'Three unarmed rescue craft, an open fuel stand, a medical bay, two guard ships and a relay mast, sent out beyond the shield to a hurt stranger. It cost 1.2 billion credits from the treasury and earns nothing, but a stranger is safe.' },
   { geo: 21, name: 'THE STARWATCH ARRAY', short: 'STARWATCH ARRAY', col: [1.2, 1.0, 1.9], css: '#c8b0ff', what: 'Six great listening dishes in a ring, a listening hall, a visitors\' dome, an answering beacon and two observatories, so Unity can hear the far worlds and say hello. It cost 1.6 billion credits from the treasury and earns 10 million a month from visitors and the schools.' },
@@ -613,7 +611,7 @@ const ALL_PROPS = [
   { geo: 0, name: 'FARMLANDS OF UNITY', short: 'FARMLANDS', col: [0.4, 1.8, 0.7], css: '#6fe08a', what: 'Fields, greenhouses and water channels in the valleys to feed every city.' },
   { geo: 7, name: 'HOMEWARD TWO', short: 'HOMEWARD TWO', col: [1.6, 0.9, 1.6], css: '#e8a0e8', what: 'A second district of homes beside Kryos, with its own school, market, park and Sky Rail stop. It cost 1.5 billion credits from the treasury.' },
 ];
-const PORT = 3, PORT2 = 4, PROPS = ALL_PROPS.slice(0, 3), NP = PROPS.length;
+const PORT = 3, PROPS = ALL_PROPS.slice(0, 3), NP = PROPS.length;
 const holo = new THREE.Group(); holo.position.y = 5.5; world.add(holo);
 const holos = ALL_PROPS.map((P, k) => {
   const g = new THREE.Group(); g.visible = false; holo.add(g);
@@ -699,10 +697,10 @@ function hideSay() { $('say').style.opacity = 0; }
 
 /* the Keeper's voice — the same deep voice as in the voyage (downloaded once and kept on this computer) */
 const KLINES = ['So it is chosen.',
-  'You came to me with a stranger at your door and an answer already in your hands: words. That is how doors begin. Ask.',
-  'Where you can both see the same sky. Not at the edge of your shield, and not in the heart of your city. A field with a gate, a roof for the weather, and a table in the middle. Stand there with them, and let the first thing you share be something small, like bread or a name.',
-  'Tell them what you would tell any guest at your own door: your name, your water, your rules. Keep the keys until you know their names. Trust is a ladder, and you climb it together, one rung at a time. If you hand it over all at once, it breaks. If you never hand it over, nobody climbs.',
-  'Then you will have neighbours, which is the oldest problem in the world and the best one. Ask them to teach your children one word of their language, and teach theirs one of yours. After that, ask no more questions for a while. A people that has crossed the dark has earned a quiet season.'];
+  'You gave a stranger fuel, and then you gave your own people a festival. Both were well done. Now you want to know what the stranger is saying. Ask.',
+  'It is a question, and an old one. Every people that has crossed the dark has asked it: is anyone there? Answer it before you try to understand it. A reply you cannot yet explain is still a reply, and silence is the only answer that is always wrong.',
+  'Slowly, and with your whole house. Start with what you share: light, hunger, breath, counting, the names of children. Listen more than you speak. A word is only a door until two people have walked through it together.',
+  'It is never for one. A house of words is a bridge, and a bridge outlasts the first person who crosses it. Today it is thirty-one travellers. Another day it may be a whole people. Build it for them, and for everyone who comes after.'];
 const KEEPER_VOICE = 'en_US-ryan-medium', KEEPER_SLOW = 0.72, KEEPER_STRETCH = 1.35;
 let voiceFx = null, piper = null, keeperBufs = null, browserVoice = false;
 function makeVoiceFx() {
@@ -768,26 +766,25 @@ function buildScript() {
   const S = [];
   // speakers for the open discussion may speak more than once
   const say2 = prefs => { for (const n of prefs) { const c = byName(n); if (c && c !== mira && c !== head) return c; } return members.find(c => c !== mira && c !== head) || head; };
-  S.push([head, 'People of Unity, welcome back. The Language House is open. Beside it, the Kryos Arena has held its first race and its first fireworks, and the stranger has watched both from the sky.', PORT]);
+  S.push([head, 'People of Unity, welcome back. The Kryos Arena is open. The first race has been run round the track, the first fireworks have gone up over Kryos, and every night since, the stranger has flashed its lights back at us.', PORT]);
   S.push([head, 'Steward, what has changed since we last met?']);
-  S.push([steward, 'Two hundred and sixty more people, so Kryos has sixty-five thousand and sixty. Arena crews, translators, teachers and their families. The last four empty homes have filled. Every home in Kryos is now full.', 'census']);
-  S.push([steward, 'The Arena and the Language House made three hundred and fifty new jobs. Food is still more than enough, and the crystal store is up to seventy-six in every hundred.']);
+  S.push([steward, 'One hundred and eighty more people, so Kryos has sixty-four thousand nine hundred and eighty. Arena crews, festival workers and their families. Two homes still stand empty.', 'census']);
+  S.push([steward, 'The Arena made two hundred and sixty new jobs. Food is still more than enough, and the crystal store has climbed to seventy-four in every hundred.']);
   S.push([head, 'And the treasury?']);
-  S.push([steward, 'The Arena cost one billion one hundred million, and the Language House seven hundred million. All together we have now spent forty-eight billion six hundred and fifty million of what the Builder gave. That leaves four hundred and fifty-one billion three hundred and fifty million credits.', 'treasury']);
-  S.push([steward, 'The Arena earns twenty million a month and the Language House eight, and their crews and upkeep cost twelve. Four hundred and twenty million comes in and three hundred and thirty-nine goes out, so the month is eighty-one million to the good.', 'budget']);
+  S.push([steward, 'The Arena cost one billion one hundred million. All together we have now spent forty-seven billion nine hundred and fifty million of what the Builder gave. That leaves four hundred and fifty-two billion and fifty million credits.', 'treasury']);
+  S.push([steward, 'The Arena earns twenty million a month from visitors and events, and its crews and upkeep cost eight. Four hundred and twelve million comes in and three hundred and thirty-five goes out, so the month is seventy-seven million to the good.', 'budget']);
   S.push([steward, 'The crystal store is climbing, slowly, and at today\'s use it will last forty years and more.', 'fuel']);
-  S.push([say2(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ']), 'The Language House is only nine days old, and the thinking machines have already learned the stranger\'s lights. They were never only lights. They were words. Here is the first thing the stranger has said to us.', PORT2]);
-  S.push([say2(['AMARA OKAFOR', 'ELENA VASQUEZ', 'MATEO SILVA']), 'We are thirty-one. We have carried our seeds and our dead across a long dark. We ask for one thing only: a place to stand while we decide what to do.']);
-  S.push([say2(['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT']), 'They did not ask for a home. They did not ask for fuel, or for weapons, or for anything we have. They asked where they could stand.']);
-  S.push([say2(['KENJI MORI', 'LIAM HARTLEY', 'SOFIA LINDQVIST']), 'A place to stand is still a place. I am less afraid than I was, but I would like to know where we are putting it, and who is standing beside them when they stand.']);
-  S.push([say2(['NOOR HADDAD', 'TOMAS REYES', 'PRIYA NAIR']), 'Then let us make a place with a door that opens both ways, and ask the Keeper where a guest should stand.']);
+  S.push([say2(['AMARA OKAFOR', 'ELENA VASQUEZ', 'MATEO SILVA']), 'Every night since the rescue, the stranger flashes at us from the sky. Long and short, always in the same patterns, and always the same thirty-one lights at the end.']);
+  S.push([say2(['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT']), 'Our listening hall hears every one of them, and cannot read a single flash. A rescue made of lights is not a conversation.']);
+  S.push([say2(['KENJI MORI', 'LIAM HARTLEY', 'SOFIA LINDQVIST']), 'We counted with them once, because numbers are the same everywhere. Words are not. We cannot ask what they want, because we cannot yet hear them ask for it.']);
+  S.push([say2(['NOOR HADDAD', 'TOMAS REYES', 'PRIYA NAIR']), 'Then before we choose what to build for them, we must build the way to hear them. Let us vote, and then ask the Keeper how a people answers a stranger whose language it does not have.']);
   S.push([head, 'Three proposals sit before us.']);
-  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Gate of Welcome. A great gate and hall at the edge of Kryos where visitors from other worlds can land, be greeted, be fed and be heard, with a strong door behind it.', 0]);
-  S.push([steward, 'Nine hundred million credits. It earns fifteen million a month from visitors and trade.', 0]);
-  S.push([pick(['AYO BANKOLE', 'OWEN BRANDT', 'GRACE TAYLOR', 'NOOR HADDAD']), 'The Guests\' Quarter. Forty warm homes with gardens, a kitchen and a meeting hall, for guests and travellers, and for the families of Kryos still waiting for a home of their own.', 1]);
-  S.push([steward, 'Eight hundred million credits. It earns four million a month. Every home in Kryos is full, so these would be the first new roofs in a long time.', 1]);
-  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Great Library of Unity. Every book, song, map and story we have, and every one they will teach us, in a hall where people of different worlds can read and listen side by side.', 2]);
-  S.push([steward, 'Six hundred million credits. It earns six million a month from the schools and visitors.', 2]);
+  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Language House. A great house of words where translators, teachers and thinking machines learn the languages, lights and songs of other peoples, so that when a stranger speaks, Unity can answer.', 0]);
+  S.push([steward, 'Seven hundred million credits. It earns eight million a month from the schools and visitors.', 0]);
+  S.push([pick(['AYO BANKOLE', 'OWEN BRANDT', 'GRACE TAYLOR', 'NOOR HADDAD']), 'The Great Library of Unity. Every book, song, map and story we have, in a hall where people of different worlds can read and listen side by side.', 1]);
+  S.push([steward, 'Six hundred million credits. It earns six million a month from the schools and visitors.', 1]);
+  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Gate of Welcome. A great gate and hall at the edge of Kryos where visitors from other worlds can land, be greeted, be fed and be heard, with a strong door behind it.', 2]);
+  S.push([steward, 'Nine hundred million credits. It earns fifteen million a month from visitors and trade.', 2]);
   S.push([head, 'The council will now vote.', 'vote']);
   S.push([mira, 'Twelve voices, three proposals, four votes each. We are tied once more. Builder, the deciding vote is yours again.', 'ballot']);
   return S;
@@ -800,10 +797,10 @@ function begin() { if (G.phase !== 'ready' || G.done) return; audio(); setMurmur
 // the Steward of Numbers' count for Kryos, given at the start of every meeting from now on
 const CENSUS = {
   title: 'WHAT HAS CHANGED · KRYOS', rows: [
-    ['PEOPLE', '+260 → 65,060'], ['HOMES BUILT', 'NO CHANGE · 18,000'], ['EMPTY HOMES', '4 → 0 · ALL FULL', '#ff9a80'], ['NEW JOBS', '+350 · ARENA & LANGUAGE HOUSE'], ['JOBS PER WORKER', '1.20'],
-    ['FOOD', 'MORE THAN ENOUGH'], ['FUEL CRYSTAL', '76% · RISING', '#ffd060'] ],
-  bars: [['HOMES IN USE', 1], ['CRYSTAL STORE', 0.76]],
-  verdict: 'EVERY HOME IS FULL · THE GUESTS WILL NEED ROOMS · THE CRYSTAL STORE IS RISING'
+    ['PEOPLE', '+180 → 64,980'], ['HOMES BUILT', 'NO CHANGE · 18,000'], ['EMPTY HOMES', '4 → 2'], ['NEW JOBS', '+260 AT THE KRYOS ARENA'], ['JOBS PER WORKER', '1.20'],
+    ['FOOD', 'MORE THAN ENOUGH'], ['FUEL CRYSTAL', '74% · RISING', '#ffd060'] ],
+  bars: [['HOMES IN USE', 17998 / 18000], ['CRYSTAL STORE', 0.74]],
+  verdict: 'HOMES ARE NEARLY FULL · BUILD OR FIND MORE HOMES SOON · THE CRYSTAL STORE IS RISING'
 }
 // the treasury the Builder gave from the gold mine, and what every build so far has cost · updated at every meeting
 const TREASURY = {
@@ -811,20 +808,20 @@ const TREASURY = {
   spent: [['KRYOS CITY', 9800000000], ['SEASHORE', 1200000000], ['THE COUNCIL HALL', 350000000], ['FARMLANDS OF UNITY', 1400000000], ['THE MOON MINES', 2600000000],
     ['THE ORE DEPOT', 900000000], ['THE RETURN FLEET', 3200000000], ['THE FACTORY DISTRICT', 2100000000], ['THE TOWN ON VESH', 1800000000], ['THE HOMEWARD FLEET', 4500000000],
     ['THE CHILDREN’S PLAYLAND', 250000000], ['THE GREAT SCHOOL', 700000000], ['NEW HOMES', 1600000000], ['THE HOUSE OF HEALING', 950000000], ['THE SHOPPING CENTRE', 600000000],
-    ['THE ORE RUN', 400000000], ['THE ANIMAL CARE CENTRE', 300000000], ['THE SKY RAIL', 2400000000], ['THE SEASHORE SHIPYARD', 1100000000], ['HOMEWARD TWO', 1500000000], ['THE EARTH TRADE PORT', 900000000], ['THE HAVENREACH SKY DOCKS', 1300000000], ['THE CRYSTAL MINES', 2400000000], ['THE GUARDIAN YARD', 1800000000], ['THE STARWATCH ARRAY', 1600000000], ['THE RESCUE', 1200000000], ['THE KRYOS ARENA', 1100000000], ['THE LANGUAGE HOUSE', 700000000]],
+    ['THE ORE RUN', 400000000], ['THE ANIMAL CARE CENTRE', 300000000], ['THE SKY RAIL', 2400000000], ['THE SEASHORE SHIPYARD', 1100000000], ['HOMEWARD TWO', 1500000000], ['THE EARTH TRADE PORT', 900000000], ['THE HAVENREACH SKY DOCKS', 1300000000], ['THE CRYSTAL MINES', 2400000000], ['THE GUARDIAN YARD', 1800000000], ['THE STARWATCH ARRAY', 1600000000], ['THE RESCUE', 1200000000], ['THE KRYOS ARENA', 1100000000]],
 };
 // one month, in Unity credits · no rent for now
 const BUDGET = {
   title: 'EACH MONTH', unit: 'UNITY CREDITS · NO RENT FOR NOW · THE SKY RAIL IS FREE',
-  inc: [['SHOPS, CAFÉS & MARKET (SHARE)', 47000000], ['TRADE · PEACEFUL TOWNS OF EARTH', 85000000], ['EARTH TRADE PORT', 60000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000], ['SPARE FOOD SOLD', 20000000], ['DOCKING FEES · STATION-7', 8000000], ['SKY DOCKS · REPAIR & FUEL FEES', 45000000], ['CRYSTAL FUEL SOLD · PEACEFUL TOWNS OF EARTH', 27000000], ['FERRIES & SEA TRADE', 25000000], ['VAULT RENT · HAVENREACH', 10000000], ['STARWATCH ARRAY · VISITORS & SCHOOLS', 10000000], ['KRYOS ARENA · VISITORS & EVENTS', 20000000], ['LANGUAGE HOUSE · SCHOOLS & VISITORS', 8000000]],
-  out: [['THE RESCUE · CRAFT & CREWS', 6000000], ['UPKEEP · CITY & HOMES', 74000000], ['UPKEEP · HAVENREACH · SPARE POWER SAVES 15M', 15000000], ['FREE FOR ALL · FOOD, HEALING, SCHOOLS', 151000000], ['ANIMAL CARE CENTRE', 4000000], ['SKY RAIL · PODS & TRACK', 13000000], ['SHIPYARD', 6000000], ['EARTH TRADE PORT · UPKEEP', 9000000], ['SKY DOCKS · UPKEEP', 8000000], ['CRYSTAL MINES · UPKEEP & WAGES', 12000000], ['GUARDIAN YARD · CREWS & UPKEEP', 20000000], ['STARWATCH ARRAY · CREWS & UPKEEP', 9000000], ['KRYOS ARENA · CREWS & UPKEEP', 8000000], ['LANGUAGE HOUSE · CREWS & UPKEEP', 4000000]],
-  builds: [['GATE OF WELCOME', 900000000, 'EARNS +15,000,000 A MONTH'], ['GUESTS\' QUARTER', 800000000, 'EARNS +4,000,000 A MONTH'], ['GREAT LIBRARY', 600000000, 'EARNS +6,000,000 A MONTH']],
-  pay: 'HOMES STAY FREE · THE MONTH IS NOW ABOUT EIGHTY-ONE MILLION TO THE GOOD',
+  inc: [['SHOPS, CAFÉS & MARKET (SHARE)', 47000000], ['TRADE · PEACEFUL TOWNS OF EARTH', 85000000], ['EARTH TRADE PORT', 60000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000], ['SPARE FOOD SOLD', 20000000], ['DOCKING FEES · STATION-7', 8000000], ['SKY DOCKS · REPAIR & FUEL FEES', 45000000], ['CRYSTAL FUEL SOLD · PEACEFUL TOWNS OF EARTH', 27000000], ['FERRIES & SEA TRADE', 25000000], ['VAULT RENT · HAVENREACH', 10000000], ['STARWATCH ARRAY · VISITORS & SCHOOLS', 10000000], ['KRYOS ARENA · VISITORS & EVENTS', 20000000]],
+  out: [['THE RESCUE · CRAFT & CREWS', 6000000], ['UPKEEP · CITY & HOMES', 74000000], ['UPKEEP · HAVENREACH · SPARE POWER SAVES 15M', 15000000], ['FREE FOR ALL · FOOD, HEALING, SCHOOLS', 151000000], ['ANIMAL CARE CENTRE', 4000000], ['SKY RAIL · PODS & TRACK', 13000000], ['SHIPYARD', 6000000], ['EARTH TRADE PORT · UPKEEP', 9000000], ['SKY DOCKS · UPKEEP', 8000000], ['CRYSTAL MINES · UPKEEP & WAGES', 12000000], ['GUARDIAN YARD · CREWS & UPKEEP', 20000000], ['STARWATCH ARRAY · CREWS & UPKEEP', 9000000], ['KRYOS ARENA · CREWS & UPKEEP', 8000000]],
+  builds: [['LANGUAGE HOUSE', 700000000, 'EARNS +8,000,000 A MONTH'], ['GREAT LIBRARY', 600000000, 'EARNS +6,000,000 A MONTH'], ['GATE OF WELCOME', 900000000, 'EARNS +15,000,000 A MONTH']],
+  pay: 'HOMES STAY FREE · THE MONTH IS NOW ABOUT SEVENTY-SEVEN MILLION TO THE GOOD',
 }
 // what runs on the fuel crystal
 const FUEL = {
   title: 'THE CRYSTAL STORE', rows: [['THE CORES · KRYOS, SEASHORE, VESH', 44], ['THE HEARTFORGE · HAVENREACH & THE SKY DOCKS', 26], ['THE ARK, THE FREIGHTERS & THE HOMEWARD SHIPS', 21], ['THE SKY RAIL & THE SHIPYARD', 9]],
-  note: 'SHARE OF ALL FUEL USED · 76% OF THE STORE LEFT · RISING · ABOUT FORTY YEARS AT TODAY\'S USE',
+  note: 'SHARE OF ALL FUEL USED · 74% OF THE STORE LEFT · RISING · ABOUT FORTY YEARS AT TODAY\'S USE',
 };
 const f$ = n => n.toLocaleString('en-US');
 const row$ = (a, b, c) => '<div class="row"><span>' + a + '</span><b' + (c ? ' style="color:' + c + '"' : '') + '>' + b + '</b></div>';
@@ -935,9 +932,9 @@ async function decide(k, byCouncil) {
   }, 5000);
 }
 // the council asks the Keeper a question, and the Keeper answers
-const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, they ask for a place to stand. Where do we let them stand?', 2],
-  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'Should we tell them everything about Unity, and about you?', 3],
-  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And if they want to stay?', 4]];
+const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, every night the stranger flashes at us in the same patterns. Is it a greeting?', 2],
+  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'How do we learn a language that has never been spoken on Unity?', 3],
+  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'Is it wise to spend so much on words for a single stranger?', 4]];
 function askKeeper(q = 0) {
   const Q = QUESTIONS[q]; if (!Q) { hideSay(); finish(); return; }
   const m = Q[0].map(byName).find(c => c && c !== mira) || members.find(c => c !== mira && !c.head) || members[0];
@@ -1010,7 +1007,7 @@ addEventListener('keydown', e => {
 function hud(dt) {
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').style.opacity = 0; }
   const day = dayStart() + 1;
-  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'THE LANGUAGE HOUSE IS OPEN' : showHolo === PORT2 ? 'THE STRANGER\'S FIRST WORDS' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 3 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
+  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'THE KRYOS ARENA IS OPEN' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 3 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
   const h = `<h1>THE TWENTY-SIXTH COUNCIL MEETING</h1><div class="ln" style="color:#ffd060;letter-spacing:3px">DAY ${day} · ${DN.clock}${DN.isNight ? ' · NIGHT' : ''}</div><div class="ln">SUNRISE ${DN.SUNRISE} · SUNSET ${DN.SUNSET}</div><div class="bn">THE COUNCIL HALL · PLANET UNITY</div><div class="ln">${line}</div>`;
   if (h !== hud.last) { $('panel').innerHTML = h; hud.last = h; }
   const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep();
@@ -1034,7 +1031,7 @@ function updateCamera(dt, t) {
 /* ---------- the loop ---------- */
 const clock = new THREE.Clock();
 if (G.done) { showHolo = G.choice; holoGrow = 1; bigHolo = true; }
-banner('THE TWENTY-SIXTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'THE STRANGER HAS SPOKEN · THE TWELVE ASK THE KEEPER WHERE A GUEST SHOULD STAND');
+banner('THE TWENTY-SIXTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'THE STRANGER FLASHES EVERY NIGHT · THE TWELVE ASK THE KEEPER HOW TO ANSWER');
 menuRefresh();
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 renderer.setAnimationLoop(() => {

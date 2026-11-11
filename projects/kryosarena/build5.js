@@ -31,10 +31,10 @@
     tick(api, dt, t) {
       if (api.flag('opened') && !document.getElementById('nextMeeting')) {
         const b = document.createElement('button'); b.id = 'nextMeeting';
-        b.innerHTML = 'GO TO THE LANGUAGE HOUSE ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">UNITY LEARNS TO ANSWER</small>';
+        b.innerHTML = 'GO TO THE TWENTY-SIXTH COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE ARENA IS OPEN</small>';
         b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,60,100,.85);border:1px solid #80d8ff;border-radius:6px;cursor:pointer;text-align:center';
         b.onmouseenter = () => b.style.background = 'rgba(30,80,130,.95)'; b.onmouseleave = () => b.style.background = 'rgba(20,60,100,.85)';
-        b.onclick = () => { location.href = '59-languagehouse.html'; };
+        b.onclick = () => { location.href = 'councilmeeting/councilmeeting26.html'; };
         document.body.appendChild(b);
       }
     },

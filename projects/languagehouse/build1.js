@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 1 · THE LANDING FIELD
-   Keep this file in projects/languagehouse next to 59-languagehouse.html.
+   Keep this file in projects/languagehouse next to 60-languagehouse.html.
    The council chose the Language House: a great house of words where translators, teachers and thinking machines learn the languages, lights and songs of other peoples, so that when a stranger speaks, Unity can answer. The landing field and transporter are already there, so it begins at build 2. The Factory District is loaded, finished, from its own files.
    ============================================================ */
 

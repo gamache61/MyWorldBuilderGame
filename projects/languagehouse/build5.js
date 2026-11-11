@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 5 · THE THINKING MACHINES & THE FIRST WORDS
-   Keep this file in projects/languagehouse next to 59-languagehouse.html.
+   Keep this file in projects/languagehouse next to 60-languagehouse.html.
    Two halls of thinking machines that learn every language they hear. Ends with L: the first words, spoken to the stranger and answered.
    ============================================================ */
 (function () {
@@ -30,10 +30,10 @@
     tick(api, dt, t) {
       if (api.flag('opened') && !document.getElementById('nextMeeting')) {
         const b = document.createElement('button'); b.id = 'nextMeeting';
-        b.innerHTML = 'GO TO THE TWENTY-SIXTH COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE STRANGER HAS SPOKEN</small>';
+        b.innerHTML = 'GO TO THE TWENTY-SEVENTH COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE STRANGER HAS SPOKEN</small>';
         b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,60,100,.85);border:1px solid #80d8ff;border-radius:6px;cursor:pointer;text-align:center';
         b.onmouseenter = () => b.style.background = 'rgba(30,80,130,.95)'; b.onmouseleave = () => b.style.background = 'rgba(20,60,100,.85)';
-        b.onclick = () => { location.href = 'councilmeeting/councilmeeting26.html'; };
+        b.onclick = () => { location.href = 'councilmeeting/councilmeeting27.html'; };
         document.body.appendChild(b);
       }
     },
