@@ -95,9 +95,8 @@
     '#wbReq button.dim{border-color:rgba(127,216,255,.35);background:none;color:#9fbcd4}';
 
   window.WB_askBuilder = function () {
-    if (document.getElementById('wbReq')) return;
+    if (document.getElementById('wbReq')) { window.WB_reqBusy = false; return; }
     var asked = 'worldBuilder.requestAsked.' + pageName();
-    try { if (localStorage.getItem(asked)) return; } catch (e) { }
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     var box = document.createElement('div'); box.id = 'wbReq';
     box.innerHTML = '<h3>THE SPEAKER ASKS THE BUILDER</h3>' +
@@ -106,7 +105,7 @@
       '<div class="row"><button id="wbReqSend">SEND TO THE COUNCIL</button><button id="wbReqSkip" class="dim">NOTHING TO ADD</button></div>';
     document.body.appendChild(box);
     ['keydown', 'keyup', 'keypress'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
-    function close() { try { localStorage.setItem(asked, '1'); } catch (e) { } box.remove(); }
+    function close() { try { localStorage.setItem(asked, '1'); } catch (e) { } box.remove(); window.WB_reqBusy = false; }
     document.getElementById('wbReqSkip').onclick = close;
     document.getElementById('wbReqSend').onclick = function () {
       var text = document.getElementById('wbReqText').value.trim();
@@ -131,7 +130,7 @@
         var ok = function () { cp.textContent = 'COPIED — PASTE IT INTO AN EMAIL TO ' + MAIL; };
         try { navigator.clipboard.writeText(t).then(ok, function () { cp.textContent = 'SEND TO ' + MAIL; }); } catch (e) { cp.textContent = 'SEND TO ' + MAIL; }
       };
-      document.getElementById('wbReqDone').onclick = function () { box.remove(); };
+      document.getElementById('wbReqDone').onclick = function () { box.remove(); window.WB_reqBusy = false; };
     };
     setTimeout(function () { var t = document.getElementById('wbReqText'); if (t) t.focus(); }, 100);
   };

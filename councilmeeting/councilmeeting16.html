@@ -918,7 +918,7 @@ function askKeeper(q = 0) {
   say(m, Q[1], () => { hideSay(); sitDown(m); heartPulse = 1; setTimeout(() => keeperLine(Q[2], () => { hideSay(); setTimeout(() => askKeeper(q + 1), 1500); }), 1200); });
 }
 function finish() {
-  G.done = true; G.phase = 'done'; save(); window.WB_chapterDone && window.WB_chapterDone(); window.WB_askBuilder && setTimeout(window.WB_askBuilder, 7000); applause(6, 1.4); $('report').style.opacity = 0;
+  G.done = true; G.phase = 'done'; save(); window.WB_chapterDone && window.WB_chapterDone(); if (window.WB_askBuilder) { window.WB_reqBusy = true; setTimeout(window.WB_askBuilder, 3000); } applause(6, 1.4); $('report').style.opacity = 0;
   banner('THE COUNCIL HAS CHOSEN', PROPS[G.choice].name + ' · UNITY\'S NEXT GREAT BUILD');
 }
 let heartPulse = 0, bannerT = 0;
@@ -928,14 +928,14 @@ function skip() { if (G.phase !== 'meeting' || !speaker) return; if ('speechSynt
 /* ---------- HUD, next step and the controls menu ---------- */
 const dayStart = () => window.WB_DAY_START || 0;
 function nextStep() {
-  if (G.done) return '<button id="go">BACK TO THE MAIN MENU</button>';
+  if (G.done) return window.WB_reqBusy ? 'THE SPEAKER HAS A QUESTION FOR THE BUILDER…' : '<button id="go">BACK TO THE MAIN MENU</button>';
   if (G.phase === 'ready') return '<button id="go">OPEN THE MEETING (L)</button>';
   if (G.phase === 'ballot') return '<button id="go">CAST THE DECIDING VOTE (V)</button>';
   if (G.phase === 'voting') return 'THE COUNCIL IS VOTING…';
   if (G.phase === 'keeper') return speaker ? speaker.name + ' ASKS THE KEEPER…' : 'THE KEEPER IS SPEAKING…';
   return (speaker ? speaker.name + ' IS SPEAKING… ' : 'THE MEETING IS UNDER WAY… ') + '<button id="skip">NEXT (N)</button>';
 }
-function goAction() { if (G.done) location.href = '../index.html'; else if (G.phase === 'ready') begin(); else if (G.phase === 'ballot') showBallot(); }
+function goAction() { if (G.done) { if (!window.WB_reqBusy) location.href = '../index.html'; } else if (G.phase === 'ready') begin(); else if (G.phase === 'ballot') showBallot(); }
 const VIEWS = { heart: [V(0, 7, 21), V(0, 8, 0)], ring: [V(0, 20, 16), V(0, 1, 0)], seats: [V(0, 3.5, 3), V(0, 4, -30)], above: [V(0, 60, 0.1), V(0, 0, 0)], hall: [V(34, 12, 34), V(0, 6, 0)] };
 const menuEl = $('menu'), menuPanel = $('menuPanel'), openCats = new Set(['ACTIONS']);
 let newArm = 0, camFirst = true;
