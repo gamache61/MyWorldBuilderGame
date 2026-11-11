@@ -85,19 +85,26 @@
           o.c.position.set(sx + (ex - sx) * e + Math.sin(e * 3.1) * 40, this.y0 + 14 + e * (tgt.y - this.y0 - 14) * 0.96, sz + (ez - sz) * e);
           o.c.rotation.y = Math.atan2(ex - sx, ez - sz); o.c.rotation.x = -0.25 * Math.sin(e * 3.1);
         };
+        const follow = (a, b, k) => {
+          const e = new T.Vector3(a.x + 230, a.y + 70, a.z + 400), l = a.clone().lerp(b, k);
+          this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 2.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 2.5)) : l.clone();
+          api.shot(this.ce, this.cl);
+        };
         if (this.stage === 0) {
           P.hint('THE RESCUE · THREE CRAFT RISE FROM THE LAUNCH CIRCLES, A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD');
           const u = Math.min(1, this.t1 / 16);
           this.fleet.forEach(o => fly(o, o.i, Math.max(0, Math.min(1, u * 1.08 - o.i * 0.04)), (o.i - 1) * 60));
           fly({ c: this.esc, x0: 1380, z0: -90 }, 3, Math.max(0, u * 1.02), 170);
+          follow(this.fleet[1].c.position, tgt, 0.12 + 0.2 * u);
           if (u >= 1) { this.stage = 1; this.t1 = 0; P.ring && P.ring(3); }
         } else if (this.stage === 1) {
           P.hint('THE FUEL IS LEFT IN THE OPEN, AND A MEDIC GOES ACROSS WITH OPEN HANDS...');
           const mid = this.fleet[1].c.position; this.beam.material.opacity = Math.min(0.7, this.t1 / 2) * (0.7 + Math.sin(f * 6) * 0.3);
           const a = mid, b = tgt, L = a.distanceTo(b); this.beam.scale.set(1, L, 1); this.beam.position.copy(a).lerp(b, 0.5); this.beam.lookAt(b); this.beam.rotateX(Math.PI / 2);
+          follow(mid, tgt, 0.5);
           const lit = Math.min(1, Math.max(0, (this.t1 - 4) / 6));
           this.lights.forEach((l, i) => l.material.opacity = lit > i / 6 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.22;
-          if (this.t1 > 14) { this.stage = 2; this.t1 = 0; P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
+          if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000, 190, 540), new T.Vector3(1550, 200, -300)); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
         } else {
           if (this.t1 > 4 && !this._h) { this._h = true; api.setFlag('rescue', true); api.setFlag('opened', true); }
           if (this.t1 > 6.5) { P.cover(false); this._h = false; return true; }

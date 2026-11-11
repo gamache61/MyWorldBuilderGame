@@ -1719,6 +1719,7 @@ const api = {
   get stock() { return G.stock || 0; },
   flag: k => !!(G.flags && G.flags[k]),
   setFlag: (k, v) => { (G.flags || (G.flags = {}))[k] = v; save(); },
+  shot: (eye, look) => { snapCam = [eye.clone(), look.clone()]; },
   sparkle: (pos, scale = 1) => sparkle(siteGroup, pos, scale),
   // the Ark and its cargo bay, so a build can fill the bay and fly the Ark over the shaft
   get ship() { return ship; }, get baySpots() { return baySpots; },
