@@ -466,4 +466,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE GREAT LIBRARY \u00b7 PLANET UNITY',
+    html: '60-greatlibrary.html',
+    brief: 'A great library in Kryos that keeps every book, song, map and story, ours and anyone else\'s: the reading hall, four quiet reading rooms, an archive tower, a reading garden and two lit star globes \u2014 then the first night, when every story rises into the sky and the stranger reads.',
+    builds: 5,
+    color: '#90f0b0',
+  },
+  {
+    name: 'THE TWENTY-EIGHTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting28.html',
+    brief: 'The Great Library is open and the stranger has read our books. The council votes on what comes next, then asks the Keeper what a library should keep.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
