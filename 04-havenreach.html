@@ -2079,9 +2079,10 @@ function updateTransport(dt, t) {
       TX.next = 0.45;
       const load = TX.queue.shift();
       const g = freeGroup(bayGroups, load.length);
-      if (g) {
-        const free = g.spots.filter(s => !s.kit);
-        load.forEach((k, i) => {
+      const free = g ? g.spots.filter(s => !s.kit) : baySpots.filter(s => !s.kit);   // no whole group free: use any free bay spots
+      if (!free.length) { txMsg = 'THE CARGO BAY IS FULL'; txMsgT = 3; TX.queue.length = 0; }
+      else {
+        load.slice(0, free.length).forEach((k, i) => {
           const dest = free[i]; dest.kit = k;                       // reserve the bay spot
           const from = k.m.getWorldPosition(new THREE.Vector3());
           k.state = 'beaming';
