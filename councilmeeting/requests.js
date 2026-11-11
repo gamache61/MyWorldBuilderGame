@@ -131,7 +131,7 @@
         fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ access_key: WEB3KEY, subject: subj, from_name: 'World Builder', message: body }) })
           .then(function (r) { return r.json(); })
-          .then(function (r) { if (!r.success) throw 0; stat.textContent = 'Your request has been sent to the Builder\'s desk.'; dn.disabled = false; dn.textContent = 'DONE — BACK TO THE MENU'; })
+          .then(function (r) { if (!r.success) throw 0; stat.textContent = 'Your request has been sent to the Builder\'s desk.'; dn.remove(); setTimeout(function () { if (document.getElementById('wbReq')) { box.remove(); window.WB_reqBusy = false; } }, 3500); })
           .catch(function () { stat.textContent = 'Could not send it from here. Please email it to ' + MAIL + '.'; dn.disabled = false; dn.textContent = 'CLOSE'; });
       }
       var gm = document.getElementById('wbReqGmail');
