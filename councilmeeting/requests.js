@@ -11,6 +11,8 @@
    ============================================================ */
 (function () {
   var MAIL = 'gamacheapps@gmail.com';
+  // Free key from web3forms.com (enter gamacheapps@gmail.com there, they email you the key). Paste it between the quotes.
+  var WEB3KEY = '';
 
   // [ words the player might type , project file it matches , what the council calls it ]
   var TOPICS = [
@@ -113,15 +115,25 @@
       var j = judge(text);
       save(text, j.built);
       try { localStorage.setItem(asked, '1'); } catch (e) { }
-      var html = '<h3>THE COUNCIL ANSWERS</h3><p>' + say(text, j.built ? j.name : null).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p><div class="row">';
-      if (!j.built) html += '<button id="wbReqGmail">SEND WITH GMAIL</button><button id="wbReqMail">OPEN MY EMAIL APP</button><button id="wbReqCopy">COPY REQUEST</button>';
-      html += '<button id="wbReqDone" class="dim">CLOSE</button></div>';
+      var auto = !!WEB3KEY && !j.built;
+      var html = '<h3>THE COUNCIL ANSWERS</h3><p>' + say(text, j.built ? j.name : null).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p><p id="wbReqStat"></p><div class="row">';
+      if (!j.built && !auto) html += '<button id="wbReqGmail">SEND WITH GMAIL</button><button id="wbReqMail">OPEN MY EMAIL APP</button><button id="wbReqCopy">COPY REQUEST</button>';
+      html += '<button id="wbReqDone" class="dim">' + (auto ? 'SENDING…' : 'CLOSE') + '</button></div>';
       box.innerHTML = html;
       var subj = 'World Builder request', body = 'Request from ' + meetingName() + ':\n\n' + text;
       var sent = function () {
         var d = document.getElementById('wbReqDone'); if (d) d.textContent = 'DONE — BACK TO THE MENU';
         setTimeout(function () { if (document.getElementById('wbReq')) { box.remove(); window.WB_reqBusy = false; } }, 20000);
       };
+      if (auto) {
+        var stat = document.getElementById('wbReqStat'), dn = document.getElementById('wbReqDone');
+        dn.disabled = true;
+        fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ access_key: WEB3KEY, subject: subj, from_name: 'World Builder', message: body }) })
+          .then(function (r) { return r.json(); })
+          .then(function (r) { if (!r.success) throw 0; stat.textContent = 'Your request has been sent to the Builder\'s desk.'; dn.disabled = false; dn.textContent = 'DONE — BACK TO THE MENU'; })
+          .catch(function () { stat.textContent = 'Could not send it from here. Please email it to ' + MAIL + '.'; dn.disabled = false; dn.textContent = 'CLOSE'; });
+      }
       var gm = document.getElementById('wbReqGmail');
       if (gm) gm.onclick = function () {
         window.open('https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(MAIL) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body), '_blank');
