@@ -58,11 +58,17 @@
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         // the stranger: a dark, hurt ship far out in the sky, drifting
         this.str = new T.Group(); this.str.position.set(1550, this.y0 + 2200, -6500); grp.add(this.str);
-        const hullM = new T.MeshStandardMaterial({ color: 0x3a4250, roughness: 0.6, metalness: 0.5 });
-        const hull = new T.Mesh(new T.CapsuleGeometry(20, 90, 6, 14).rotateZ(Math.PI / 2), hullM); this.str.add(hull);
-        for (const sd of [-1, 1]) { const f = new T.Mesh(new T.BoxGeometry(40, 3, 40), hullM); f.position.set(-10, 0, sd * 34); f.rotation.y = sd * 0.4; this.str.add(f); }
-        this.lights = []; for (let i = 0; i < 6; i++) { const l = new T.Mesh(new T.SphereGeometry(3.4, 10, 8), bm(new T.Color(2.0, 1.5, 0.5), 0)); l.position.set(-30 + i * 14, 6, 19); this.str.add(l); this.lights.push(l); }
-        this.glow = new T.Mesh(new T.SphereGeometry(70, 14, 10), bm(new T.Color(1.0, 0.75, 0.3), 0)); this.str.add(this.glow);
+        const hullM = new T.MeshStandardMaterial({ color: 0x4a4638, roughness: 0.7, metalness: 0.45 });
+        const darkM = new T.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.8, metalness: 0.3 });
+        // a long spine with a great wheel around it, a cone at the front, and a cluster of engine bulbs behind
+        const spine = new T.Mesh(new T.CylinderGeometry(9, 12, 190, 12).rotateZ(Math.PI / 2), hullM); this.str.add(spine);
+        const nose = new T.Mesh(new T.ConeGeometry(9, 50, 12).rotateZ(-Math.PI / 2), darkM); nose.position.x = 120; this.str.add(nose);
+        const wheel = new T.Mesh(new T.TorusGeometry(62, 6, 10, 40).rotateY(Math.PI / 2), hullM); wheel.position.x = 10; this.str.add(wheel);
+        for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; const sp = new T.Mesh(new T.BoxGeometry(3, 3, 56), darkM); sp.position.set(10, Math.sin(a) * 31, Math.cos(a) * 31); sp.rotation.set(-a, 0, 0); this.str.add(sp); }
+        for (let i = 0; i < 4; i++) { const eb = new T.Mesh(new T.SphereGeometry(11, 10, 8), darkM); eb.position.set(-105, Math.sin(i * 1.571) * 16, Math.cos(i * 1.571) * 16); this.str.add(eb); }
+        this.lights = []; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const l = new T.Mesh(new T.SphereGeometry(4.6, 10, 8), bm(new T.Color(1.4, 1.9, 2.0), 0)); l.position.set(10, Math.sin(a) * 62, Math.cos(a) * 62); this.str.add(l); this.lights.push(l); }
+        this.str.rotation.y = 0.5; this.str.rotation.z = 0.25;
+        this.glow = new T.Mesh(new T.SphereGeometry(70, 14, 10), bm(new T.Color(0.4, 0.8, 1.0), 0)); this.str.add(this.glow);
         // three rescue craft and a guard ship, flying out from the pads
         this.fleet = [];
         P.craftPos.forEach(([x, z], i) => {
@@ -103,7 +109,7 @@
           const a = mid, b = tgt, L = a.distanceTo(b); this.beam.scale.set(1, L, 1); this.beam.position.copy(a).lerp(b, 0.5); this.beam.lookAt(b); this.beam.rotateX(Math.PI / 2);
           follow(mid, tgt, 0.5);
           const lit = Math.min(1, Math.max(0, (this.t1 - 4) / 6));
-          this.lights.forEach((l, i) => l.material.opacity = lit > i / 6 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.22;
+          this.lights.forEach((l, i) => l.material.opacity = lit > i / 8 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.22;
           if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000, 190, 540), new T.Vector3(1550, 200, -300)); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
         } else {
           if (this.t1 > 4 && !this._h) { this._h = true; api.setFlag('rescue', true); api.setFlag('opened', true); }
