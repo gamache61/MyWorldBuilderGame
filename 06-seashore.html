@@ -1894,12 +1894,13 @@ function ucNeedFor(kit) {
 }
 function ucStart(p) {
   if (!p._need || !p.piece || UC.has(p)) return;
+  if (KIT_TYPES[p.type] && KIT_TYPES[p.type].deck) return;   // deck tiles appear whole and stay put
   const box = new THREE.Box3().setFromObject(p.piece); if (!isFinite(box.min.y) || box.max.y - box.min.y < 0.5) return;
   const base = siteGroup.getWorldPosition(new THREE.Vector3()).y;
   const plane = new THREE.Plane(V(0, -1, 0), box.min.y);
   const clip = m => { const c = m.clone(); c.clippingPlanes = [plane]; c.clipShadows = true; return c; };
   p.piece.traverse(o => { if (!o.material || o.userData.ucMat) return; o.userData.ucMat = o.material; o.material = Array.isArray(o.material) ? o.material.map(clip) : clip(o.material); });
-  const u = { p, need: p._need, got: 0, y0: box.min.y - base, y1: box.max.y - base + 0.5, show: 0, goal: 1 / (p._need + 1), plane };
+  const u = { p, need: p._need, got: 0, y0: box.min.y - base, y1: box.max.y - base + 0.5, show: 0, goal: 0.5, plane };
   UC.set(p, u);
 }
 function ucDone(u) {
@@ -1908,7 +1909,7 @@ function ucDone(u) {
 }
 // the part that is waiting for a part-material crate of this kind (the one furthest behind first)
 function ucFor(type) { let best = null; for (const u of UC.values()) if (u.p.type === type && u.got + (u.coming || 0) < u.need && (!best || u.got < best.got)) best = u; return best; }
-function ucAdd(u) { u.coming = Math.max(0, (u.coming || 0) - 1); u.got++; u.goal = Math.min(1, (u.got + 1) / (u.need + 1)); }
+function ucAdd(u) { u.coming = Math.max(0, (u.coming || 0) - 1); u.got++; u.goal = Math.min(1, 0.5 + 0.5 * (u.got + 1) / (u.need + 1)); }
 function ucLevelWorld(u) { return siteGroup.getWorldPosition(new THREE.Vector3()).y + u.y0 + (u.y1 - u.y0) * u.show; }
 function ucTick(dt) {
   if (!UC.size) return;
@@ -3475,7 +3476,7 @@ function updateGameHUD(dt) {
       h += '<div class="dim" style="color:' + (i === G.trip ? '#cfe9ff' : '') + '">' + ts + ' TRIP ' + (i + 1) + ' · ' + tr.name + '</div>';
     });
   }
-  if (G.stage !== 'none' && GRP.total < 12) h += '<div class="dim">· BUILD ' + (GRP.total + 1) + ' · NOT YET ADDED</div>';
+  if (G.stage !== 'none' && false) h += '<div class="dim">· BUILD ' + (GRP.total + 1) + ' · NOT YET ADDED</div>';
   if (B && B.stats && G.stage !== 'none') {
     const sup = kits.filter(k => k.type === 'SUPPLY');
     h += '<hr>' + B.stats.call(B, api).map(([a, v]) => '<div>' + a + ' <span>' + v + '</span></div>').join('');
@@ -4536,7 +4537,7 @@ addEventListener('resize', () => {
       y += 6;
     }
     if (G.flags && G.flags.shield) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ SEASHORE COMPLETE ★', 70, y + 10); }
-    else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  BUILD ' + (GRP.total + 1) + ' · NOT YET ADDED', 70, y); }
+    else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  SEASHORE IN PROGRESS', 70, y); }
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';
     g.fillText('Deck area ' + (n('DECK') * 2400 + n('TRUSS') * 2400).toLocaleString() + ' m²  ·  Spindle ' + n('TRUSS') * 60 + ' m  ·  Supply crates ' + n('SUPPLY'), 70, h - 80);
