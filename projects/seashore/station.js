@@ -259,12 +259,14 @@
   K.cityBuild = (def) => {
     const types = {};
     for (const [t, P] of Object.entries(def.parts)) types[t] = { code: P.code || 'SF', name: P.name, col: P.col || '#6c757d', fixed: true, h: P.h || 30, fx: P.fx || Math.max(20, P.h || 30) };
-    const trips = def.trips.map((T, i) => {
-      const kits = {}; for (const t of T.parts) kits[t] = def.parts[t].count;
-      return { name: T.name, kits, finish: i === def.trips.length - 1 ? 'custom' : 'unload' };
-    });
-    // an optional first trip of loose parts placed with the crane (deck tiles, the transporter …)
-    if (def.pre) { trips.unshift({ name: def.pre.name, kits: def.pre.kits, finish: 'unload' }); Object.assign(types, def.pre.types); }
+    // every build is one trip to Earth: the parts of all its old trips ride in the bay together
+    const trips = [(() => {
+      const kits = {}; for (const T of def.trips) for (const t of T.parts) kits[t] = def.parts[t].count;
+      if (def.pre) Object.assign(kits, def.pre.kits);
+      return { name: def.trips.length > 1 ? def.trips.map(T => T.name).join(' + ') : def.trips[0].name, kits, finish: 'custom' };
+    })()];
+    // an optional set of loose parts placed with the crane first (deck tiles, the transporter …)
+    if (def.pre) Object.assign(types, def.pre.types);
     const LAST = trips.length - 1;
     return {
       id: def.id, name: def.name, brief: def.brief, kryos: true, types, trips,

@@ -1926,7 +1926,7 @@ function stepDeploys(dt, t) {
   ucTick(dt);
   let active = null;
   for (let i = deploys.length - 1; i >= 0; i--) {
-    const d = deploys[i]; d.t += dt / (d.beam ? 2.2 : 3.0); const k = Math.min(1, d.t), e = k * k * (3 - 2 * k);
+    const d = deploys[i]; d.t += dt / (d.beam ? 1.4 : 2.2); const k = Math.min(1, d.t), e = k * k * (3 - 2 * k);
     if (!d.beam) {
       d.kit.m.scale.setScalar(Math.max(0.001, 1 - e * 1.6));
       d.kit.m.position.lerpVectors(d.from, V(d.p.x, DECK_TOP + 2, d.p.z), Math.min(1, e * 1.5));
@@ -2178,7 +2178,7 @@ function updateTransport(dt, t) {
   if (TX.on) {
     TX.next -= dt;
     if (TX.next <= 0 && TX.queue.length) {
-      TX.next = 0.45;
+      TX.next = 0.2;
       const load = TX.queue.shift();
       const g = freeGroup(bayGroups, load.length);
       if (g) {
@@ -2196,7 +2196,7 @@ function updateTransport(dt, t) {
   for (let i = TX.fx.length - 1; i >= 0; i--) {
     const f = TX.fx[i]; f.t += dt;
     const t0 = f.t - f.delay; if (t0 < 0) continue;
-    const OUT = 1.3, IN = 1.4;
+    const OUT = 0.8, IN = 0.8;
     if (t0 < OUT) {                                               // dematerialize on the floor
       const k = t0 / OUT;
       f.a.pts.material.opacity = Math.sin(k * Math.PI) * 1.2;
@@ -2348,14 +2348,14 @@ function updateSiteTransport(dt) {
   // --- platform parts: one at a time, with the camera following each step ---
   if (STX.cur) {
     const c = STX.cur; c.t += dt;
-    if (c.stage === 'bay' && c.t >= (STX.fast ? 0.15 : 1.4)) {
+    if (c.stage === 'bay' && c.t >= (STX.fast ? 0.15 : 0.8)) {
       deploy(c.k, c.tg.sp.x, c.tg.sp.z, c.tg.sp.rot || 0, true);
       c.stage = 'site'; c.t = 0;
       if (!STX.fast) {
         if (c.tg.eye) snapCam = fitShot(c.tg.eye.clone(), c.tg.pos.clone(), c.tg.pos);
         else { stxShot(c.tg.pos, c.tg.pos, c.tg.size); snapCam = fitShot(snapCam[0], snapCam[1], c.tg.pos); }
       }
-    } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.2 : 2.6)) STX.cur = null;
+    } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.2 : 1.5)) STX.cur = null;
     return;
   }
   if (STX.mat) {
@@ -2826,7 +2826,7 @@ function loadGame() {
   let d = null;
   try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { }
   if (!d || d.v !== 2) return false;
-  G.idx = d.idx | 0; G.trip = d.trip | 0; G.stage = d.stage || 'load'; G.stock = d.stock | 0; G.stockF = +d.stockF || 0; G.flags = d.flags || {};
+  G.idx = d.idx | 0; G.trip = d.trip | 0; { const _b = BUILDS[G.idx]; if (_b && G.trip > _b.trips.length - 1) { G.trip = _b.trips.length - 1; if (d.stage === 'tripdone') d.stage = 'done'; } } G.stage = d.stage || 'load'; G.stock = d.stock | 0; G.stockF = +d.stockF || 0; G.flags = d.flags || {};
   if (!curBuild()) G.stage = 'none';
   else if (G.stage === 'none') { G.stage = 'load'; G.trip = 0; }
   setLocation(d.loc === 'site' ? 'site' : 'earth');
