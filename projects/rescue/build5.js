@@ -57,7 +57,7 @@
         const grp = new T.Group(); par.parent.add(grp); this.grp = grp; this.y0 = api.DECK_TOP;
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         // the stranger: a dark, hurt ship far out in the sky, drifting
-        this.str = new T.Group(); this.str.position.set(1550, this.y0 + 2200, -6500); grp.add(this.str);
+        this.str = new T.Group(); this.str.position.set(1550, this.y0 + 3200, -6500); grp.add(this.str);
         const hullM = new T.MeshStandardMaterial({ color: 0x4a4638, roughness: 0.7, metalness: 0.45 });
         const darkM = new T.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.8, metalness: 0.3 });
         // a long spine with a great wheel around it, a cone at the front, and a cluster of engine bulbs behind
@@ -88,11 +88,11 @@
         const fly = (o, i, u, off) => {
           // a long curve up from the pad and out toward the stranger, stopping short of it
           const e = u * u * (3 - 2 * u), sx = o.x0, sz = o.z0, ex = tgt.x + off, ez = tgt.z + 260;
-          o.c.position.set(sx + (ex - sx) * e + Math.sin(e * 3.1) * 40, this.y0 + 14 + e * (tgt.y - this.y0 - 14) * 0.96, sz + (ez - sz) * e);
+          o.c.position.set(sx + (ex - sx) * e + Math.sin(e * 3.1) * 40, this.y0 + 14 + e * (tgt.y - 220 - this.y0 - 14), sz + (ez - sz) * e);
           o.c.rotation.y = Math.atan2(ex - sx, ez - sz); o.c.rotation.x = -0.25 * Math.sin(e * 3.1);
         };
-        const follow = (a, b, k) => {
-          const e = new T.Vector3(a.x + 230, a.y + 70, a.z + 400), l = a.clone().lerp(b, k);
+        const follow = (a, b, k, o) => {
+          o = o || [230, 70, 400]; const e = new T.Vector3(a.x + o[0], a.y + o[1], a.z + o[2]), l = a.clone().lerp(b, k);
           this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 2.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 2.5)) : l.clone();
           api.shot(this.ce, this.cl);
         };
@@ -101,13 +101,13 @@
           const u = Math.min(1, this.t1 / 24);
           this.fleet.forEach(o => fly(o, o.i, Math.max(0, Math.min(1, u * 1.08 - o.i * 0.04)), (o.i - 1) * 60));
           fly({ c: this.esc, x0: 1380, z0: -90 }, 3, Math.max(0, u * 1.02), 170);
-          follow(this.fleet[1].c.position, tgt, 0.12 + 0.2 * u);
+          follow(this.fleet[1].c.position, tgt, 0.12 + 0.3 * u, u < 0.6 ? [230, 70, 400] : [110 + 120 * (1 - u) / 0.4, -20 + 90 * (1 - u) / 0.4, 110 + 290 * (1 - u) / 0.4]);
           if (u >= 1) { this.stage = 1; this.t1 = 0; P.ring && P.ring(3); }
         } else if (this.stage === 1) {
           P.hint('THE FUEL IS LEFT IN THE OPEN, AND A MEDIC GOES ACROSS WITH OPEN HANDS...');
           const mid = this.fleet[1].c.position; this.beam.material.opacity = Math.min(0.7, this.t1 / 2) * (0.7 + Math.sin(f * 6) * 0.3);
           const a = mid, b = tgt, L = a.distanceTo(b); this.beam.scale.set(1, L, 1); this.beam.position.copy(a).lerp(b, 0.5); this.beam.lookAt(b); this.beam.rotateX(Math.PI / 2);
-          follow(mid, tgt, 0.5);
+          follow(mid, tgt, 0.9, [110, -20, 110]);
           const lit = Math.min(1, Math.max(0, (this.t1 - 4) / 6));
           this.lights.forEach((l, i) => l.material.opacity = lit > i / 8 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.22;
           if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000, 190, 540), new T.Vector3(1550, 200, -300)); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
