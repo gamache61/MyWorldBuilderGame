@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 2 · THE HOUSE OF WORDS
-   Keep this file in projects/languagehouse next to 60-languagehouse.html.
+   Keep this file in projects/languagehouse next to 59-languagehouse.html.
    The great hall of the Language House: a stepped stone base, a ring of columns, a glass dome and a front door that says hello in many tongues.
    ============================================================ */
 (function () {

@@ -453,7 +453,7 @@ window.SPACE_PROJECTS = [
   },
   {
     name: 'THE LANGUAGE HOUSE \u00b7 PLANET UNITY',
-    html: '60-languagehouse.html',
+    html: '59-languagehouse.html',
     brief: 'A great house of words where translators, teachers and thinking machines learn the languages, lights and songs of other peoples: the hall, three classrooms, a listening library, a song garden and the thinking machines \u2014 then the first words, spoken to the stranger.',
     builds: 5,
     color: '#b8f0a0',

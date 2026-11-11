@@ -3417,7 +3417,7 @@ function updateGameHUD(dt) {
   else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO KRYOS CITY'; }
   else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
   else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE LANGUAGE HOUSE · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'THE LANGUAGE HOUSE BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/languagehouse NEXT TO 60-languagehouse.html, THEN REFRESH'; }
+  else if (!BUILDS.length) { head = 'THE LANGUAGE HOUSE BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/languagehouse NEXT TO 59-languagehouse.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
       head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';

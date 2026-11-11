@@ -1,6 +1,6 @@
 /* ============================================================
    THE LANGUAGE HOUSE · BUILD 5 · THE THINKING MACHINES & THE FIRST WORDS
-   Keep this file in projects/languagehouse next to 60-languagehouse.html.
+   Keep this file in projects/languagehouse next to 59-languagehouse.html.
    Two halls of thinking machines that learn every language they hear. Ends with L: the first words, spoken to the stranger and answered.
    ============================================================ */
 (function () {
