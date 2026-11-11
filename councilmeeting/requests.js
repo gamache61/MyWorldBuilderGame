@@ -115,13 +115,21 @@
       save(text, j.built);
       try { localStorage.setItem(asked, '1'); } catch (e) { }
       var html = '<h3>THE COUNCIL ANSWERS</h3><p>' + say(text, j.built ? j.name : null).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p><div class="row">';
-      if (!j.built) html += '<button id="wbReqMail">EMAIL THIS TO THE BUILDER\'S DESK</button>';
+      if (!j.built) html += '<button id="wbReqGmail">SEND WITH GMAIL</button><button id="wbReqMail">OPEN MY EMAIL APP</button><button id="wbReqCopy">COPY REQUEST</button>';
       html += '<button id="wbReqDone" class="dim">CLOSE</button></div>';
       box.innerHTML = html;
+      var subj = 'World Builder request', body = 'Request from ' + meetingName() + ':\n\n' + text;
+      var gm = document.getElementById('wbReqGmail');
+      if (gm) gm.onclick = function () {
+        window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(MAIL) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body), '_blank');
+      };
       var mail = document.getElementById('wbReqMail');
-      if (mail) mail.onclick = function () {
-        location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('World Builder request') +
-          '&body=' + encodeURIComponent('Request from ' + meetingName() + ':\n\n' + text);
+      if (mail) mail.onclick = function () { location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body); };
+      var cp = document.getElementById('wbReqCopy');
+      if (cp) cp.onclick = function () {
+        var t = 'To: ' + MAIL + '\nSubject: ' + subj + '\n\n' + body;
+        var ok = function () { cp.textContent = 'COPIED — PASTE IT INTO AN EMAIL TO ' + MAIL; };
+        try { navigator.clipboard.writeText(t).then(ok, function () { cp.textContent = 'SEND TO ' + MAIL; }); } catch (e) { cp.textContent = 'SEND TO ' + MAIL; }
       };
       document.getElementById('wbReqDone').onclick = function () { box.remove(); };
     };
