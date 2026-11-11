@@ -1,17 +1,14 @@
 /* ============================================================
-   THE LANGUAGE HOUSE · BUILD 1 · THE LANDING FIELD
-   Keep this file in projects/languagehouse next to 60-languagehouse.html.
-   The council chose the Language House: a great house of words where translators, teachers and thinking machines learn the languages, lights and songs of other peoples, so that when a stranger speaks, Unity can answer. The landing field and transporter are already there, so it begins at build 2. The Factory District is loaded, finished, from its own files.
+   LANGUAGEHOUSE · BUILD 1 · KRYOS LANDING FIELD
+   Kryos city all round, with every project already built in Kryos. Keep this file in projects/languagehouse.
    ============================================================ */
 
-/* ---------- shared by every mine build (one copy, kept on window) ---------- */
-window.YARD = window.YARD || {
+/* ---------- shared by every Homeward Two build (one copy, kept on window) ---------- */
+window.LANG = window.LANG || {
+  // this chapter is built in its own corner of Kryos: every build position is moved by OFF
+  OFF: [-2100, -760],
   _t: -1, people: [],
-  // the Starwatch Array stands on the old site, so this chapter is built south of it: every build position is moved by OFF
-  OFF: [0, 850],
-  ground(api, x, z) { return Math.max(window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 0.4, window.SEA_Y !== undefined ? window.SEA_Y : -1e9); },
-  // the seabed (for piers and docks standing in the water)
-  seabed(api, x, z) { return window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 30; },
+  ground(api, x, z) { return window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 0.4; },
   mats(api) {
     if (this._m) return this._m;
     const { THREE } = api, std = (c, r = 0.7, m = 0, e = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m, ...e });
@@ -63,7 +60,7 @@ window.YARD = window.YARD || {
     }
     return g;
   },
-  // a mine build made of fixed parts beamed in by the transporter.
+  // a Homeward Two build made of fixed parts beamed in by the transporter.
   // def = { id, name, brief, types: { T: { code, name, col, w, d, h } }, at: { T: [[x, z], …] }, order: ['T', …],
   //         make(type, k, g, add, F, api, sl), stats(api, c), eye?, finish?: { label, cam: [[x,y,z],[x,y,z]], start(api), update(api, dt, k) -> done } }
   build(def) {
@@ -93,7 +90,7 @@ window.YARD = window.YARD || {
         const { THREE } = api, F = PLAY.mats(api), sl = this.slots[p.s]; this._mats = this._mats || F;
         const g = new THREE.Group();
         const add = (geo, mat, x = 0, y = 0, z = 0, shadow = true, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m; };
-        try { def.make(type, sl.k, g, add, F, api, sl); } catch (e) { console.warn('mine part', type, e); }
+        try { def.make(type, sl.k, g, add, F, api, sl); } catch (e) { console.warn('homeward two part', type, e); }
         return PLAY.bake(api, g);
       },
       tick(api, dt, t) { PLAY.update(api, dt, t); if (def.tick) def.tick(api, dt, t); },
@@ -108,16 +105,66 @@ window.YARD = window.YARD || {
   // workers: queued while the game starts, then made with the same people as every other project
   person(group, o, act, x, y, z, ry, extra) { this.people.push({ group, o, act, x, y, z, ry, extra }); },
   civ(seed) { const r = n => ((seed * 9301 + n * 49297) % 233280) / 233280, pick = (a, n) => a[(r(n) * a.length) | 0]; return { kind: 'worker', civilian: true, seed, female: r(1) < 0.5, shirt: pick(['#b03a2e', '#2f6690', '#e8dcc0', '#3a7d44', '#7b4fa0', '#d9a21b', '#eef2f5', '#5fa6c8'], 2), pants: pick(['#2c3a52', '#3a3a3a', '#5a4b36', '#e8e2d8'], 3) }; },
-  // clear the wild forest trees off the yard ground east of the Factory District
-  clearYard(api) {
+  // Kryos city all round: the same blue glass towers, white low-rise blocks with roof gardens and green
+  // boulevard as the city itself, with the projects already built — the playland, the Great School,
+  // Homeward, the House of Healing and the shopping centre. The Animal Care Centre stands at the east end of the boulevard.
+  kryos(api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._kryos = false; return; }
-    const T = api.THREE; let root = land.piece; while (root.parent) root = root.parent; const m4 = new T.Matrix4(), v = new T.Vector3(), zero = new T.Matrix4().makeScale(0, 0, 0);
-    root.traverse(o => { if (!o.isInstancedMesh || o.count < 5000) return; let hit = false;
-      for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4); if (v.x > 1000 && v.x < 2200 && v.z > -600 && v.z < 1800) { o.setMatrixAt(i, zero); hit = true; } }
-      if (hit) o.instanceMatrix.needsUpdate = true; });
+    const T = api.THREE, g = new T.Group(), Y = (x, z) => this.ground(api, x, z);
+    const rng = seed => { let s2 = (seed * 7919 + 13) % 2147483647 || 1; return () => (s2 = (s2 * 16807) % 2147483647) / 2147483647; };
+    const canvas = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 4; return t; };
+    const glassTex = [205, 212, 198, 220].map((hue, n) => { const r = rng(40 + n); return canvas(256, 512, (c, w, h) => { c.fillStyle = `hsl(${hue},48%,56%)`; c.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 12) { c.fillStyle = 'rgba(20,40,70,.35)'; c.fillRect(0, y, w, 2); } for (let x = 0; x < w; x += 16) { c.fillStyle = 'rgba(230,240,255,.35)'; c.fillRect(x, 0, 1.5, h); } for (let k = 0; k < 300; k++) { c.fillStyle = `rgba(255,255,255,${r() * 0.12})`; c.fillRect(((r() * w / 16) | 0) * 16, ((r() * h / 12) | 0) * 12, 16, 12); } }); });
+    const whiteTex = canvas(256, 256, (c, w, h) => { c.fillStyle = '#eef1f4'; c.fillRect(0, 0, w, h); for (let y = 10; y < h; y += 32) { c.fillStyle = '#5b7891'; c.fillRect(0, y, w, 14); c.fillStyle = 'rgba(255,255,255,.5)'; for (let x = 0; x < w; x += 24) c.fillRect(x, y, 2, 14); } });
+    const glassM = glassTex.map(t => { t.repeat.set(3, 6); return new T.MeshStandardMaterial({ map: t, metalness: 0.75, roughness: 0.12 }); }), glass = n => glassM[n % 4];
+    whiteTex.repeat.set(1, 1); const whiteM = new T.MeshStandardMaterial({ map: whiteTex, roughness: 0.35, metalness: 0.2 }), white = () => whiteM;
+    const trim = new T.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.25, metalness: 0.3 }), grass = new T.MeshStandardMaterial({ color: 0x5f9a42, roughness: 1 }), leaf = new T.MeshStandardMaterial({ color: 0x4f8f3a, roughness: 0.9, flatShading: true }), trunk = new T.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.9 });
+    const add = (geo, m, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = false; o.receiveShadow = false; g.add(o); return o; };
+    const tree = (x, z, y, s) => { add(new T.CylinderGeometry(0.35 * s, 0.5 * s, 5 * s, 5), trunk, x, y + 2.5 * s, z); add(new T.IcosahedronGeometry(4.5 * s, 0), leaf, x, y + 8 * s, z); };
+    // keep the school, the playland, Homeward, the hospital, the shopping centre, the animal care centre and the Sky Rail clear
+    const clear = (x, z, r) => (x + r > 480 && x - r < 800 && z + r > -490 && z - r < -350) || (x + r > 740 && Math.abs(z + 420) < r + 50) || (z + r > -290 && z - r < 340 && ((x + r > -905 && x - r < -225) || (x + r > 225 && x - r < 905))) || (x + r > -170 && x - r < 410 && Math.abs(z) + r > 300 && Math.abs(z) - r < 1110) || (x + r > -1260 && x - r < -885 && z + r > -250 && z - r < 250) || (x + r > 900 && x - r < 1420 && z + r > -340 && z - r < 340) || (x + r > -800 && x - r < -150 && z + r > 370 && z - r < 1040);
+    // the glass towers, in the same places as in Kryos city
+    const r0 = rng(4242), spots = []; const keep = [[120, 640, 340], [120, 1060, 260], [-450, -700, 380], [700, -760, 420], [1250, 0, 180]];
+    for (let tries = 0, n = 0, s2 = 0; tries < 6000 && (n < 18 || s2 < 18); tries++) {
+      const x = -1150 + r0() * 2400, z = (r0() < 0.5 ? 1 : -1) * (270 + r0() * 900), north = z > 0;
+      if ((north ? n : s2) >= 18 || Math.hypot(x - 120, z) > 1180 || (Math.abs(x - 120) < 280 && Math.abs(z) < 1150)) continue;
+      if (keep.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr)) continue;
+      if (spots.some(t => Math.hypot(t.x - x, t.z - z) < 95)) continue;
+      const mid = Math.exp(-Math.pow((x - 700) / 700, 2)) * Math.exp(-Math.abs(z) / 700);
+      spots.push({ x: Math.round(x), z: Math.round(z), h: Math.round(130 + r0() * 130 + mid * 300), r: Math.round(18 + r0() * 12), kind: (r0() * 4) | 0 }); if (north) n++; else s2++;
+    }
+    spots.forEach((t, n) => {
+      if (clear(t.x, t.z, t.r * 1.8)) return;
+      const { x, z, h, r, kind } = t, y = Y(x, z), m = glass(n, Math.max(1, Math.round(r / 7)), Math.max(1, Math.round(h / 45)));
+      if (kind === 0) { add(new T.CylinderGeometry(r * 0.92, r, h, 16), m, x, y + h / 2, z); add(new T.SphereGeometry(r * 0.92, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2), m, x, y + h, z).scale.y = 0.45; }
+      else if (kind === 1) { let yy = 0, w = r * 1.8; for (const f of [0.55, 0.3, 0.15]) { const hh = h * f; add(new T.BoxGeometry(w, hh, w), m, x, y + yy + hh / 2, z); add(new T.BoxGeometry(w + 0.6, 1, w + 0.6), trim, x, y + yy + hh, z); yy += hh; w *= 0.78; } }
+      else if (kind === 2) { add(new T.CylinderGeometry(r * 0.55, r, h, 6), m, x, y + h / 2, z); add(new T.ConeGeometry(r * 0.55, h * 0.18, 6), m, x, y + h * 1.09, z); }
+      else for (let k = 0; k < 8; k++) { const hh = h / 8, o = add(new T.CylinderGeometry(r * (1 - k * 0.04), r * (1 - k * 0.03), hh, 12), m, x, y + k * hh + hh / 2, z); o.scale.z = 0.62; o.rotation.y = k * 0.12; }
+      add(new T.BoxGeometry(r * 2.6, 6, r * 2.6), trim, x, y + 3, z);
+    });
+    // white low-rise blocks with roof gardens along the boulevard, and the green boulevard itself
+    const rl = rng(77);
+    for (let x0 = -1300; x0 < 1300; x0 += 65) for (const sd of [-1, 1]) {
+      if (Math.abs(x0 - 120) < 290) continue;
+      const w = 40 + rl() * 14, d = 50 + rl() * 40, h = 14 + rl() * 22, z = sd * (80 + d / 2 + rl() * 40);
+      if (clear(x0, z, Math.max(w, d) / 2 + 6) || Math.hypot(x0 - 120, z) > 1240 || Math.hypot(x0 - 1250, z) < 200) continue;
+      const y = Y(x0, z); add(new T.BoxGeometry(w, h, d), white(Math.max(1, Math.round(w / 40)), Math.max(1, Math.round(h / 20))), x0, y + h / 2, z);
+      add(new T.BoxGeometry(w + 1, 1, d + 1), trim, x0, y + h, z); add(new T.BoxGeometry(w * 0.9, 0.8, d * 0.9), grass, x0, y + h + 0.9, z);
+      tree(x0 - w * 0.25, z, y + h + 1.2, 0.5); tree(x0 + w * 0.25, z + d * 0.2, y + h + 1.2, 0.5);
+    }
+    for (const [a, b] of []) { const L = b - a, gr = add(new T.BoxGeometry(L, 0.3, 120), grass, (a + b) / 2, Y((a + b) / 2, 0) + 0.15, 0); gr.castShadow = false; for (let x = a + 20; x < b; x += 40) for (const sd of [-1, 1]) tree(x, sd * 50, Y(x, sd * 50), 1); }
+    // low ground pads under the finished projects (the projects themselves are loaded from their own build files)
+    for (const [x, z, w, d] of [[565, 25, 680, 630], [-565, 25, 680, 630], [-1070, 0, 400, 470], [1160, 0, 400, 470], [-550, 705, 650, 670]]) add(new T.BoxGeometry(w, 0.24, d), grass, x, Y(x, z) - 0.02, z);
+    // the Homeward Two ground: a paved plaza under the station
+    add(new T.BoxGeometry(270, 0.24, 84), new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.95 }), 640, Y(640, -420) - 0.02, -420);
+    land.piece.parent.add(this.bake(api, g));
+    // clear the wild forest trees off Homeward, the hospital, the shopping centre, the animal care centre and the Sky Rail line
+    { let root = land.piece; while (root.parent) root = root.parent; const m4 = new T.Matrix4(), v = new T.Vector3(), zero = new T.Matrix4().makeScale(0, 0, 0);
+      root.traverse(o => { if (!o.isInstancedMesh || o.count < 5000) return; let hit = false;
+        for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4); if ((v.x > -190 && v.x < 430 && Math.abs(v.z) > 280 && Math.abs(v.z) < 1130) || (v.x > -1290 && v.x < -880 && Math.abs(v.z) < 270) || (v.x > 890 && v.x < 1430 && Math.abs(v.z) < 350) || (v.x > 470 && v.x < 810 && v.z > -500 && v.z < -340) || (v.x > 730 && v.x < 3200 && Math.abs(v.z + 420) < 45) || (v.x > -800 && v.x < -150 && v.z > 370 && v.z < 1040) || (v.x > 300 && v.x < 940 && v.z > -1140 && v.z < -450) || (v.x > -820 && v.x < -230 && v.z > -1020 && v.z < -500)) { o.setMatrixAt(i, zero); hit = true; } }
+        if (hit) o.instanceMatrix.needsUpdate = true; }); }
   },
   update(api, dt, t) {
-    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.clearYard(api); } catch (e) { console.warn('mine ground', e); } }
+    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.kryos(api); } catch (e) { console.warn('kryos city', e); } }
     if (!this._fin && api.placed && api.placed.length) { this._fin = true; this.finished(api); }
     if (this.bgTick) this.bgTick(api, dt, t);
     if (t === this._t) return; this._t = t;
@@ -126,16 +173,16 @@ window.YARD = window.YARD || {
   },
 };
 
-/* ---------- mine helpers, shared by every build ---------- */
+/* ---------- Homeward Two helpers, shared by every build ---------- */
 (function () {
-  const P = window.YARD;
+  const P = window.LANG;
   // bright colours (one copy, shared by every build)
   P.fun = function (api) {
     if (this._fun) return this._fun; const T = api.THREE, std = (c, r = 0.6, m = 0.1) => new T.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
     return this._fun = { red: std(0xe0402e), blue: std(0x2f7fe0), green: std(0x3fb04a), purple: std(0x8a4fd0), orange: std(0xf08a1a), pink: std(0xf06aa8), yellow: std(0xf2c41a),
       soft: std(0x3a8f7a, 0.95), soft2: std(0xc8643a, 0.95), sand: std(0xe8d49a, 1), grass: std(0x5aa64a, 1), path: std(0xd8cdb6, 0.9), rope: std(0xc8a878, 0.9) };
   };
-  // stone, timber, roofs and glass for the mine (one copy, shared by every build)
+  // stone, timber, roofs and glass for the Homeward Two (one copy, shared by every build)
   P.hm = function (api) {
     if (this._hm) return this._hm; const T = api.THREE, std = (c, r = 0.6, m = 0.1, e = {}) => new T.MeshStandardMaterial({ color: c, roughness: r, metalness: m, ...e });
     return this._hm = { cream: std(0xefe6d2, 0.7), stone: std(0xd8d2c6, 0.85), mint: std(0x90f0b0, 0.5, 0.2), copper: std(0x5f9e86, 0.5, 0.6), brass: std(0xd9b44a, 0.3, 0.85),
@@ -158,117 +205,127 @@ window.YARD = window.YARD || {
     } catch (e) { }
   };
   P.kid = seed => { const o = P.civ(seed); o.shirt = ['#e0402e', '#2f7fe0', '#3fb04a', '#f2c41a', '#f06aa8', '#8a4fd0', '#f08a1a'][seed % 7]; return o; };
-  // simple standing figures (two shapes each) for most of the crowd, so the mine stays smooth; a few real people walk about
+  // simple standing figures (two shapes each) for most of the crowd, so the Homeward Two stays smooth; a few real people walk about
   P.figure = (api, add, x, y, z, s = 0.6, n = 0, parent) => { const T = api.THREE, C = P.fun(api), cols = ['red', 'blue', 'green', 'yellow', 'pink', 'purple', 'orange'];
     add(new T.CapsuleGeometry(0.34 * s / 0.6 * 0.6, 1.0 * s, 3, 6), C[cols[n % 7]], x, y + 0.9 * s, z, true, parent); add(new T.SphereGeometry(0.26 * s, 8, 6), C.skin || (C.skin = new T.MeshStandardMaterial({ color: [0xe0b090, 0xb07850, 0x8a5a3a, 0xf0c8a0][n % 4], roughness: 0.8 })), x, y + 1.75 * s, z, true, parent); };
 })();
 
-/* ---------- the finished Factory District, loaded from their own build files ---------- */
+/* ---------- the finished projects of Kryos, loaded from their own build files ---------- */
 (function () {
-  const P = window.YARD;
+  const P = window.LANG;
+  // where this file was loaded from, so the other projects' folders sit beside it
   const me = (document.currentScript && document.currentScript.src) || '';
-  P.base = /\/languagehouse\/build1\.js/i.test(me) ? me.replace(/languagehouse\/build1\.js.*$/i, '') : 'projects/';
+  P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
+  // every project already built in Kryos: its folder, and the helper its build files share
+  P.FINISHED = [['childrensplayland', 'PLAY'], ['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA']];
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
-    for (let w = 0; w < 300 && (window.AEGIS_BUILDS || []).length < 5; w++) await new Promise(r => setTimeout(r, 200));   // let this chapter's own five builds finish loading first
-    const parent = land.piece.parent, keep = window.AEGIS_BUILDS;
+    const parent = land.piece.parent, T = api.THREE, keep = window.AEGIS_BUILDS, helpers = [];
+    // the finished look: every flag of an earlier project counts as done, and nothing it does can change this game
     const bgApi = Object.create(api, { flag: { value: () => true }, setFlag: { value: () => { } }, count: { value: () => 99 }, kitsLeft: { value: () => 0 } });
-    // bring one finished project in from its own build files and put every part of it in the world
-    const bring = async (folder, label, first, still) => {
-      const list = []; window.AEGIS_BUILDS = list;
-      await loadOne(P.base + folder + '/station.js');
-      for (let i = first; i <= 30; i++) { const ok = await loadOne(P.base + folder + '/build' + i + '.js'); if (!ok) break; }
+    for (const [folder, name] of P.FINISHED) {
+      const list = [];
+      window.AEGIS_BUILDS = list;
+      for (let i = 1; i <= 12; i++) { const ok = await loadOne(P.base + folder + '/build' + i + '.js'); if (!ok) break; }
       window.AEGIS_BUILDS = keep;
-      const put = (B, p) => {
-        try {
-          const g = B.make(p.type, bgApi, p); g.position.set(p.x, p.y !== undefined ? p.y : api.DECK_TOP, p.z); g.rotation.y = (p.rot || 0) * Math.PI / 2;
-          g.traverse(o => { if (o.isMesh && !o.material.isMeshBasicMaterial) { o.castShadow = true; o.receiveShadow = true; } });
-          parent.add(g);
-        } catch (e) { console.warn('Yard: finished ' + label + ' part', B.id, p.type, e); }
-      };
-      const mine = [];
+      const H = window[name]; if (!H) { console.warn('Homeward Two: could not load the finished ' + folder); continue; }
+      H._kryos = true;   // its own simple copy of the city is not needed, this game already has the city
+      helpers.push(H);
       for (const B of list.sort((a, b) => a.id - b.id)) {
-        if (B.id === 1 || !B.setup || !B.make) continue;   // the landing field is already here
-        await new Promise(r => setTimeout(r, 0));   // let the game breathe between builds
+        if (!B.setup || !B.make) continue;   // the landing field is already here
         try {
           B.setup(bgApi);
-          for (const sg of B.suggest || []) put(B, { type: sg.type, x: sg.x, z: sg.z, rot: sg.rot || 0, b: B.id });
-          (B.slots || []).forEach((sl, s) => put(B, { s, type: sl.type, x: sl.x, z: sl.z, y: sl.y, b: B.id }));
-          if (!still) mine.push(B);
-        } catch (e) { console.warn('Yard: finished ' + label + ' build', B.id, e); }
+          await new Promise(r => setTimeout(r, 0));   // let the game breathe between builds
+          (B.slots || []).forEach((sl, s) => {
+            try {
+              const g = B.make(sl.type, bgApi, { s, type: sl.type, x: sl.x, z: sl.z, y: sl.y, b: B.id });
+              g.position.set(sl.x, sl.y, sl.z);
+              g.traverse(o => { if (o.isMesh && !o.material.isMeshBasicMaterial) { o.castShadow = true; o.receiveShadow = true; } });
+              parent.add(g);
+            } catch (e) { console.warn('Homeward Two: finished part', folder, sl.type, e); }
+          });
+        } catch (e) { console.warn('Homeward Two: finished build', folder, B.id, e); }
       }
-      return mine;
+    }
+    // the people of those projects, and their animals moving about
+    this.bgHelpers = helpers;
+    this.bgTick = (api2, dt, t) => {
+      for (const H of this.bgHelpers) {
+        if (window.WB_PERSON && H.people && H.people.length) for (const q of H.people.splice(0)) { try { const c = window.WB_PERSON(q.group, q.o, q.act, q.x, q.y, q.z, q.ry || 0, q.extra || {}); if (c && q.extra && q.extra.scale) c.P.root.scale.setScalar(q.extra.scale); } catch (e) { } }
+        if (H.moveWalkers) try { H.moveWalkers(t); } catch (e) { }
+      }
     };
-    this.bgBuilds = [];
-    const savedOff = this.OFF; this.OFF = [0, 0];   // the finished projects stand where they were built
-    try { this.bgBuilds = await bring('factorydistrict', 'Factory District', 1, false); } catch (e) { console.warn('Yard: finished Factory District', e); }
-    try { await bring('starwatcharray', 'Starwatch Array', 2, true); } catch (e) { console.warn('Yard: finished Starwatch Array', e); }
-    this.OFF = savedOff;
-    // the Factory District's lights keep moving
-    this.bgTick = (api2, dt, t) => { for (const B of this.bgBuilds) if (B.tick && B.id !== 6) try { B.tick(bgApi, dt, t); } catch (e) { } };
   };
 
-  /* ---------- ships: one shape for every water ship the yard builds ---------- */
-  // kind: 'ferry', 'fisher', 'research', or 'trade' (a big Earth cargo ship with container stacks)
-  P.ship = function (api, add, parent, kind, x, y, z, ry = 0) {
-    const T = api.THREE, S = P.hm(api), F = P.mats(api), g = new T.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g); g.userData.keep = true;
+  /* ---------- the Homeward Two line ---------- */
+  // the line runs east along z = -420: the station, the city line high on pylons, the ramp down
+  // into the forest, the forest track under the green bridges, then the viaduct across the valley
+  P.Z = -420;
+  P.RAIL_Y = -28 + 24;            // top of the city guideway (DECK_TOP + 24)
+  P.TRACK_Y = -28 + 5;            // top of the forest track and the viaduct deck
+  P.X = { station: 640, cityA: 760, ramp: 1150, forest: 1250, edge: 1440, end: 2290 };
+  P.railY = x => x <= P.X.ramp ? P.RAIL_Y : x >= P.X.forest ? P.TRACK_Y : P.RAIL_Y + (P.TRACK_Y - P.RAIL_Y) * ((x - P.X.ramp) / (P.X.forest - P.X.ramp));
+  // one length of guideway beam from x0 to x1 (the beam top at y0 → y1, in the part's own space)
+  P.beam = function (api, add, F, x0, x1, y0, y1, w = 7) {
+    const T = api.THREE, L = Math.hypot(x1 - x0, y1 - y0), a = Math.atan2(y1 - y0, x1 - x0), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, S = P.hm(api);
+    const b = add(new T.BoxGeometry(L, 3.2, w), S.stone, cx, cy - 1.6, 0); b.rotation.z = a;
+    const u = add(new T.BoxGeometry(L, 1.2, w * 0.6), F.steel, cx, cy - 3.6, 0); u.rotation.z = a;
+    for (const s of [-1, 1]) { const r = add(new T.BoxGeometry(L, 0.5, 0.5), F.steel, cx, cy + 0.25, s * 1.6); r.rotation.z = a; }
+    const gl = add(new T.BoxGeometry(L, 0.15, 0.4), S.glow, cx, cy - 1.2, w / 2 + 0.05, false); gl.rotation.z = a;
+  };
+  // a sky pod: a white capsule with a glass band and a glowing strip, sitting on the beam
+  P.pod = function (api, add, parent, x, y, z, n = 0) {
+    const T = api.THREE, S = P.hm(api), F = P.mats(api), g = new T.Group(); g.position.set(x, y, z); parent.add(g); g.userData.keep = true;
     const a = (geo, m, X, Y, Z) => add(geo, m, X, Y, Z, true, g);
-    const D = { ferry: [70, 15, 0xf2f4f6, 0x2f6690], fisher: [26, 7, 0x2f7fe0, 0xf2f4f6], research: [52, 11, 0xf08a1a, 0xf2f4f6], trade: [118, 18, 0x39465a, 0xd9a21b] }[kind] || [40, 10, 0xf2f4f6, 0x2f6690];
-    const [L, W, hullC, trimC] = D, hull = P._shipM = P._shipM || {}, hm = c => hull[c] || (hull[c] = new T.MeshStandardMaterial({ color: c, roughness: 0.5, metalness: 0.2 }));
-    // the hull: a long box with a pointed bow, dark below the waterline
-    a(new T.BoxGeometry(L * 0.8, W * 0.35, W), hm(0x23303c), -L * 0.05, W * 0.05, 0);
-    a(new T.BoxGeometry(L * 0.8, W * 0.35, W), hm(hullC), -L * 0.05, W * 0.38, 0);
-    const bow = a(new T.CylinderGeometry(0, W * 0.5, L * 0.25, 4, 1).rotateZ(-Math.PI / 2).rotateX(Math.PI / 4), hm(hullC), L * 0.475, W * 0.22, 0); bow.scale.set(1, 1.0, 1.0);
-    a(new T.BoxGeometry(L * 0.82, 0.4, W + 0.2), hm(trimC), -L * 0.04, W * 0.56, 0);
-    if (kind === 'ferry') {
-      a(new T.BoxGeometry(L * 0.6, W * 0.3, W * 0.85), hm(0xf2f4f6), -L * 0.08, W * 0.72, 0);
-      a(new T.BoxGeometry(L * 0.58, W * 0.08, W * 0.87), S.dim, -L * 0.08, W * 0.75, 0);
-      a(new T.BoxGeometry(L * 0.4, W * 0.26, W * 0.7), hm(0xf2f4f6), -L * 0.1, W * 1.0, 0);
-      a(new T.BoxGeometry(L * 0.38, W * 0.07, W * 0.72), S.dim, -L * 0.1, W * 1.02, 0);
-      a(new T.BoxGeometry(L * 0.12, W * 0.22, W * 0.5), S.glass, L * 0.14, W * 1.2, 0);
-      a(new T.CylinderGeometry(W * 0.12, W * 0.14, W * 0.5, 12), hm(trimC), -L * 0.25, W * 1.35, 0);
-    } else if (kind === 'fisher') {
-      a(new T.BoxGeometry(L * 0.25, W * 0.6, W * 0.7), hm(0xf2f4f6), L * 0.12, W * 0.9, 0);
-      a(new T.BoxGeometry(L * 0.22, W * 0.15, W * 0.72), S.glass, L * 0.12, W * 1.05, 0);
-      a(new T.CylinderGeometry(0.25, 0.3, W * 1.8, 6), F.steel, -L * 0.15, W * 1.4, 0);
-      const boom = a(new T.CylinderGeometry(0.15, 0.15, L * 0.4, 6).rotateZ(Math.PI / 2.6), F.steel, -L * 0.3, W * 1.5, 0);
-      a(new T.BoxGeometry(L * 0.2, W * 0.2, W * 0.6), P.fun(api).yellow, -L * 0.32, W * 0.7, 0);
-    } else if (kind === 'trade') {
-      const cols = [0xc8643a, 0x2f7fe0, 0xe8c13a, 0x3fb04a, 0xf2f4f6, 0x8a4fd0];
-      for (let i = 0; i < 6; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < 1 + ((i + j) % 3); k++) a(new T.BoxGeometry(L * 0.1, W * 0.2, W * 0.34), hm(cols[(i * 2 + j + k) % 6]), L * 0.3 - i * L * 0.115, W * 0.7 + k * W * 0.2, (j - 0.5) * W * 0.4);
-      a(new T.BoxGeometry(L * 0.14, W * 0.7, W * 0.8), hm(0xf2f4f6), -L * 0.36, W * 0.95, 0);
-      a(new T.BoxGeometry(L * 0.145, W * 0.12, W * 0.82), S.glass, -L * 0.36, W * 1.1, 0);
-      a(new T.CylinderGeometry(0.3, 0.4, W * 1.0, 6), F.steel, -L * 0.36, W * 1.75, 0);
-      for (const sd of [-1, 1]) for (const x of [-0.3, 0, 0.3]) a(new T.CylinderGeometry(W * 0.12, W * 0.14, 0.6, 14), F.engine, L * x, -W * 0.14, sd * W * 0.32);
-    } else {
-      a(new T.BoxGeometry(L * 0.35, W * 0.5, W * 0.8), hm(0xf2f4f6), L * 0.05, W * 0.85, 0);
-      a(new T.BoxGeometry(L * 0.33, W * 0.12, W * 0.82), S.glass, L * 0.05, W * 0.95, 0);
-      a(new T.BoxGeometry(L * 0.15, W * 0.35, W * 0.5), hm(0xf2f4f6), L * 0.12, W * 1.25, 0);
-      a(new T.CylinderGeometry(0.4, 0.5, W * 1.6, 8), F.steel, -L * 0.2, W * 1.3, 0);
-      const arm = a(new T.BoxGeometry(L * 0.3, 0.6, 0.6), P.fun(api).yellow, -L * 0.32, W * 1.9, 0); arm.rotation.z = 0.35;
-      a(new T.SphereGeometry(W * 0.12, 12, 8), F.white, L * 0.12, W * 1.6, 0);
-    }
-    a(new T.SphereGeometry(0.4, 8, 6), F.lamp, L * 0.55, W * 0.9, 0);
+    a(new T.CapsuleGeometry(2.6, 18, 6, 16).rotateZ(Math.PI / 2), F.white, 0, 3.4, 0);
+    a(new T.CapsuleGeometry(2.66, 15, 4, 16).rotateZ(Math.PI / 2), S.glass, 0, 4.0, 0).scale.set(1, 0.55, 1.02);
+    a(new T.BoxGeometry(20, 0.3, 5.4), [S.glow, S.teal, S.yellow][n % 3], 0, 2.2, 0);
+    a(new T.BoxGeometry(16, 1.2, 2.4), F.dark, 0, 0.6, 0);
     return g;
+  };
+  // simple low-poly animals: deer, fox, rabbit, bird (the same ones as the Animal Care Centre)
+  P.animal = function (api, add, grp, kind, x, y, z, ry = 0, sc = 1) {
+    const T = api.THREE, std = c => (P._am = P._am || {})[c] || (P._am[c] = new T.MeshStandardMaterial({ color: c, roughness: 0.8 }));
+    const a = new T.Group(); a.position.set(x, y, z); a.rotation.y = ry; a.scale.setScalar(sc); grp.add(a);
+    const S = { deer: [1.1, 0.9, 1.4, 0x9a6a3a], fox: [0.55, 0.35, 0.5, 0xd8641e], rabbit: [0.3, 0.25, 0.2, 0xb8a890] }[kind] || [1.1, 0.9, 1.4, 0x9a6a3a];
+    const [L, H, legH, col] = S, m = std(col), dark = std(0x3a2a1a);
+    add(new T.CapsuleGeometry(H * 0.5, L, 4, 8).rotateZ(Math.PI / 2), m, 0, legH + H * 0.5, 0, true, a);
+    for (const [lx, lz] of [[-L * 0.4, -H * 0.3], [-L * 0.4, H * 0.3], [L * 0.4, -H * 0.3], [L * 0.4, H * 0.3]]) add(new T.CylinderGeometry(0.06 * (H + 0.6), 0.05 * (H + 0.6), legH, 5), dark, lx, legH / 2, lz, true, a);
+    const hx = L * 0.5 + H * 0.35, hy = legH + H * (kind === 'deer' ? 1.2 : 0.9);
+    add(new T.CylinderGeometry(H * 0.18, H * 0.25, H * 0.8, 6).rotateZ(-0.8), m, L * 0.5, legH + H * 0.8, 0, true, a);
+    add(new T.BoxGeometry(H * 0.7, H * 0.5, H * 0.45), m, hx, hy, 0, true, a);
+    if (kind === 'deer') for (const s of [-1, 1]) add(new T.CylinderGeometry(0.03, 0.04, 0.7, 4).rotateZ(0.3 * s).rotateX(0.3 * s), dark, hx - 0.1, hy + 0.5, s * 0.15, false, a);
+    else for (const s of [-1, 1]) add(new T.ConeGeometry(H * 0.12, H * (kind === 'rabbit' ? 0.9 : 0.35), 4), m, hx - 0.05, hy + H * 0.4, s * H * 0.14, false, a);
+    if (kind !== 'rabbit') add(new T.CylinderGeometry(0.04 * (H + 0.6), 0.02, L * (kind === 'fox' ? 0.6 : 0.35), 5).rotateZ(1.1), kind === 'fox' ? std(0xf2e8d8) : m, -L * 0.6, legH + H * 0.5, 0, false, a);
+    return a;
+  };
+  // animals that walk to and fro across a green bridge (kept separate so they can move)
+  P.walkers = P.walkers || [];
+  P.crosser = function (api, add, grp, kind, x, z0, z1, yOf, sp, sc, ph) {
+    const a = P.animal(api, add, grp, kind, x, 0, z0, 0, sc); a.userData.keep = true; P.walkers.push({ a, x, z0, z1, yOf, sp, ph });
+  };
+  P.moveWalkers = function (t) {
+    for (const w of P.walkers) { const u = (Math.sin(t * w.sp + w.ph) + 1) / 2, z = w.z0 + (w.z1 - w.z0) * u, dir = Math.cos(t * w.sp + w.ph) > 0 ? 1 : -1;
+      w.a.position.set(w.x, w.yOf(z), z); w.a.rotation.y = dir * (w.z1 > w.z0 ? -1 : 1) * Math.PI / 2; }
   };
   P.hint = (text) => {
     let el = document.getElementById('playHint');
-    if (!el) { el = document.createElement('div'); el.id = 'playHint'; el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:8;padding:8px 18px;background:rgba(8,20,35,.85);border:1px solid #80d8ff;border-radius:5px;color:#fff;font:600 13px "Segoe UI",Arial;letter-spacing:3px;text-align:center;pointer-events:none'; document.body.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'playHint'; el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:8;padding:8px 18px;background:rgba(8,20,35,.85);border:1px solid #9fffd8;border-radius:5px;color:#fff;font:600 13px "Segoe UI",Arial;letter-spacing:3px;text-align:center;pointer-events:none'; document.body.appendChild(el); }
     el.style.display = text ? 'block' : 'none'; if (text) el.textContent = text;
   };
   P.cover = (on, a, b) => {
     let el = document.getElementById('playCover');
     if (!el) { el = document.createElement('div'); el.id = 'playCover'; el.style.cssText = 'position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px;background:rgba(8,16,28,.92);color:#fff;font-family:"Segoe UI",Arial;opacity:0;transition:opacity 1.2s;pointer-events:none'; document.body.appendChild(el); }
-    if (on) el.innerHTML = '<div style="font-size:26px;letter-spacing:7px;font-weight:600">' + a + '</div><div style="font-size:14px;letter-spacing:4px;margin-top:12px;color:#c8ecff">' + (b || '') + '</div>';
+    if (on) el.innerHTML = '<div style="font-size:26px;letter-spacing:7px;font-weight:600">' + a + '</div><div style="font-size:14px;letter-spacing:4px;margin-top:12px;color:#c8fff0">' + (b || '') + '</div>';
     el.style.opacity = on ? 1 : 0;
   };
 })();
 
 (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push({
   id: 1,
-  name: 'THE LANDING FIELD',
-  brief: 'The landing field and transporter pad, already in place, so the yard starts straight away.',
+  name: 'KRYOS LANDING FIELD',
+  brief: 'Kryos city\u2019s own landing field and transporter pad, already in place in the middle of the city, so Homeward Two starts straight away.',
 
   types: {
     DECK:  { code: 'SF', name: 'DECK TILE',  col: '#6c757d', deck: true, w: 40, d: 60, h: 2.5, droneR: 26 },
@@ -325,7 +382,7 @@ window.YARD = window.YARD || {
     if (pad < need) return { ok: false, msg: 'LANDING PAD NEEDS ' + (need - pad) + ' MORE DECK TILE' + (need - pad > 1 ? 'S' : '') + ' — PICK UP SPARE TILES AND MOVE THEM' };
     if (api.count('CLAMP') < 4) return { ok: false, msg: 'NEEDS 4 DOCK CLAMPS' };
     if (api.count('RTXPAD') < 1) return { ok: false, msg: 'NEEDS THE TRANSPORTER PAD' };
-    return { ok: true, msg: 'LANDING FIELD READY — PRESS L TO LAND THE AEGIS ARK AT SEASHORE' };
+    return { ok: true, msg: 'LANDING FIELD READY — PRESS L TO LAND THE AEGIS ARK IN KRYOS' };
   },
 
   stats(api) {
@@ -354,7 +411,7 @@ window.YARD = window.YARD || {
     const { THREE, M } = api;
     const g = new THREE.Group();
     const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
-    const F = window.YARD.mats(api);
+    const F = window.LANG.mats(api);
     const S = this._mats || (this._mats = (() => {
       const deckTex = (centre) => api.canvasTex(512, 768, (c, w, h) => {
         c.fillStyle = '#3d424a'; c.fillRect(0, 0, w, h);
@@ -409,11 +466,11 @@ window.YARD = window.YARD || {
         const tip = add(new THREE.SphereGeometry(0.45, 10, 8), S.txGlow, Math.cos(a) * 6.4, 5.9, Math.sin(a) * 6.4); tip.castShadow = false;
       }
       add(new THREE.BoxGeometry(3, 1.6, 1.2), M.dark, 0, 2, -6.6);
-      window.YARD.person(g, { kind: 'worker', seed: 8101, female: true }, 'tablet', 2.2, 0, -8.2, Math.PI);
-      return window.YARD.bake(api, g);
+      window.LANG.person(g, { kind: 'worker', seed: 8101, female: true }, 'tablet', 2.2, 0, -8.2, Math.PI);
+      return window.LANG.bake(api, g);
     }
     return g;
   },
 
-  tick(api, dt, t) { window.YARD.update(api, dt, t); },
+  tick(api, dt, t) { window.LANG.update(api, dt, t); },
 });

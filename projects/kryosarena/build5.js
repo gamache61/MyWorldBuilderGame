@@ -4,7 +4,7 @@
    Market stalls, food tents and a fair green for the festivals. Ends with L: Opening Day, the first race, the first concert lights and the first fireworks over Kryos.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.ARENA;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 5, name: 'THE FESTIVAL GROUNDS & OPENING DAY',
     brief: 'Market stalls, food tents and a fair green for the festivals — then Opening Day: the first race, the first concert and the first fireworks over Kryos.',

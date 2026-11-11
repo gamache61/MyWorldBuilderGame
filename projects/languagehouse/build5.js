@@ -4,7 +4,7 @@
    Two halls of thinking machines that learn every language they hear. Ends with L: the first words, spoken to the stranger and answered.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.LANG;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 5, name: 'THE THINKING MACHINES & THE FIRST WORDS',
     brief: 'Two halls of thinking machines that learn every language they hear — then the first words: Unity speaks to the stranger, and the stranger answers.',

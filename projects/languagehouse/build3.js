@@ -4,7 +4,7 @@
    Three glass-fronted classrooms for the languages of lights, of songs and of words.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.LANG;
   P.classPos = [[1330, -170], [1330, 0], [1330, 170]];
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 3, name: 'THE CLASSROOMS',

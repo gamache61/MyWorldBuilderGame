@@ -4,7 +4,7 @@
    A red running track with a finish gantry, and four training fields for every school.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.ARENA;
   P.fieldPos = [[1300, -190], [1300, 190], [1800, -190], [1800, 190]];
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 3, name: 'THE RUNNING TRACK & THE TRAINING FIELDS',

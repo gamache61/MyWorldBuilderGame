@@ -940,11 +940,10 @@ function labelFor(type) {
 const earthGroup = new THREE.Group(); scene.add(earthGroup);
 const siteGroup = new THREE.Group(); scene.add(siteGroup);
 for (const n of ['sitePlanet', 'siteAtmo']) { const o = scene.getObjectByName(n); if (o) { siteGroup.add(o); o.visible = false; } }
-// --- Planet Unity: the seashore coast, ocean, forests, hills and a green-blue sky ---
+// --- Planet Unity: the Kryos plateau, forests, hills and a green-blue sky ---
 const COAX_SKY = new THREE.Color(0.62, 0.76, 0.84);
 const coaxFog = new THREE.Fog(COAX_SKY, 3500, 34000);
-const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400, SHORE_X = -190, SEA_Y = DECK_TOP - 3, SEA_FLOOR = DECK_TOP - 60;
-window.SEA_Y = SEA_Y; window.SHORE_X = SHORE_X;
+const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400;
 window.coaxH = (x, z) => coaxH(x, z);
 const coaxH = (() => {
   const P = new Uint8Array(512); { let s = 4242; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
@@ -953,16 +952,15 @@ const coaxH = (() => {
   const n2 = (x, z) => { const X = Math.floor(x), Z = Math.floor(z), u = f(x - X), v = f(z - Z); const a = h2(X, Z), b = h2(X + 1, Z), c = h2(X, Z + 1), d = h2(X + 1, Z + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
   const fbm = (x, z, o = 5) => { let s = 0, a = 1, n = 0; for (let i = 0; i < o; i++) { s += a * n2(x, z); n += a; a *= 0.5; x *= 2.03; z *= 2.03; } return s / n; };
   return (x, z) => {
-  // the coast: land to the east of SHORE_X, a sandy beach, then the seabed under Unity's ocean
-    const land = DECK_TOP - 0.4, d = x - SHORE_X;
-    if (d >= 0) {
-      const city = d < 1600 && Math.abs(z) < 1500;
-      const roll = city ? 0 : (fbm(x / 600, z / 600, 3) - 0.5) * 30 * THREE.MathUtils.smoothstep(Math.max(d - 1600, Math.abs(z) - 1500), 0, 600);
-      const far = THREE.MathUtils.smoothstep(x, 5000, 16000);
-      const mtn = Math.pow(fbm(x / 3800 + 7, z / 3800, 5), 2.2) * 4200 * far;
-      return land + Math.max(0, roll) + mtn * 1;
-    }
-    return land + (SEA_FLOOR - land) * THREE.MathUtils.smoothstep(-d, 0, 140);
+    const r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
+    const top = DECK_TOP - 0.4 + (fbm(x / 300, z / 300, 2) - 0.5) * 3 * THREE.MathUtils.smoothstep(r, 400, PLATEAU_R);
+    if (r < PLATEAU_R) return top;
+    // the plateau edge drops into forested valleys, then rolls up into hills and far mountains
+    const k = THREE.MathUtils.smoothstep(r, PLATEAU_R, PLATEAU_R + 700);
+    const valley = DECK_TOP - 160 + (fbm(x / 1400, z / 1400, 5) - 0.5) * 380;
+    const far = THREE.MathUtils.smoothstep(r, 5000, 16000);
+    const mtn = Math.pow(fbm(x / 3800 + 7, z / 3800, 5), 2.2) * 4200 * far;
+    return top * (1 - k) + (valley + mtn) * k;
   };
 })();
 {
@@ -985,12 +983,11 @@ const coaxH = (() => {
   const N = 260, SIZE = 60000;
   const geo = new THREE.PlaneGeometry(SIZE, SIZE, N, N); geo.rotateX(-Math.PI / 2);
   const pa = geo.attributes.position, cols = new Float32Array(pa.count * 3), c = new THREE.Color();
-  const sandC = new THREE.Color(0xd8c8a0), meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
+  const meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
   for (let i = 0; i < pa.count; i++) {
     const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH(x, z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
     pa.setXYZ(i, x, y, z);
-    c.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(Math.max(x - SHORE_X - 1600, Math.abs(z) - 1500), 0, 600));
-    if (x < SHORE_X + 60) c.lerp(sandC, 1 - THREE.MathUtils.smoothstep(x, SHORE_X - 20, SHORE_X + 60));
+    c.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700));
     if (y > DECK_TOP + 900) c.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
     if (y > DECK_TOP + 2400) c.lerp(snow, THREE.MathUtils.smoothstep(y, DECK_TOP + 2400, DECK_TOP + 2900));
     cols.set([c.r, c.g, c.b], i * 3);
@@ -1003,6 +1000,9 @@ const coaxH = (() => {
   grassTex.repeat.set(1400, 1400);
   const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; siteGroup.add(ground);
+  // the plateau, cleared and ready to build on: a ring of light marker posts round the city site
+  const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1) });
+  for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, x = KRYOS_C.x + Math.cos(a) * 900, z = KRYOS_C.z + Math.sin(a) * 900; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const CON = 16000, BRD = 9000;
@@ -1010,7 +1010,8 @@ const coaxH = (() => {
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const x = SHORE_X + 120 + Math.pow(rnd(), 1.3) * 9000, z = (rnd() - 0.5) * 18000, y = coaxH(x, z); if (y < DECK_TOP + 1300 && (x - SHORE_X > 1700 || Math.abs(z) > 1550)) return [x, y, z]; } };
+  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
+    if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
   let ti = 0;
   for (let i = 0; i < CON + BRD; i++) {
     const [x, y, z] = spot(), s = 0.7 + rnd() * 0.9;
@@ -1020,14 +1021,13 @@ const coaxH = (() => {
     else { crown.setMatrixAt(i - CON, m4); crown.setColorAt(i - CON, tc.setRGB(0.75 + rnd() * 0.6, 0.75 + rnd() * 0.5, 0.6 + rnd() * 0.4)); }
   }
   for (const t of [conifer, crown, trunks]) { t.castShadow = true; t.receiveShadow = true; siteGroup.add(t); }
-  // Unity's ocean
-  const wc = document.createElement('canvas'); wc.width = wc.height = 256; { const g = wc.getContext('2d'), img = g.createImageData(256, 256);
-    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const a = Math.sin(x * 0.098 + Math.sin(y * 0.07) * 2) * 0.5 + Math.sin(y * 0.15 + x * 0.03) * 0.5, b = Math.cos(y * 0.09 + Math.sin(x * 0.05) * 2) * 0.5 + Math.cos(x * 0.13 - y * 0.04) * 0.5, o = (y * 256 + x) * 4;
-      img.data[o] = 128 + a * 40; img.data[o + 1] = 128 + b * 40; img.data[o + 2] = 255; img.data[o + 3] = 255; } g.putImageData(img, 0, 0); }
-  const waveTex = new THREE.CanvasTexture(wc); waveTex.wrapS = waveTex.wrapT = THREE.RepeatWrapping; waveTex.repeat.set(300, 300);
-  const sea = new THREE.Mesh(new THREE.PlaneGeometry(80000, 80000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x0f4a6e, roughness: 0.2, metalness: 0.2, normalMap: waveTex, normalScale: new THREE.Vector2(0.15, 0.15), envMapIntensity: 0.8 }));
-  sea.position.set(SHORE_X - 40000 + 400, SEA_Y, 0); sea.receiveShadow = true; siteGroup.add(sea);
-  sea.onBeforeRender = () => { const t = performance.now() / 1000; waveTex.offset.set(t * 0.004, t * 0.006); };
+  // a river winding through the valley below the plateau
+  const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60, a = -1.2 + t * 2.6, r = 2300 + Math.sin(t * 9) * 260; pts.push(V(KRYOS_C.x + Math.cos(a) * r, 0, KRYOS_C.z + Math.sin(a) * r)); }
+  const curve = new THREE.CatmullRomCurve3(pts), rv = [], ri = [];
+  for (let i = 0; i <= 300; i++) { const t = i / 300, p = curve.getPoint(t), tg = curve.getTangent(t), nx = -tg.z, nz = tg.x, w = 55;
+    for (const s of [-1, 1]) { const x = p.x + nx * w * s, z = p.z + nz * w * s; rv.push(x, Math.max(coaxH(p.x, p.z), coaxH(x, z)) + 14, z); } if (i) { const b = (i - 1) * 2; ri.push(b, b + 2, b + 1, b + 1, b + 2, b + 3); } }
+  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(rv, 3)); rg.setIndex(ri); rg.computeVertexNormals();
+  siteGroup.add(new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: 0x3f7fa0, roughness: 0.15, metalness: 0.3, side: THREE.DoubleSide })));
 }
 // --- Earth: desert, sky, mountains ---
 const SKY_HOR = new THREE.Color(0.74, 0.69, 0.6), SPACE_BG = new THREE.Color(0x01020a);
@@ -2759,7 +2759,7 @@ function updateWarp(dt) {
   const m = streaks.material;
   if (warp.phase === 'out') {
     if (warp.from === 'earth' || warp.from === 'site') {
-      // open the roof, lift up clear of the warehouse (or the seashore), climb above the mountains, then jump straight ahead
+      // open the roof, lift up clear of the warehouse (or the Kryos plateau), climb above the mountains, then jump straight ahead
       if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapCam = [V(520, 260, 640), V(0, 0, 0)]; return; }
       const LIFT = 320, TL = 4.5, CRUISE = warp.from === 'earth' ? 4200 : 6200;
       if (warp.t < TL) {
@@ -2812,7 +2812,7 @@ function updateWarp(dt) {
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
     if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   } else {
-    // drop down through Unity's sky onto the seashore
+    // drop down through Unity's sky onto the Kryos plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
     // watch the descent from up the open strip north of the field, where no towers stand in the way
@@ -3414,9 +3414,9 @@ function updateGameHUD(dt) {
   let head, sub;
   if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO SEASHORE'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO SEASHORE'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'SEASHORE' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE KRYOS ARENA · THE EAST PARK OF KRYOS' : 'EARTH · DESERT WAREHOUSE'); }
+  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO KRYOS CITY'; }
+  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
+  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE KRYOS ARENA · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
   else if (!BUILDS.length) { head = 'THE KRYOS ARENA BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/kryosarena NEXT TO 58-kryosarena.html, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
@@ -3481,7 +3481,7 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE KRYOS ARENA · THE EAST PARK OF KRYOS';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE KRYOS ARENA · KRYOS CITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
   let h = '<b>THE KRYOS ARENA</b>';
@@ -4053,7 +4053,7 @@ const views = {
   5: [V(110, 140, -20), V(0, 0, -10)],
   6: [V(20, 560, 10), V(0, 0, 0)],
 };
-const siteView = [V(380, 210, 1080), V(-120, -25, 1420)];
+const siteView = [V(350, 280, -440), V(600, -10, -860)];
 // pull right back so every part of the station built so far is in the shot
 function wholeStationView() {
   if (G.loc !== 'site' || warp) { txMsg = 'WHOLE-STATION VIEW WORKS AT THE STATION — WARP THERE FIRST (W)'; txMsgT = 3; return; }
@@ -4464,7 +4464,7 @@ addEventListener('resize', () => {
     const g = c.getContext('2d'), w = c.width, h = c.height; paper(g, w, h);
     g.textBaseline = 'middle'; g.textAlign = 'center';
     const ok = '#7dff9a', wait = 'rgba(225,240,255,.35)';
-    const OFF = (window.YARD && window.YARD.OFF) || [0, 0];
+    const OFF = (window.ARENA && window.ARENA.OFF) || [0, 0];
     const at = (t, x, z) => placed.some(p => p.type === t && !p.busy && Math.abs(p.x - OFF[0] - x) < 1 && Math.abs(p.z - OFF[1] - z) < 1);
     // ---- site plan of the spaceport (seen from above) ----
     const sk = 1.0, X = x => 1250 + (x - 1800) * sk, Z = z => 880 + z * sk;
@@ -4476,7 +4476,7 @@ addEventListener('resize', () => {
     box(1550, 250, 100, 56, has('STAGE'), 'rgba(123,79,160,.6)', 'STAGE');
     for (const [x, z] of [[1430, 340], [1670, 340]]) box(x, z, 20, 20, at('LIGHTTOWER', x, z), 'rgba(232,193,58,.6)', 'TOWER');
     for (const [x, z] of [[1300, 0], [1550, -250]]) box(x, z, 110, 100, at('FESTIVAL', x, z), 'rgba(240,106,168,.5)', 'FESTIVAL');
-    box(120, 0, 120, 540, true, 'rgba(108,117,125,.6)', 'LANDING FIELD');
+    box(120 - OFF[0], 0 - OFF[1], 120, 540, true, 'rgba(108,117,125,.6)', 'LANDING FIELD');
     // ---- build plan strip ----
     const sx0 = 2700, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;
     g.font = 'bold 44px Arial'; g.fillStyle = ink; g.fillText('BUILD PHASES', (sx0 + sx1) / 2, pyb - 80);

@@ -4,7 +4,7 @@
    The great hall of the Language House: a stepped stone base, a ring of columns, a glass dome and a front door that says hello in many tongues.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.LANG;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 2, name: 'THE HOUSE OF WORDS',
     brief: 'The great hall of the Language House: a stepped stone base, a ring of columns, a glass dome, and a front door that says hello in many tongues.',

@@ -4,7 +4,7 @@
    A big arched stage on a lawn for concerts and festivals, and two tall towers that fire the festival lights.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.ARENA;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 4, name: 'THE CONCERT STAGE & THE LIGHT TOWERS',
     brief: 'A big arched stage on a lawn for concerts and festivals, and two tall towers that fire the festival lights.',

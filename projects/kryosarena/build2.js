@@ -4,7 +4,7 @@
    A great open-roofed bowl with tiers of seats, a green pitch in the middle, four floodlight towers and a gate at each end.
    ============================================================ */
 (function () {
-  const P = window.YARD;
+  const P = window.ARENA;
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
     id: 2, name: 'THE ARENA BOWL',
     brief: 'A great open-roofed bowl with tiers of seats around a green pitch, four floodlight towers and a gate at each end.',
