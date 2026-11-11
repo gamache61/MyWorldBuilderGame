@@ -57,7 +57,7 @@
         const grp = new T.Group(); par.parent.add(grp); this.grp = grp; this.y0 = api.DECK_TOP;
         const bm = (c, o = 0) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide });
         // the stranger: a dark, hurt ship far out in the sky, drifting
-        this.str = new T.Group(); this.str.position.set(1550, this.y0 + 700, -1700); grp.add(this.str);
+        this.str = new T.Group(); this.str.position.set(1550, this.y0 + 2200, -6500); grp.add(this.str);
         const hullM = new T.MeshStandardMaterial({ color: 0x3a4250, roughness: 0.6, metalness: 0.5 });
         const hull = new T.Mesh(new T.CapsuleGeometry(20, 90, 6, 14).rotateZ(Math.PI / 2), hullM); this.str.add(hull);
         for (const sd of [-1, 1]) { const f = new T.Mesh(new T.BoxGeometry(40, 3, 40), hullM); f.position.set(-10, 0, sd * 34); f.rotation.y = sd * 0.4; this.str.add(f); }
@@ -92,7 +92,7 @@
         };
         if (this.stage === 0) {
           P.hint('THE RESCUE · THREE CRAFT RISE FROM THE LAUNCH CIRCLES, A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD');
-          const u = Math.min(1, this.t1 / 16);
+          const u = Math.min(1, this.t1 / 24);
           this.fleet.forEach(o => fly(o, o.i, Math.max(0, Math.min(1, u * 1.08 - o.i * 0.04)), (o.i - 1) * 60));
           fly({ c: this.esc, x0: 1380, z0: -90 }, 3, Math.max(0, u * 1.02), 170);
           follow(this.fleet[1].c.position, tgt, 0.12 + 0.2 * u);
