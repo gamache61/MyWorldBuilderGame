@@ -2484,7 +2484,7 @@ function startStore() {
   if (B.finishCam) snapCam = [B.finishCam[0].clone(), B.finishCam[1].clone()];
 }
 function updateStore(dt) {
-  if (FIN.on) { const B = curBuild(); if (B.finishUpdate(api, dt)) { FIN.on = false; G.stage = 'done'; save(); } return; }
+  if (FIN.on) { const B = curBuild(); if (B.finishUpdate(api, dt)) { FIN.on = false; G.stage = 'done'; window.__jumpFin = false; save(); } return; }
   if (!STORE.on) return;
   STORE.next -= dt; if (STORE.next > 0) return;
   STORE.next = 0.04;
@@ -2825,7 +2825,7 @@ function updateWarp(dt) {
 
 /* ---------- save / load / new station ---------- */
 function save() {
-  if (window.WB_chapterDone && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
+  if (window.WB_chapterDone && !window.__jumpFin && BUILDS.length && (G.stage === 'none' || (G.stage === 'done' && G.idx >= BUILDS.length - 1))) window.WB_chapterDone();
   try {
     const loose = G.loc === 'earth' && G.stage === 'load' ? 'dock' : 'bay';
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -2893,6 +2893,9 @@ function repairStation() {
 }
 function newStation() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } location.reload(); }
 // the site is east of the Factory District: the harbour's landing field and transporter are already there, so a new game starts at build 2
+// open this page with ?finale on the end of the address to jump straight to the last build's ending
+const JUMP_FINALE = /[?&]finale/.test(location.search);
+if (JUMP_FINALE) { window.__jumpFin = true; try { const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, idx: 4, trip: 0, stage: 'done', loc: 'site', stock: 0, stockF: 0, flags: (o && o.flags) || {}, placed: [], kits: [] })); } catch (e) { } }
 try {
   const old = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
   // a new game, or a game saved while still on build 1: skip straight to build 2 (the Seashore field is put in place below)
@@ -2901,6 +2904,7 @@ try {
 if (loadGame()) { try { repairStation(); } catch (e) { console.warn(e); } }
 else { setLocation('earth'); G.idx = 0; G.trip = 0; G.stage = curBuild() ? 'load' : 'none'; prepBuild(); spawnBuildKitsOnDock(); save(); }
 setupSiteMarks();
+if (JUMP_FINALE) setTimeout(() => { try { G.stage = 'build'; startStore(); } catch (e) { console.warn(e); } }, 2500);
 
 /* ==========================================================================
    INSIDE THE RING — the Gardens and the city, at walking scale.
