@@ -443,4 +443,19 @@ window.SPACE_PROJECTS = [
     builds: 5,
     color: '#ffb060',
   },
+  {
+    name: 'THE LANGUAGE HOUSE \u00b7 PLANET UNITY',
+    html: '59-languagehouse.html',
+    brief: 'A great house of words where translators, teachers and thinking machines learn the languages, lights and songs of other peoples: the hall, three classrooms, a listening library, a song garden and the thinking machines \u2014 then the first words, spoken to the stranger.',
+    builds: 5,
+    color: '#b8f0a0',
+  },
+  {
+    name: 'THE TWENTY-SIXTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting26.html',
+    brief: 'The stranger has spoken in words. The council hears what it asked for, votes on what comes next, then asks the Keeper where a guest should stand.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];

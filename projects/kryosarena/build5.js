@@ -28,6 +28,16 @@
       P.sign(api, g, k ? 'FOOD HALL & FAIR GREEN' : 'MARKET SQUARE · FESTIVAL DAYS', 46, 4, 0, 17, 51, 0, '#2a1450', '#ffd9a0', true);
       for (let i = 0; i < 3; i++) P.person(g, i === 1 ? P.kid(58500 + k * 4 + i) : P.civ(58500 + k * 4 + i), 'idle', -12 + i * 12, 1, 46, Math.PI);
     },
+    tick(api, dt, t) {
+      if (api.flag('opened') && !document.getElementById('nextMeeting')) {
+        const b = document.createElement('button'); b.id = 'nextMeeting';
+        b.innerHTML = 'GO TO THE LANGUAGE HOUSE ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">UNITY LEARNS TO ANSWER</small>';
+        b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,60,100,.85);border:1px solid #80d8ff;border-radius:6px;cursor:pointer;text-align:center';
+        b.onmouseenter = () => b.style.background = 'rgba(30,80,130,.95)'; b.onmouseleave = () => b.style.background = 'rgba(20,60,100,.85)';
+        b.onclick = () => { location.href = '59-languagehouse.html'; };
+        document.body.appendChild(b);
+      }
+    },
     finish: {
       label: 'OPENING DAY',
       cam: [[1100, 200, 520], [1550, 90, 0]],
