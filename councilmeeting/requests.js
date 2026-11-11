@@ -118,17 +118,23 @@
       html += '<button id="wbReqDone" class="dim">CLOSE</button></div>';
       box.innerHTML = html;
       var subj = 'World Builder request', body = 'Request from ' + meetingName() + ':\n\n' + text;
+      var sent = function () {
+        var d = document.getElementById('wbReqDone'); if (d) d.textContent = 'DONE — BACK TO THE MENU';
+        setTimeout(function () { if (document.getElementById('wbReq')) { box.remove(); window.WB_reqBusy = false; } }, 20000);
+      };
       var gm = document.getElementById('wbReqGmail');
       if (gm) gm.onclick = function () {
-        window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(MAIL) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body), '_blank');
+        window.open('https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(MAIL) + '&su=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body), '_blank');
+        sent();
       };
       var mail = document.getElementById('wbReqMail');
-      if (mail) mail.onclick = function () { location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body); };
+      if (mail) mail.onclick = function () { sent(); location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body); };
       var cp = document.getElementById('wbReqCopy');
       if (cp) cp.onclick = function () {
         var t = 'To: ' + MAIL + '\nSubject: ' + subj + '\n\n' + body;
         var ok = function () { cp.textContent = 'COPIED — PASTE IT INTO AN EMAIL TO ' + MAIL; };
         try { navigator.clipboard.writeText(t).then(ok, function () { cp.textContent = 'SEND TO ' + MAIL; }); } catch (e) { cp.textContent = 'SEND TO ' + MAIL; }
+        sent();
       };
       document.getElementById('wbReqDone').onclick = function () { box.remove(); window.WB_reqBusy = false; };
     };
