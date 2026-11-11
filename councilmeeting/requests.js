@@ -12,7 +12,7 @@
 (function () {
   var MAIL = 'gamacheapps@gmail.com';
   // Free key from web3forms.com (enter gamacheapps@gmail.com there, they email you the key). Paste it between the quotes.
-  var WEB3KEY = '';
+  var WEB3KEY = '32d88891-2d62-44af-83e5-2b87f97c3c99';
 
   // [ words the player might type , project file it matches , what the council calls it ]
   var TOPICS = [
