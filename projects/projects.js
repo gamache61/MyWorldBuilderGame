@@ -47,7 +47,10 @@ window.SPACE_PROJECTS = [
     name: 'SEASHORE · PLANET UNITY',
     html: '06-seashore.html',
     brief: 'A harbour town on the coast of Unity — breakwater and lighthouse, tidal power, docks, cargo ships and ferries, a floating marina, a beach resort and a glass skyline by the sea.',
-    builds: 16,
+    builds: 6,
+    // the 16 small build files in projects/seashore play as 6 numbered builds (3,3,3,3,2,2)
+    groups: [3, 3, 3, 3, 2, 2],
+    groupNames: ['LANDING FIELD & HARBOUR', 'POWER, DOCKS & CARGO', 'THE WATERFRONT', 'SEA FARMS, MARINA & SKYPORT', 'SHIPS & FERRIES', 'OCEAN RESEARCH & BEACH RESORT'],
     color: '#4fb0ff',
   },
   {

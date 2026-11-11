@@ -897,6 +897,17 @@ const PEOPLE = (() => {
 /* ================= BUILD ENGINE · EARTH WAREHOUSE · CARGO · CRANE · WARP ================= */
 const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.seaport.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
+// builds are counted in groups: several of the small builds below play as one numbered build (set in projects/projects.js)
+const GRP = (() => {
+  const me = decodeURIComponent(location.pathname.split('/').pop()).toLowerCase(), P = (window.SPACE_PROJECTS || []).find(p => (p.html || '').toLowerCase() === me);
+  let sizes = (P && P.groups) || [], names = (P && P.groupNames) || [], i = 0;
+  if (!sizes.length) sizes = BUILDS.map(() => 1);
+  sizes.forEach((n, g) => { for (let k = 0; k < n && i < BUILDS.length; k++, i++) { const b = BUILDS[i]; b.g = g + 1; b.gp = k + 1; b.gn = n; b.gname = n > 1 ? (names[g] || b.name) : b.name; } });
+  for (; i < BUILDS.length; i++) { const b = BUILDS[i]; b.g = sizes.length + 1; b.gp = 1; b.gn = 1; b.gname = b.name; }
+  return { total: sizes.length };
+})();
+const bShort = b => 'BUILD ' + b.g + ' · ' + b.gname + (b.gn > 1 ? ' · PART ' + b.gp + '/' + b.gn : '');
+const bFull = b => bShort(b) + (b.gn > 1 ? ' · ' + b.name : '');
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
 const G = { idx: 0, stage: 'load', loc: 'earth' }; // stage: load (at Earth) · build (at site) · done · none (no more builds)
@@ -3333,7 +3344,7 @@ document.getElementById('newBtn').onclick = () => askConfirm('START A NEW CITY?'
 document.getElementById('redoBtn').onclick = () => {
   const B = curBuild();
   if (!B) { txMsg = 'THERE IS NO BUILD IN PROGRESS'; txMsgT = 3; return; }
-  askConfirm('RESTART BUILD ' + B.id + '?', 'Everything built in Build ' + B.id + ' (' + B.name + ') is taken down and its crates go back to the Earth warehouse. Your other builds stay as they are.', 'YES, RESTART BUILD ' + B.id, restartBuild);
+  askConfirm('RESTART ' + bShort(B) + '?', 'Everything built in ' + bFull(B) + ' is taken down and its crates go back to the Earth warehouse. Your other builds stay as they are.', 'YES, RESTART THIS BUILD', restartBuild);
 };
 document.getElementById('pcLand').onclick = () => parkAndBeam();
 document.getElementById('pcCrane').onclick = () => hoverCrane();
@@ -3376,7 +3387,7 @@ function updateGameHUD(dt) {
   warpMsgT -= dt; landMsgT -= dt; pickMsgT -= dt;
   txMsgT -= dt;
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
-  const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
+  const bn = B ? bFull(B) + tn : '';
   let head, sub;
   if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO SEASHORE'; } }
   else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
@@ -3392,7 +3403,7 @@ function updateGameHUD(dt) {
         : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
         : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
         : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.sresort ? 'SEASHORE IS COMPLETE' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.sresort ? 'PRESS W TO VISIT THE SEASHORE' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE SEASHORE'; }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.sresort ? 'SEASHORE IS COMPLETE' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.sresort ? 'PRESS W TO VISIT THE SEASHORE' : 'BUILD ' + (GRP.total + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE SEASHORE'; }
     else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
   } else {
     if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
@@ -3427,10 +3438,10 @@ function updateGameHUD(dt) {
         : 'GRAB 4 CRATES FROM THE BAY · OR LOWER THE HOOK ONTO A PLACED PART TO PICK IT BACK UP · ' + r.msg;
     } else if (G.stage === 'done') {
       const nb = BUILDS[G.idx + 1];
-      const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
+      const bn0 = bFull(B);
       head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
       sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.sresort ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — SEASHORE IS COMPLETE' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
+        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR ' + bFull(nb) + ' PARTS' : (G.flags && G.flags.sresort ? ' · ALL ' + GRP.total + ' BUILDS DONE — SEASHORE IS COMPLETE' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
     } else { head = 'SEASHORE'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
   }
   if (flash) sub = '⚠ ' + flash;
@@ -3441,26 +3452,30 @@ function updateGameHUD(dt) {
   }
   { // always show which build you are on
     const CB = curBuild();
-    const tag = CB ? 'BUILD ' + CB.id + ' OF ' + BUILDS.length + ' · ' + CB.name + (CB.trips.length > 1 ? ' · TRIP ' + (G.trip + 1) + '/' + CB.trips.length : '') : (G.stage === 'none' ? 'ALL ' + BUILDS.length + ' BUILDS COMPLETE' : '');
+    const tag = CB ? 'BUILD ' + CB.g + ' OF ' + GRP.total + ' · ' + CB.gname + (CB.gn > 1 ? ' · PART ' + CB.gp + '/' + CB.gn + ' · ' + CB.name : '') + (CB.trips.length > 1 ? ' · TRIP ' + (G.trip + 1) + '/' + CB.trips.length : '') : (G.stage === 'none' ? 'ALL ' + GRP.total + ' BUILDS COMPLETE' : '');
     if (tag) head = '<span style="display:block;color:#7fd8ff;font-size:12px;letter-spacing:2px;margin-bottom:2px">' + tag + '</span>' + head;
   }
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
-  $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
+  $('sPlatL').textContent = B ? 'BUILD-' + B.g : 'BUILD';
   $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'SEASHORE · PLANET UNITY';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
   let h = '<b>SEASHORE</b>';
-  { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.id : BUILDS.length)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
+  { const cb = curBuild(); h += '<div style="color:#ffd060;letter-spacing:3px">DAY ' + ((window.WB_DAY_START || 0) + (cb ? cb.g : GRP.total)) + ' · ' + DN.clock + (DN.isNight ? ' · NIGHT' : '') + '</div><div class="dim">SUNRISE ' + DN.SUNRISE + ' · SUNSET ' + DN.SUNSET + '</div>'; }
   for (const b of BUILDS) {
     const st = b.id < (B ? B.id : 1e9) || (B && b.id === B.id && G.stage === 'done') || G.stage === 'none' ? '✔' : B && b.id === B.id ? '▶' : '·';
-    h += '<div>' + st + ' BUILD ' + b.id + ' · ' + b.name + '</div>';
+    if (b.gp === 1) {
+      const grp = BUILDS.filter(x => x.g === b.g), gst = G.stage === 'none' || grp.every(x => x.id < (B ? B.id : 1e9) || (B && x.id === B.id && G.stage === 'done')) ? '✔' : B && B.g === b.g ? '▶' : '·';
+      h += '<div>' + gst + ' BUILD ' + b.g + ' · ' + b.gname + '</div>';
+    }
+    if (b.gn > 1 && B && B.g === b.g) h += '<div class="dim" style="color:' + (b === B ? '#cfe9ff' : '') + '">' + st + ' PART ' + b.gp + ' · ' + b.name + '</div>';
     if (B && b === B && b.trips.length > 1 && G.stage !== 'none') b.trips.forEach((tr, i) => {
       const ts = i < G.trip || (i === G.trip && (G.stage === 'tripdone' || G.stage === 'done')) ? '✔' : i === G.trip ? '▶' : '·';
       h += '<div class="dim" style="color:' + (i === G.trip ? '#cfe9ff' : '') + '">' + ts + ' TRIP ' + (i + 1) + ' · ' + tr.name + '</div>';
     });
   }
-  if (G.stage !== 'none' && BUILDS.length < 12) h += '<div class="dim">· BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED</div>';
+  if (G.stage !== 'none' && GRP.total < 12) h += '<div class="dim">· BUILD ' + (GRP.total + 1) + ' · NOT YET ADDED</div>';
   if (B && B.stats && G.stage !== 'none') {
     const sup = kits.filter(k => k.type === 'SUPPLY');
     h += '<hr>' + B.stats.call(B, api).map(([a, v]) => '<div>' + a + ' <span>' + v + '</span></div>').join('');
@@ -4243,12 +4258,13 @@ function animate() {
   updateCrowd(dt, t, nearBridge);
   if (window.WB_TOWN) window.WB_TOWN.tick(TOWN_ENGINE, dt, t);
   { // day and night follow the build: sunrise as it starts, sunset halfway, night until the last parts are in
-    const B = curBuild(); let day = BUILDS.length, p = 0.25;
+    const B = curBuild(); let day = GRP.total, p = 0.25;
     if (B) {
-      day = B.id - 1;
+      day = B.g - 1;
       const tot = (B.trips ? B.trips.map(tr => tr.kits || {}) : [B.kits || {}]).reduce((a, k) => a + Object.entries(k).filter(([ty]) => !isSupply(ty)).reduce((x, [, n]) => x + n, 0), 0) || 1;
       const got = placed.filter(q => q.b === B.id && !isSupply(q.type)).length;
-      p = G.stage === 'done' ? 1 : Math.min(0.97, got / tot);
+      p = (B.gp - 1 + (G.stage === 'done' ? 1 : Math.min(0.97, got / tot))) / B.gn;
+      if (p > 0.97 && G.stage !== 'done') p = 0.97;
     }
     DN.update(dt, day, p, !(typeof HAB !== 'undefined' && HAB.inside), [sun, hemiMain, rim], sun);
   }
@@ -4502,8 +4518,15 @@ addEventListener('resize', () => {
     const B = curBuild(); let y = 200;
     for (const b of BUILDS) {
       const d = built(b.id), now = B && b === B && !d;
-      g.fillStyle = d ? '#7dff9a' : now ? '#ffd060' : 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial';
-      g.fillText((d ? '✔ ' : now ? '▶ ' : '·  ') + 'BUILD ' + b.id + ' · ' + b.name, 70, y); y += 50;
+      if (b.gp === 1) {
+        const grp = BUILDS.filter(x => x.g === b.g), gd = grp.every(x => built(x.id)), gnow = B && B.g === b.g && !gd;
+        g.fillStyle = gd ? '#7dff9a' : gnow ? '#ffd060' : 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial';
+        g.fillText((gd ? '✔ ' : gnow ? '▶ ' : '·  ') + 'BUILD ' + b.g + ' · ' + b.gname, 70, y); y += 50;
+      }
+      if (b.gn > 1 && B && B.g === b.g) {
+        g.fillStyle = d ? '#7dff9a' : now ? '#ffd060' : 'rgba(225,240,255,.5)'; g.font = '30px Arial';
+        g.fillText((d ? '✔ ' : now ? '▶ ' : '·  ') + 'Part ' + b.gp + ' · ' + b.name, 100, y); y += 44;
+      }
       if (now && b.trips.length > 1) b.trips.forEach((tr, i) => {
         const td = i < G.trip || (i === G.trip && G.stage === 'tripdone');
         const tn = i === G.trip && !td;
@@ -4513,7 +4536,7 @@ addEventListener('resize', () => {
       y += 6;
     }
     if (G.flags && G.flags.shield) { g.fillStyle = '#ffd060'; g.font = 'bold 40px Arial'; g.fillText('★ SEASHORE COMPLETE ★', 70, y + 10); }
-    else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  BUILD ' + (BUILDS.length + 1) + ' · NOT YET ADDED', 70, y); }
+    else { g.fillStyle = 'rgba(225,240,255,.5)'; g.font = 'bold 34px Arial'; g.fillText('·  BUILD ' + (GRP.total + 1) + ' · NOT YET ADDED', 70, y); }
     const n = (t) => placed.filter(p => p.type === t).length;
     g.fillStyle = ink; g.font = '30px Arial';
     g.fillText('Deck area ' + (n('DECK') * 2400 + n('TRUSS') * 2400).toLocaleString() + ' m²  ·  Spindle ' + n('TRUSS') * 60 + ' m  ·  Supply crates ' + n('SUPPLY'), 70, h - 80);
