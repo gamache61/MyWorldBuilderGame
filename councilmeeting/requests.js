@@ -16,6 +16,8 @@
 
   // [ words the player might type , project file it matches , what the council calls it ]
   var TOPICS = [
+    [['arena', 'stadium', 'sport', 'concert', 'festival', 'race', 'running', 'track'], '58-kryosarena.html', 'the Kryos Arena'],
+    [['rescue', 'medic', 'ambulance', 'lifeboat'], '56-rescue.html', 'the Rescue'],
     [['school', 'class', 'teach', 'learn', 'student', 'universit', 'college', 'library'], '28-greatschool.html', 'the Great School of Unity'],
     [['hospital', 'heal', 'doctor', 'clinic', 'medic', 'nurse', 'sick'], '32-houseofhealing.html', 'the House of Healing'],
     [['shop', 'mall', 'market', 'store', 'supermarket', 'restaurant', 'cafe'], '34-shoppingcentre.html', 'the Kryos Shopping Centre'],

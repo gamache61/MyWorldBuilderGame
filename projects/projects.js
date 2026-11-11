@@ -421,4 +421,26 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE RESCUE \u00b7 PLANET UNITY',
+    html: '56-rescue.html',
+    brief: 'The stranger is hurt and drifting out of range. Build the rescue the Keeper described: three unarmed rescue craft, fuel left in the open, a medical bay, a guard ship beside them and a relay mast \u2014 then send them out before it is too late.',
+    builds: 5,
+    color: '#ff9a90',
+  },
+  {
+    name: 'THE TWENTY-FIFTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting25.html',
+    brief: 'The stranger is safe, and has spoken. The council hears the rescue report, votes on what comes next, then asks the Keeper what a stranger owes the people who saved it.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
+  {
+    name: 'THE KRYOS ARENA \u00b7 PLANET UNITY',
+    html: '58-kryosarena.html',
+    brief: 'A great open-roofed arena in Kryos for games, races, concerts and festivals: the bowl, a running track, training fields for every school, a festival stage, and Opening Day.',
+    builds: 5,
+    color: '#ffb060',
+  },
 ];
