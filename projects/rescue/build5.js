@@ -86,10 +86,10 @@
           const c = new T.Group(); const b = new T.Mesh(new T.CapsuleGeometry(5.2, 24, 6, 12).rotateX(Math.PI / 2), new T.MeshStandardMaterial({ color: 0xf6f8fa, roughness: 0.3, metalness: 0.3 })); c.add(b);
           const e = new T.Mesh(new T.SphereGeometry(3, 10, 8), bm(new T.Color(0.5, 1.4, 2.0), 0.9)); e.position.z = -15; c.add(e);
           const st = new T.Mesh(new T.BoxGeometry(10.6, 1.4, 22), new T.MeshStandardMaterial({ color: 0xf08a1a })); st.position.y = 4.4; c.add(st);
-          c.position.set(x, this.y0 + 14, z + 0); grp.add(c); this.fleet.push({ c, x0: x, z0: z, i });
+          c.position.set(x, this.y0 + 14, z + 0); grp.add(c); c.scale.setScalar(4); this.fleet.push({ c, x0: x, z0: z, i });
         });
         const esc = new T.Group(); esc.add(new T.Mesh(new T.CapsuleGeometry(4.6, 26, 6, 12).rotateX(Math.PI / 2), new T.MeshStandardMaterial({ color: 0x8e99a6, roughness: 0.4, metalness: 0.5 })));
-        const ee = new T.Mesh(new T.SphereGeometry(2.8, 10, 8), bm(new T.Color(0.4, 0.9, 2.0), 0.9)); ee.position.z = -15; esc.add(ee); esc.position.set(1380, this.y0 + 14, -90); grp.add(esc); this.esc = esc;
+        const ee = new T.Mesh(new T.SphereGeometry(2.8, 10, 8), bm(new T.Color(0.4, 0.9, 2.0), 0.9)); ee.position.z = -15; esc.add(ee); esc.position.set(1380, this.y0 + 14, -90); esc.scale.setScalar(4); grp.add(esc); this.esc = esc;
         // a thin line of fuel light from the lead craft to the stranger
         this.beam = new T.Mesh(new T.CylinderGeometry(1.2, 1.2, 1, 8, 1, true), bm(new T.Color(0.4, 1.6, 1.0), 0)); grp.add(this.beam);
       },
@@ -118,7 +118,8 @@
           P.hint('THE FUEL IS LEFT IN THE OPEN, AND A MEDIC GOES ACROSS WITH OPEN HANDS...');
           const mid = this.fleet[1].c.position; this.beam.material.opacity = Math.min(0.7, this.t1 / 2) * (0.7 + Math.sin(f * 6) * 0.3);
           const a = mid, b = tgt, L = a.distanceTo(b); this.beam.scale.set(1, L, 1); this.beam.position.copy(a).lerp(b, 0.5); this.beam.lookAt(b); this.beam.rotateX(Math.PI / 2);
-          follow(mid, tgt, 0.9, [760, -50, 255]);
+          { const e = new T.Vector3(mid.x + 500, mid.y - 600, mid.z + 2000), l = new T.Vector3(mid.x - 100, mid.y + 900, mid.z - 1200);
+            this.ce = this.ce ? this.ce.lerp(e, Math.min(1, dt * 1.5)) : e.clone(); this.cl = this.cl ? this.cl.lerp(l, Math.min(1, dt * 1.5)) : l.clone(); api.shot(this.ce, this.cl); }
           const lit = Math.min(1, Math.max(0, (this.t1 - 4) / 6));
           this.lights.forEach((l, i) => l.material.opacity = lit > i / 12 ? (0.6 + Math.sin(f * 5 + i) * 0.3) : 0); this.glow.material.opacity = lit * 0.07;
           if (this.t1 > 14) { this.stage = 2; this.t1 = 0; api.shot(new T.Vector3(1000, 190, 540), new T.Vector3(1550, 200, -300)); P.hint(''); P.cover(true, 'THE STRANGER HAS POWER AGAIN', 'THE RESCUE CRAFT · THE FUEL · THE MEDICS · A GUARD SHIP BESIDE THEM, OUTSIDE THE SHIELD · THE STRANGER IS SAFE'); }
