@@ -77,13 +77,13 @@
     if (!F.on) { if (F.parked) { const w = P.padWorld(F.parked); F.craft.position.set(w[0], P.padY(F.parked) + 2.2, w[1]); } return; }
     const T = api.THREE, K = F.keys;
     if (K.has('arrowup')) F.spd = Math.min(300, F.spd + 100 * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * dt); else F.spd *= 1 - 0.04 * dt;
-    const turn = (K.has('arrowright') ? 1 : 0) - (K.has('arrowleft') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / 60) * 0.7);
+    const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / 60) * 0.7);
     const wantV = K.has(' ') ? 90 : K.has('shift') ? -90 : 0; F.vy += (wantV - F.vy) * Math.min(1, 3 * dt);
     const fx = Math.cos(F.yaw), fz = -Math.sin(F.yaw);
     F.pos.x += fx * F.spd * dt; F.pos.z += fz * F.spd * dt; F.pos.y += F.vy * dt;
     const gmin = P.gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
     if (F.pos.y > 6000) F.pos.y = 6000;
-    F.roll += (turn * 0.5 * Math.min(1, F.spd / 50) - F.roll) * Math.min(1, 4 * dt);
+    F.roll += (-turn * 0.5 * Math.min(1, F.spd / 50) - F.roll) * Math.min(1, 4 * dt);
     F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 + (K.has('arrowup') ? -0.03 : 0));
     // the view: from the cab (default) or behind the craft (C switches)
     const cam = window.__cam, c = window.__controls, up = new T.Vector3(0, 1, 0);
