@@ -21,6 +21,7 @@
     [['language', 'translat', 'interpret', 'linguist', 'speak to'], '59-languagehouse.html', 'the Language House'],
     [['rescue', 'medic', 'ambulance', 'lifeboat'], '56-rescue.html', 'the Rescue'],
     [['library', 'book', 'archive', 'reading', 'story'], '60-greatlibrary.html', 'the Great Library'],
+    [['mountain', 'summit', 'house on a hill', 'hilltop', 'peak'], '63-mountainhouse.html', 'the Mountain House'],
     [['school', 'class', 'teach', 'learn', 'student', 'universit', 'college'], '28-greatschool.html', 'the Great School of Unity'],
     [['hospital', 'heal', 'doctor', 'clinic', 'medic', 'nurse', 'sick'], '32-houseofhealing.html', 'the House of Healing'],
     [['shop', 'mall', 'market', 'store', 'supermarket', 'restaurant', 'cafe'], '34-shoppingcentre.html', 'the Kryos Shopping Centre'],

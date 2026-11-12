@@ -511,4 +511,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'MOUNTAIN HOUSE \u00b7 PLANET UNITY',
+    html: '63-mountainhouse.html',
+    brief: 'The Builder\'s house on the top of a mountain beside Kryos: a stone stair winding up the side, the house and its glass tower on the summit, a landing pad, a sky lift and terrace gardens \u2014 then the first ship settles onto the pad.',
+    builds: 5,
+    color: '#bff8d0',
+  },
+  {
+    name: 'THE THIRTY-FIRST COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting31.html',
+    brief: 'The Builder\'s Mountain House is open and the first guests have seen the view. The council votes on the next proposals, then asks the Keeper what a high place is for.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
