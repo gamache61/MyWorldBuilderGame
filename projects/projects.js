@@ -496,4 +496,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'HOMEWARD THREE \u00b7 PLANET UNITY',
+    html: '62-homewardthree.html',
+    brief: 'A third district of family homes along the northern rim of Kryos: two walking streets and rows of homes, courtyard apartments, a school and a market, a park, a welcome arch and a Sky Rail stop \u2014 then the first sky pod arrives and the first families step out.',
+    builds: 5,
+    color: '#9fd8ff',
+  },
+  {
+    name: 'THE THIRTIETH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting30.html',
+    brief: 'Homeward Three is open and the guests have met their first neighbours. The council votes on the Builder\'s mountain house, the Guests\' Quarter or the Hall of Peoples, then asks the Keeper what makes a house a home.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
