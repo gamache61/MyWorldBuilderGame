@@ -42,19 +42,21 @@
   const board = () => {
     const api = P.api; if (!api || F.on || !window.__G || window.__G.loc !== 'site') return;
     if (!P.shuttleReady(api) && !F.craft) { P.flyHint('BUILD THE SHUTTLE FIRST (BUILD 2)'); F.msgT = 3; return; }
-    const T = api.THREE;
+    const T = api.THREE, W = window.__walk, walking = W && W.on;
+    if (walking) { const q = F.craft && F.parked ? P.padWorld(F.parked) : P.padWorld('kryos'); if (Math.hypot(W.pos.x - q[0], W.pos.z - q[1]) > 22) { P.flyHint('WALK UP TO THE SHUTTLE, THEN PRESS G TO GET IN'); F.msgT = 3; return; } }
     if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; F.parked = 'kryos'; }
     const w = P.padWorld(F.parked), y = P.padY(F.parked);
     F.pos = new T.Vector3(w[0], y + 3, w[1]); F.craft.position.copy(F.pos); F.craft.visible = true;
     const tg = P.padWorld(F.parked === 'kryos' ? 'summit' : 'kryos'); F.yaw = Math.atan2(-(tg[1] - w[1]), tg[0] - w[0]); F.spd = 0; F.vy = 0; F.roll = 0; F.on = true; F.parked = null; F.keys.clear();
-    window.__controls.enabled = false; F.cam = null; F.t0 = performance.now();
+    if (walking) { W.off(); F.cam = window.__cam.position.clone(); } else F.cam = null; window.__controls.enabled = false; F.t0 = performance.now();
   };
   const land = () => {
     const api = P.api; if (!F.on) return false;
     for (const which of ['kryos', 'summit']) { const w = P.padWorld(which), y = P.padY(which);
       if (Math.hypot(F.pos.x - w[0], F.pos.z - w[1]) < 45 && F.pos.y - y < 30 && F.spd < 45) {
-        F.on = false; F.parked = which; F.pos.set(w[0], y + 2.2, w[1]); F.craft.position.copy(F.pos); F.craft.rotation.set(0, F.yaw, 0); F.spd = 0; window.__controls.enabled = true; window.__controls.target.copy(F.pos); P.flyHint(''); return true; } }
-    P.flyHint('LAND ON A PAD · SLOW DOWN AND FLY OVER THE KRYOS STOP OR THE SUMMIT PAD, THEN PRESS G'); F.msgT = 3; return false;
+        F.on = false; F.parked = which; F.pos.set(w[0], y + 2.2, w[1]); F.craft.position.copy(F.pos); F.craft.rotation.set(0, F.yaw, 0); F.spd = 0; P.flyHint(''); const W = window.__walk, sd = F.yaw + Math.PI / 2, ox = F.pos.x + Math.cos(sd) * 17, oz = F.pos.z - Math.sin(sd) * 17;
+        if (W && W.landed) W.at(ox, P.gy(ox, oz), oz, Math.atan2(F.pos.x - ox, F.pos.z - oz)); else { window.__controls.enabled = true; window.__controls.target.copy(F.pos); } return true; } }
+    P.flyHint('TO LAND: SLOW DOWN OVER THE KRYOS STOP OR THE SUMMIT PAD, THEN PRESS G'); F.msgT = 3; return false;
   };
   addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
@@ -69,6 +71,8 @@
   const loop = (now) => {
     requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now;
     const api = P.api; if (!api || !F.craft) return;
+    if (!F.on && window.__walk && window.__walk.on && F.craft && F.parked && F.msgT <= 0) { const q = P.padWorld(F.parked); P.flyHint(Math.hypot(window.__walk.pos.x - q[0], window.__walk.pos.z - q[1]) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : ''); }
+    if (F.msgT > 0 && !F.on) F.msgT -= dt;
     if (!F.on) { if (F.parked) { const w = P.padWorld(F.parked); F.craft.position.set(w[0], P.padY(F.parked) + 2.2, w[1]); } return; }
     const T = api.THREE, K = F.keys;
     if (K.has('arrowup')) F.spd = Math.min(300, F.spd + 100 * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * dt); else F.spd *= 1 - 0.04 * dt;

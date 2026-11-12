@@ -3294,6 +3294,13 @@ function stopWalk() {
   WALK.on = false; controls.enabled = true; camera.near = 0.5; camera.updateProjectionMatrix(); keysDown.clear();
   camera.position.copy(views[1][0]).add(ship.position); controls.target.copy(views[1][1]).add(ship.position);
 }
+// the shuttle (Mountain House build files) steps the Builder out onto a pad and back in again
+window.__walk = {
+  get on() { return WALK.on; }, get pos() { return WALK.pos; },
+  at(x, y, z, yaw) { WALK.pos.set(x, y, z); WALK.yaw = yaw; WALK.pitch = 0; WALK.free = true; WALK.on = true; if (viewMode) setView(0); followHook = null; camGoal = null; snapCam = null; controls.enabled = false; camera.near = 0.1; camera.updateProjectionMatrix(); keysDown.clear(); txMsg = 'ON FOOT · ARROWS WALK · SHIFT RUNS · DRAG TO LOOK · G GETS BACK IN THE SHUTTLE'; txMsgT = 5; },
+  off() { WALK.on = false; controls.enabled = true; camera.near = 0.5; camera.updateProjectionMatrix(); keysDown.clear(); },
+  get landed() { return landed; }
+};
 function updateWalk(dt) {
   if (warp || (G.loc === 'site' && !landed)) { stopWalk(); return; }
   if (DISC.on) { updateDisc(dt); return; }
