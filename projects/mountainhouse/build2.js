@@ -17,59 +17,105 @@
     };
   };
   P.gy = (x, z) => window.coaxH(x, z);
-  // a box lying between two world points (cables, rails, stair slabs), placed relative to the slot
-  P.span = (api, add, g, sl, a, b, w, h, mat, up = 0, parent) => {
-    const dx = b[0] - a[0], dz = b[2] === undefined ? 0 : 0; const ax = a[0], az = a[1], ay = a[2], bx = b[0], bz = b[1], by = b[2];
-    const hx = bx - ax, hz = bz - az, hy = by - ay, L = Math.hypot(hx, hz), L3 = Math.hypot(L, hy);
-    const m = add(new api.THREE.BoxGeometry(L3, h, w), mat, (ax + bx) / 2 - sl.x, (ay + by) / 2 - sl.y + up, (az + bz) / 2 - sl.z, true, parent || g);
-    m.rotation.order = 'YZX'; m.rotation.y = -Math.atan2(hz, hx); m.rotation.z = Math.atan2(hy, L); return m;
+  // ---- the shuttle: a sleek navy-and-white craft with upturned wing tips ----
+  P.craft = function (api) {
+    const T = api.THREE, g = new T.Group();
+    const navy = new T.MeshStandardMaterial({ color: 0x0a1a3c, roughness: 0.12, metalness: 0.75 }), white = new T.MeshStandardMaterial({ color: 0xf5f7fa, roughness: 0.25, metalness: 0.2 }), dark = new T.MeshStandardMaterial({ color: 0x14161c, roughness: 0.5, metalness: 0.4 });
+    const glow = new T.MeshBasicMaterial({ color: new T.Color(0.5, 1.6, 1.4), toneMapped: false });
+    const m = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1) => { const o = new T.Mesh(geo, mat); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.castShadow = true; g.add(o); return o; };
+    const sph = new T.SphereGeometry(1, 28, 16);
+    m(sph, navy, 0, 0.2, 0, 9, 2.1, 6.6);                      // the upper hull
+    m(sph, white, 0, -0.55, 0, 9.4, 1.0, 6.9);                 // the white band round the edge
+    m(sph, dark, 0, -1.15, 0, 8.4, 1.1, 6.0);                  // the dark belly
+    m(sph, navy, 1.2, 1.5, 0, 3.8, 1.7, 3.1);                  // the canopy
+    const ring = m(new T.TorusGeometry(1, 0.06, 6, 40), white, 1.2, 1.55, 0, 3.7, 3.0, 1.6); ring.rotation.x = Math.PI / 2; ring.scale.set(3.7, 3.0, 3.1); ring.position.y = 2.2;
+    for (const s of [-1, 1]) { const w = m(new T.BoxGeometry(5, 5.5, 0.5), navy, -4.2, 2.6, s * 7.4); w.rotation.x = -s * 0.32; w.rotation.y = s * 0.28; w.geometry.translate(0, 0, 0); m(new T.BoxGeometry(5.2, 0.4, 0.6), white, -4.4, 0.1, s * 6.6).rotation.y = s * 0.28;
+      m(new T.SphereGeometry(0.7, 8, 6), glow, -8.7, -0.1, s * 2.2); }
+    return g;
   };
+  // ---- flying it: arrow keys, Space to climb, Shift to dive, G to get in and to land ----
+  const F = P.F = { on: false, pos: null, yaw: 0, spd: 0, vy: 0, roll: 0, craft: null, parked: null, keys: new Set(), msgT: 0 };
+  P.padWorld = (which) => which === 'summit' ? [P.OFF[0] + 1600, P.OFF[1] - 70] : [P.KP[0], P.KP[1]];
+  P.padY = (which) => { const q = P.padWorld(which); return P.gy(q[0], q[1]) + 1.5; };
+  P.shuttleReady = (api) => api && api.placed.some(p => p.type === 'SHUTTLE' && p.piece);
+  P.flyHint = (t) => { try { P.hint(t); } catch (e) { } };
+  const board = () => {
+    const api = P.api; if (!api || F.on || !window.__G || window.__G.loc !== 'site') return;
+    if (!P.shuttleReady(api) && !F.craft) { P.flyHint('BUILD THE SHUTTLE FIRST (BUILD 2)'); F.msgT = 3; return; }
+    const T = api.THREE;
+    if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; F.parked = 'kryos'; }
+    const w = P.padWorld(F.parked), y = P.padY(F.parked);
+    F.pos = new T.Vector3(w[0], y + 3, w[1]); F.craft.position.copy(F.pos); F.craft.visible = true;
+    const tg = P.padWorld(F.parked === 'kryos' ? 'summit' : 'kryos'); F.yaw = Math.atan2(-(tg[1] - w[1]), tg[0] - w[0]); F.spd = 0; F.vy = 0; F.roll = 0; F.on = true; F.parked = null; F.keys.clear();
+    window.__controls.enabled = false; F.cam = null; F.t0 = performance.now();
+  };
+  const land = () => {
+    const api = P.api; if (!F.on) return false;
+    for (const which of ['kryos', 'summit']) { const w = P.padWorld(which), y = P.padY(which);
+      if (Math.hypot(F.pos.x - w[0], F.pos.z - w[1]) < 45 && F.pos.y - y < 30 && F.spd < 45) {
+        F.on = false; F.parked = which; F.pos.set(w[0], y + 2.2, w[1]); F.craft.position.copy(F.pos); F.craft.rotation.set(0, F.yaw, 0); F.spd = 0; window.__controls.enabled = true; window.__controls.target.copy(F.pos); P.flyHint(''); return true; } }
+    P.flyHint('LAND ON A PAD · SLOW DOWN AND FLY OVER THE KRYOS STOP OR THE SUMMIT PAD, THEN PRESS G'); F.msgT = 3; return false;
+  };
+  addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'g' && !e.repeat && !WALKING()) { e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
+    if (!F.on) return;
+    if (k !== 'm') e.stopImmediatePropagation();
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
+  }, true);
+  addEventListener('keyup', e => { if (F.on) { F.keys.delete(e.key.toLowerCase()); e.stopImmediatePropagation(); } }, true);
+  const WALKING = () => false;
+  let last = performance.now();
+  const loop = (now) => {
+    requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const api = P.api; if (!api || !F.craft) return;
+    if (!F.on) { if (F.parked) { const w = P.padWorld(F.parked); F.craft.position.set(w[0], P.padY(F.parked) + 2.2, w[1]); } return; }
+    const T = api.THREE, K = F.keys;
+    if (K.has('arrowup')) F.spd = Math.min(300, F.spd + 100 * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * dt); else F.spd *= 1 - 0.04 * dt;
+    const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / 60) * 0.7);
+    const wantV = K.has(' ') ? 90 : K.has('shift') ? -90 : 0; F.vy += (wantV - F.vy) * Math.min(1, 3 * dt);
+    const fx = Math.cos(F.yaw), fz = -Math.sin(F.yaw);
+    F.pos.x += fx * F.spd * dt; F.pos.z += fz * F.spd * dt; F.pos.y += F.vy * dt;
+    const gmin = P.gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
+    if (F.pos.y > 6000) F.pos.y = 6000;
+    F.roll += (turn * 0.5 * Math.min(1, F.spd / 50) - F.roll) * Math.min(1, 4 * dt);
+    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 + (K.has('arrowup') ? -0.03 : 0));
+    // chase camera
+    const cam = window.__cam, c = window.__controls, want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+    if (!F.cam) { F.cam = want.clone(); cam.position.copy(want); } F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt);
+    const sw = P.padWorld('summit'), dk = Math.hypot(F.pos.x - sw[0], F.pos.z - sw[1]), dh = Math.hypot(F.pos.x - P.KP[0], F.pos.z - P.KP[1]);
+    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM');
+  };
+  requestAnimationFrame(loop);
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
-    id: 2, name: 'THE MOUNTAIN STAIR & THE TRAILHEAD',
-    brief: 'A stone stair winds up the mountain from the foot to the summit, with lamps and rails, a trailhead arch at the bottom and two timber view shelters on the way.',
+    id: 2, name: 'THE SHUTTLE & ITS STOP',
+    brief: 'No stairs and no road: a sleek shuttle craft, flown with the arrow keys, takes the Builder from a shuttle stop in Kryos to the mountain top. Build the stop, the waiting lounge and the shuttle itself.',
     types: {
-      STAIR:     { code: 'SF', name: 'STAIR FLIGHT',   col: '#b9b1a2', w: 36, d: 36, h: 8 },
-      TRAILHEAD: { code: 'SF', name: 'TRAILHEAD ARCH', col: '#e8cfa6', w: 40, d: 24, h: 24 },
-      SHELTER:   { code: 'HM', name: 'VIEW SHELTER',   col: '#9a6f42', w: 30, d: 24, h: 14 },
+      KRYOSPAD: { code: 'SF', name: 'KRYOS SHUTTLE STOP', col: '#8a8478', w: 60, d: 60, h: 3 },
+      LOUNGE:   { code: 'HM', name: 'WAITING LOUNGE',     col: '#bfe8ff', w: 22, d: 14, h: 9 },
+      SHUTTLE:  { code: 'SY', name: 'THE SHUTTLE',        col: '#0a1a3c', w: 24, d: 20, h: 6 },
     },
-    order: ['STAIR', 'TRAILHEAD', 'SHELTER'],
-    at: { STAIR: [0, 1, 2, 3].map(i => { const q = P.path((i + 0.5) / 4); return [q[0] - P.OFF[0], q[1] - P.OFF[1]]; }), TRAILHEAD: [(() => { const q = P.path(0); return [q[0] - P.OFF[0], q[1] - P.OFF[1]]; })()],
-      SHELTER: [0.33, 0.66].map(t => { const q = P.shelterAt(t); return [q[0] - P.OFF[0], q[1] - P.OFF[1]]; }) },
-    eye: [420, 470, 420],
-    stats(api, c) { return [['STAIR FLIGHTS', c('STAIR') + ' / 4'], ['TRAILHEAD', c('TRAILHEAD') ? 'OPEN' : 'NOT YET'], ['VIEW SHELTERS', c('SHELTER') + ' / 2']]; },
-    make(type, k, g, add, F, api, sl) {
-      const T = api.THREE, H = P.mh(api), gy = P.gy;
-      if (type === 'STAIR') {
-        const N = 16, t0 = k / 4, t1 = (k + 1) / 4; let prev = null;
-        for (let i = 0; i <= N; i++) {
-          const t = t0 + (t1 - t0) * i / N, q = P.path(t), y = gy(q[0], q[1]) + 0.4, pt = [q[0], q[1], y];
-          if (prev) {
-            const mx = (prev[0] + pt[0]) / 2, mz = (prev[1] + pt[1]) / 2;
-            P.span(api, add, g, sl, prev, pt, 7, 0.7, i % 2 ? H.stone : H.stone2);
-            const m = add(new T.BoxGeometry(8, 12, 8), H.stone2, mx - sl.x, (prev[2] + pt[2]) / 2 - sl.y - 6.3, mz - sl.z, false);   // the cut-and-fill under the stair
-            const a = -0.6 * Math.PI + 1.5 * Math.PI * t, ca = Math.cos(a), sa = Math.sin(a);
-            for (const s of [-1, 1]) { const ox = -sa * s * 3.4, oz = ca * s * 3.4; add(new T.CylinderGeometry(0.2, 0.2, 2.2, 5), H.dark, pt[0] + ox - sl.x, pt[2] - sl.y + 1.2, pt[1] + oz - sl.z, false);
-              if (i % 4 === 0 && s === 1) { add(new T.CylinderGeometry(0.15, 0.2, 5, 6), H.dark, pt[0] + ox * 1.15 - sl.x, pt[2] - sl.y + 2.8, pt[1] + oz * 1.15 - sl.z, false); add(new T.SphereGeometry(0.5, 8, 6), H.lamp, pt[0] + ox * 1.15 - sl.x, pt[2] - sl.y + 5.4, pt[1] + oz * 1.15 - sl.z, false); } }
-          }
-          prev = pt;
-        }
-        for (let i = 0; i < 2; i++) { const q = P.path(t0 + (t1 - t0) * (0.3 + i * 0.4)), y = gy(q[0], q[1]); const cx = Math.cos(-0.6 * Math.PI + 1.5 * Math.PI * (t0 + (t1 - t0) * 0.5));
-          P.person(g, P.civ(63000 + k * 5 + i), 'walk', q[0] - sl.x, y + 0.8 - sl.y, q[1] - sl.z, 0); }
-      } else if (type === 'TRAILHEAD') {
-        const q0 = P.path(0), q1 = P.path(0.02), th = Math.atan2(q1[1] - q0[1], q1[0] - q0[0]), rg = new T.Group(); rg.rotation.y = -th; rg.position.y = 0; g.add(rg);
-        add(new T.BoxGeometry(46, 1, 26), H.stone, 0, 0.1, 0, false, rg); add(new T.BoxGeometry(46, 12, 26), H.stone2, 0, -6, 0, false, rg);
-        for (const s of [-1, 1]) add(new T.BoxGeometry(2.4, 18, 2.4), H.timber2, 0, 9, s * 8, true, rg);
-        add(new T.BoxGeometry(3, 2.4, 20), H.timber2, 0, 18.5, 0, true, rg); add(new T.BoxGeometry(2, 1, 22), H.roof, 0, 20, 0, true, rg);
-        P.sign(api, g, 'MOUNTAIN HOUSE TRAIL', 18, 3, sl.x * 0, 14.4, 0, -th - Math.PI / 2, '#3b2a18', '#ffe9b8');
-        for (const [bx, bz] of [[-14, 10], [-14, -10]]) { add(new T.BoxGeometry(6, 0.8, 1.6), H.timber, bx, 1.5, bz, true, rg); add(new T.BoxGeometry(0.8, 1.2, 1.2), H.timber2, bx, 0.8, bz, false, rg); }
-        P.person(g, P.civ(63050), 'gesture', -10, 0.6, 0, th); P.person(g, P.kid(63051), 'idle', -12, 0.6, 5, th, { scale: 0.6 });
-      } else if (type === 'SHELTER') {
-        const q = P.shelterAt(k === 0 ? 0.33 : 0.66), a = -0.6 * Math.PI + 1.5 * Math.PI * (k === 0 ? 0.33 : 0.66), rg = new T.Group(); rg.rotation.y = -a; g.add(rg);
-        add(new T.BoxGeometry(18, 1, 12), H.stone, 0, 0.1, 0, false, rg); add(new T.BoxGeometry(18, 12, 12), H.stone2, 0, -6, 0, false, rg);
-        for (const x of [-7.5, 7.5]) for (const z of [-5, 5]) add(new T.BoxGeometry(0.9, 8, 0.9), H.timber2, x, 4.5, z, true, rg);
-        for (const s of [-1, 1]) { const r = add(new T.BoxGeometry(22, 0.6, 8), H.roof, 0, 9.6, s * 3.3, true, rg); r.rotation.x = -s * 0.26; }
-        add(new T.BoxGeometry(14, 0.8, 2.4), H.timber, 0, 1.6, -4, true, rg); add(new T.BoxGeometry(14, 2, 0.5), H.timber, 0, 3, -5.4, true, rg);
-        P.person(g, P.civ(63060 + k), 'idle', 2, 1.1, 2, a + Math.PI / 2);
+    order: ['KRYOSPAD', 'LOUNGE', 'SHUTTLE'],
+    at: { KRYOSPAD: [[P.KP[0] - P.OFF[0], P.KP[1] - P.OFF[1]]], LOUNGE: [[P.KP[0] - P.OFF[0] + 40, P.KP[1] - P.OFF[1] + 14]], SHUTTLE: [[P.KP[0] - P.OFF[0], P.KP[1] - P.OFF[1]]] },
+    eye: [P.KP[0] - P.OFF[0] + 70, 150, P.KP[1] - P.OFF[1] + 90],
+    stats(api, c) { return [['SHUTTLE STOP', c('KRYOSPAD') ? 'READY' : 'NOT YET'], ['LOUNGE', c('LOUNGE') ? 'OPEN' : 'NOT YET'], ['SHUTTLE', c('SHUTTLE') ? 'READY · PRESS G TO FLY IT' : 'NOT YET']]; },
+    tick(api) { P.api = api; },
+    make(type, k, g, add, F2, api, sl) {
+      const T = api.THREE, H = P.mh(api); P.api = api;
+      if (type === 'KRYOSPAD') {
+        add(new T.CylinderGeometry(29, 30, 1.2, 48), H.dark, 0, 0.6, 0, true); add(new T.CylinderGeometry(25, 25, 0.2, 48), H.stone2, 0, 1.25, 0, false);
+        const r1 = add(new T.TorusGeometry(22, 0.35, 6, 64), H.yellow, 0, 1.45, 0, false); r1.rotation.x = Math.PI / 2;
+        for (const x of [-4, 4]) add(new T.BoxGeometry(1.2, 0.15, 12), H.white, x, 1.45, 0, false); add(new T.BoxGeometry(8, 0.15, 1.2), H.white, 0, 1.45, 0, false);
+        for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; add(new T.SphereGeometry(0.35, 6, 5), i % 2 ? H.glowG : H.glowA, Math.cos(a) * 27, 1.5, Math.sin(a) * 27, false); }
+        P.sign(api, g, 'SHUTTLE · MOUNTAIN HOUSE', 20, 3, 0, 5, 33, 0, '#0a1a3c', '#bff8d0');
+      } else if (type === 'LOUNGE') {
+        add(new T.BoxGeometry(22, 0.6, 14), H.stone, 0, 0.3, 0, false);
+        for (const x of [-10, 10]) for (const z of [-6, 6]) add(new T.BoxGeometry(0.7, 8, 0.7), H.steel, x, 4.4, z, true);
+        add(new T.BoxGeometry(24, 0.7, 16), H.roof, 0, 8.6, 0, true); add(new T.BoxGeometry(20, 7, 0.3), H.glass, 0, 4.4, 6.8, false);
+        add(new T.BoxGeometry(12, 0.8, 2.4), H.timber, 0, 1.6, -4, true);
+        P.person(g, P.civ(63060), 'idle', -3, 0.6, -1, 0); P.person(g, P.civ(63061), 'idle', 4, 0.6, 0, Math.PI);
+      } else if (type === 'SHUTTLE') {
+        const c = P.craft(api); c.position.y = 3.6; g.add(c);
       }
     },
   }));

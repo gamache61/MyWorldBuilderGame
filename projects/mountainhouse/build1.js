@@ -6,13 +6,12 @@
 /* ---------- shared by every Mountain House build (one copy, kept on window) ---------- */
 window.MTN = window.MTN || {
   // this chapter is built in its own corner of Kryos: every build position is moved by OFF
-  OFF: [-2800, 640],
+  OFF: [window.__MT.x - 1550, window.__MT.z],
+  SY: window.__MT.Y,
   _t: -1, people: [],
-  // the mountain: peak at world (-1250, 640); a stair spiralling up its side, the sky lift straight up the south-east face
-  MT: { x: -1250, z: 640 },
-  path(t) { const r = 500 - 380 * t, a = -0.6 * Math.PI + 1.5 * Math.PI * t; return [this.MT.x + Math.cos(a) * r, this.MT.z + Math.sin(a) * r]; },
-  shelterAt(t) { const q = this.path(t), a = -0.6 * Math.PI + 1.5 * Math.PI * t, r = 500 - 380 * t; return [q[0] + Math.cos(a) * 14, q[1] + Math.sin(a) * 14]; },
-  LIFT: { top: [70, 70], bot: [430, 260] },
+  // the mountain: the far peak north-west of Kryos, levelled flat on top; the shuttle stop is in Kryos
+  MT: window.__MT,
+  KP: [270, -120],
 
   ground(api, x, z) { return window.coaxH ? window.coaxH(x, z) : api.DECK_TOP - 0.4; },
   mats(api) {

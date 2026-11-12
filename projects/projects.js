@@ -514,7 +514,7 @@ window.SPACE_PROJECTS = [
   {
     name: 'MOUNTAIN HOUSE \u00b7 PLANET UNITY',
     html: '63-mountainhouse.html',
-    brief: 'The Builder\'s house on the top of a mountain beside Kryos: a stone stair winding up the side, the house and its glass tower on the summit, a landing pad, a sky lift and terrace gardens \u2014 then the first ship settles onto the pad.',
+    brief: 'The Builder\'s own house on the top of a far mountain: a shuttle craft you fly with the arrow keys, the house and its glass tower on the summit, a landing pad, a hangar and a stargazer dome \u2014 then the shuttle settles onto the pad and the Builder moves in.',
     builds: 5,
     color: '#bff8d0',
   },

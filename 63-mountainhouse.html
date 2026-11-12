@@ -73,6 +73,7 @@
   #confirm #cYes{border-color:#d44;background:#4a1515}
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
+<script>window.__MT = { x: -6253, z: -12745, R: 520, F: 125, T: 300, Y: 1174 };</script>
 <script>
   // Mountain House files live in projects/mountainhouse next to this file.
   // If they are not found there, the game also looks in projects/mountainhouse, a mountainhouse folder, and next to this file.
@@ -150,14 +151,14 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
+const scene = new THREE.Scene(); window.__scene = scene;
 scene.background = new THREE.Color(0x01020a);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.5, 60000);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.5, 60000); window.__cam = camera;
 camera.position.set(300, 130, 330);
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement); window.__controls = controls;
 controls.enableDamping = true;
 controls.minDistance = 15;
 controls.maxDistance = 14000;
@@ -905,7 +906,7 @@ const DECK_TOP = -28, SLIDE = 230, SAVE_KEY = 'aegisArk.mountainhouse.v1';
 const BUILDS = (window.AEGIS_BUILDS || []).slice().sort((a, b) => a.id - b.id);
 const KIT_TYPES = {};
 for (const b of BUILDS) for (const [k, d] of Object.entries(b.types)) KIT_TYPES[k] = d;
-const G = { idx: 0, stage: 'load', loc: 'earth' }; // stage: load (at Earth) · build (at site) · done · none (no more builds)
+const G = { idx: 0, stage: 'load', loc: 'earth' }; window.__G = G; // stage: load (at Earth) · build (at site) · done · none (no more builds)
 const curBuild = () => BUILDS[G.idx] || null;
 G.trip = 0;
 for (const b of BUILDS) if (!b.trips) b.trips = [{ name: b.name, kits: b.kits, finish: b.land ? 'land' : b.dock ? 'dock' : 'unload' }];
@@ -944,7 +945,7 @@ for (const n of ['sitePlanet', 'siteAtmo']) { const o = scene.getObjectByName(n)
 const COAX_SKY = new THREE.Color(0.62, 0.76, 0.84);
 const coaxFog = new THREE.Fog(COAX_SKY, 3500, 34000);
 const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400;
-const MT = { x: -1250, z: 640, R: 520, H: 320, F: 125 };
+const MT = window.__MT;
 window.coaxH = (x, z) => coaxH(x, z);
 const coaxH0 = (() => {
   const P = new Uint8Array(512); { let s = 4242; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
@@ -965,9 +966,8 @@ const coaxH0 = (() => {
     return top * (1 - k) + (valley + mtn) * k;
   };
 })();
-// the mountain: a flat summit for the house and landing pad, steep rocky sides down to the plateau rim
-const mtBump = (x, z) => { const d = Math.hypot(x - MT.x, z - MT.z); if (d >= MT.R) return 0; const t = THREE.MathUtils.smoothstep(d, MT.F, MT.R);
-  return Math.max(0, MT.H * Math.pow(1 - t, 1.4) + (window.__coaxFbm(x / 70, z / 70) - 0.5) * 60 * Math.sin(Math.PI * t)); };
+// the far mountain: its top is levelled flat for the house and the landing pad
+const mtBump = (x, z) => { const d = Math.hypot(x - MT.x, z - MT.z); if (d >= MT.F + MT.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, MT.F, MT.F + MT.T); return w * (MT.Y - coaxH0(x, z)); };
 const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z);
 {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(42000, 48, 24), new THREE.ShaderMaterial({
@@ -1009,22 +1009,15 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z);
   // the plateau, cleared and ready to build on: a ring of light marker posts round the city site
   const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1) });
   for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, x = KRYOS_C.x + Math.cos(a) * 900, z = KRYOS_C.z + Math.sin(a) * 900; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
-  // the mountain itself: a finer mesh laid over the plateau, rock above the tree line
-  { const mn = 200, ms = MT.R * 2 + 60, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), gr = new THREE.Color(0x4f7a36), fo = new THREE.Color(0x2f5d28), rk = new THREE.Color(0x6f6a5e), rk2 = new THREE.Color(0x57534a);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + MT.x, z = mp.getZ(i) + MT.z, b = mtBump(x, z), f = b / MT.H, d = Math.hypot(x - MT.x, z - MT.z);
-      mp.setXYZ(i, x, coaxH0(x, z) + b - (d > MT.R - 20 ? 8 : 0), z);
-      cc.copy(gr).lerp(fo, THREE.MathUtils.smoothstep(f, 0.05, 0.3)).lerp(rk, THREE.MathUtils.smoothstep(f, 0.35, 0.7)); if (f > 0.97) cc.copy(gr); else cc.lerp(rk2, THREE.MathUtils.smoothstep(Math.sin(x * 0.07) * Math.cos(z * 0.09), 0.2, 1) * 0.5 * smoothstepF(f)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    function smoothstepF(f) { return THREE.MathUtils.smoothstep(f, 0.3, 0.6); }
+  // the mountain top: a finer mesh laid over the levelled summit so the house sits on smooth ground
+  { const mn = 200, ms = MT.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
+    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x5a8a3c);
+    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + MT.x, z = mp.getZ(i) + MT.z, y = coaxH(x, z), d = Math.hypot(x - MT.x, z - MT.z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
+      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, MT.R - 140, MT.R), z);
+      cc.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700)); if (y > DECK_TOP + 900) cc.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
+      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, MT.F, MT.F + 70)); mc.set([cc.r, cc.g, cc.b], i * 3); }
     mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96, flatShading: false })); mm.receiveShadow = true; siteGroup.add(mm);
-    let ms2 = 991; const mr = () => (ms2 = (ms2 * 16807) % 2147483647) / 2147483647;
-    const mcn = new THREE.InstancedMesh(new THREE.ConeGeometry(4.5, 22, 6).translate(0, 15, 0), new THREE.MeshStandardMaterial({ color: 0x1f4a22, roughness: 0.9, flatShading: true }), 1400), mtr = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), 1400);
-    const mm4 = new THREE.Matrix4(), mq = new THREE.Quaternion(), msc = new THREE.Vector3(), mps = new THREE.Vector3(); let mi = 0;
-    for (let t = 0; t < 6000 && mi < 1400; t++) { const a = mr() * Math.PI * 2, d = 60 + mr() * (MT.R - 40), x = MT.x + Math.cos(a) * d, z = MT.z + Math.sin(a) * d, f = mtBump(x, z) / MT.H;
-      if (f > 0.5 || f < 0.0 || (d > MT.R - 30)) continue; if (Math.hypot(x - 120, z) < 1400 && coaxH0(x, z) === coaxH(x, z) && f < 0.01) continue;
-      const y = coaxH(x, z), s = 0.7 + mr() * 0.9; mps.set(x, y, z); msc.set(s, s, s); mm4.compose(mps, mq, msc); mcn.setMatrixAt(mi, mm4); mtr.setMatrixAt(mi, mm4); mi++; }
-    mcn.count = mtr.count = mi; siteGroup.add(mcn, mtr); }
+    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm); }
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const CON = 16000, BRD = 9000;
@@ -4075,7 +4068,7 @@ const views = {
   5: [V(110, 140, -20), V(0, 0, -10)],
   6: [V(20, 560, 10), V(0, 0, 0)],
 };
-const siteView = [V(-560, 420, 1060), V(-1250, 300, 640)];
+const siteView = [V(-3800, 1700, -9300), V(-6253, 1150, -12745)];
 // pull right back so every part of the station built so far is in the shot
 function wholeStationView() {
   if (G.loc !== 'site' || warp) { txMsg = 'WHOLE-STATION VIEW WORKS AT THE STATION — WARP THERE FIRST (W)'; txMsgT = 3; return; }
@@ -4469,8 +4462,8 @@ addEventListener('resize', () => {
 /* ---------- blueprint room (a real room: the full station blueprint covers the far wall) ---------- */
 {
   const room = $('bpRoom'), frame = $('bpFrame'), page = $('bpPage');
-  const PLAN = ['The Landing Field','The Mountain Stair & the Trailhead','The House on the Summit','The Landing Pad','The Sky Lift & the Gardens'];
-  const FAMILIES = [['SF', 'Stair / Trailhead / Shelter', '#8a8478'], ['HM', 'House / Tower / Terrace', '#d9c9a8'], ['GD', 'Pad / Beacons / Garden', '#3fb04a'], ['SY', 'Sky Lift / Pylons', '#9fffd8']];
+  const PLAN = ['The Landing Field','The Shuttle & Its Stop','The House on the Summit','The Landing Pad','The Dome, the Hangar & Moving In'];
+  const FAMILIES = [['SF', 'Shuttle Stop / Terrace / Pad', '#8a8478'], ['HM', 'House / Tower', '#d9c9a8'], ['GD', 'Beacons / Fuel / Windsock', '#3fb04a'], ['SY', 'Shuttle / Dome / Hangar', '#9fffd8']];
   const built = id => { const B = curBuild(); return (B && id < B.id) || G.stage === 'none' || (B && B.id === id && G.stage === 'done'); };
   const C = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   function paper(g, w, h) {
@@ -4493,19 +4486,16 @@ addEventListener('resize', () => {
     g.fillStyle = ink; g.font = 'bold 54px Arial'; g.fillText('SITE PLAN · MOUNTAIN HOUSE', X(1550), 260);
     const box = (cx, cz, bw, bd, on, col, label) => { g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fillRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.strokeRect(X(cx - bw / 2), Z(cz - bd / 2), bw * sk, bd * sk); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz + bd / 2) + 22); } };
     const disc = (cx, cz, r, on, col, label) => { g.beginPath(); g.arc(X(cx), Z(cz), r * sk, 0, 7); g.fillStyle = on ? col : 'rgba(255,255,255,.04)'; g.fill(); g.strokeStyle = on ? ok : wait; g.lineWidth = 2; g.stroke(); if (label) { g.fillStyle = ink; g.font = '24px Arial'; g.fillText(label, X(cx), Z(cz) + r * sk + 22); } };
-    const MH = window.MTN; g.strokeStyle = 'rgba(160,190,150,.5)'; g.lineWidth = 3; g.beginPath(); g.arc(X(1550), Z(0), 520 * sk, 0, 7); g.stroke();
+    g.strokeStyle = 'rgba(160,190,150,.5)'; g.lineWidth = 3; g.beginPath(); g.arc(X(1550), Z(0), 125 * sk, 0, 7); g.stroke();
     disc(1550, 0, 125, true, 'rgba(120,150,100,.25)', '');
-    for (let i = 0; i < 4; i++) { const q = MH.path((i + 0.5) / 4), lx = q[0] - OFF[0], lz = q[1] - OFF[1]; box(lx, lz, 36, 36, at('STAIR', lx, lz), 'rgba(160,150,130,.7)', 'STAIRS'); }
-    { const q = MH.path(0), lx = q[0] - OFF[0], lz = q[1] - OFF[1]; box(lx, lz, 40, 24, at('TRAILHEAD', lx, lz), 'rgba(232,207,166,.7)', 'GATE'); }
-    for (const t of [0.33, 0.66]) { const q = MH.shelterAt(t), lx = q[0] - OFF[0], lz = q[1] - OFF[1]; box(lx, lz, 30, 24, at('SHELTER', lx, lz), 'rgba(217,162,27,.6)', 'SHELTER'); }
     disc(1550 - 32, 12, 62, has('FOUNDATION'), 'rgba(200,190,170,.5)', '');
     box(1550 - 52, 12, 40, 30, at('WING', 1550 - 52, 12), 'rgba(217,201,168,.8)', 'HOUSE'); box(1550 - 12, 12, 40, 30, at('WING', 1550 - 12, 12), 'rgba(207,227,242,.8)', 'HOUSE');
     disc(1550 + 12, -22, 9, has('TOWER'), 'rgba(191,232,255,.8)', 'TWR');
-    disc(1550 + 50, -70, 26, has('PAD'), 'rgba(108,117,125,.8)', 'PAD'); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; disc(1550 + 50 + Math.cos(a) * 30, -70 + Math.sin(a) * 30, 3, at('BEACON', 1550 + 50 + Math.round(Math.cos(a) * 30), -70 + Math.round(Math.sin(a) * 30)) || has('BEACON'), 'rgba(255,200,80,.9)', ''); }
+    disc(1550 + 50, -70, 26, has('PAD'), 'rgba(108,117,125,.8)', 'PAD'); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; disc(1550 + 50 + Math.cos(a) * 30, -70 + Math.sin(a) * 30, 3, has('BEACON'), 'rgba(255,200,80,.9)', ''); }
     disc(1550 + 90, -95, 6, has('WINDSOCK'), 'rgba(255,120,60,.9)', ''); box(1550 + 50, -108, 16, 10, has('FUELPOINT'), 'rgba(224,64,46,.8)', 'FUEL');
-    box(1550 + 70, 70, 26, 20, has('LIFTTOP'), 'rgba(159,255,216,.7)', 'LIFT'); box(1550 + 430, 260, 34, 26, has('LIFTBASE'), 'rgba(159,255,216,.7)', 'LIFT');
-    for (let i = 1; i <= 3; i++) { const lx = 1550 + 70 + (430 - 70) * i / 4, lz = 70 + (260 - 70) * i / 4; disc(lx, lz, 5, has('PYLON'), 'rgba(159,255,216,.9)', ''); }
-    box(1550 - 55, 48, 40, 24, has('GARDEN'), 'rgba(63,176,74,.5)', 'GARDEN'); box(1550 - 10, 48, 40, 24, has('GARDEN'), 'rgba(63,176,74,.5)', '');
+    box(1550 + 92, -8, 32, 26, has('HANGAR'), 'rgba(200,206,214,.7)', 'HANGAR');
+    disc(1550 - 80, -70, 12, has('DOME'), 'rgba(200,180,255,.7)', 'DOME');
+    box(1550 + 190, 90, 90, 40, has('KRYOSPAD'), 'rgba(159,255,216,.5)', 'KRYOS SHUTTLE STOP');
     box(120 - OFF[0], 0 - OFF[1], 120, 540, true, 'rgba(108,117,125,.6)', 'LANDING FIELD');
     // ---- build plan strip ----
     const sx0 = 2700, sx1 = 3980, pyb = 600, bw = (sx1 - sx0) / 2;

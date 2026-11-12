@@ -19,7 +19,7 @@
     },
     order: ['PAD', 'BEACON', 'WINDSOCK', 'FUELPOINT'],
     at: { PAD: [P.PADL], BEACON: P.BEACONS, WINDSOCK: [[1550 + 90, -95]], FUELPOINT: [[1550 + 50, -108]] },
-    eye: [200, 430, 20],
+    eye: [200, P.SY + 140, 20],
     stats(api, c) { return [['LANDING PAD', c('PAD') ? 'READY' : 'NOT YET'], ['BEACONS', c('BEACON') + ' / 4'], ['WINDSOCK', c('WINDSOCK') ? 'UP' : 'NOT YET'], ['FUEL POINT', c('FUELPOINT') ? 'OPEN' : 'NOT YET']]; },
     make(type, k, g, add, F, api, sl) {
       const T = api.THREE, H = P.mh(api);

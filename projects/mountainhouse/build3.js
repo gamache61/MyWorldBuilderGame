@@ -16,7 +16,7 @@
     },
     order: ['FOUNDATION', 'WING', 'TOWER'],
     at: { FOUNDATION: [[1550 - 32, 12]], WING: [[1550 - 52, 12], [1550 - 12, 12]], TOWER: [[1550 + 12, -22]] },
-    eye: [200, 440, 190],
+    eye: [200, P.SY + 150, 190],
     stats(api, c) { return [['TERRACE', c('FOUNDATION') ? 'LAID' : 'NOT YET'], ['HOUSE WINGS', c('WING') + ' / 2'], ['GLASS TOWER', c('TOWER') ? 'STANDING' : 'NOT YET'], ['ROOMS', c('WING') * 6]]; },
     make(type, k, g, add, F, api, sl) {
       const T = api.THREE, H = P.mh(api);
