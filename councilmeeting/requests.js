@@ -16,6 +16,7 @@
 
   // [ words the player might type , project file it matches , what the council calls it ]
   var TOPICS = [
+    [['welcome', 'visitor', 'guest', 'landing pad', 'embassy'], '61-gateofwelcome.html', 'the Gate of Welcome'],
     [['arena', 'stadium', 'sport', 'concert', 'festival', 'race', 'running', 'track'], '58-kryosarena.html', 'the Kryos Arena'],
     [['language', 'translat', 'interpret', 'linguist', 'speak to'], '59-languagehouse.html', 'the Language House'],
     [['rescue', 'medic', 'ambulance', 'lifeboat'], '56-rescue.html', 'the Rescue'],

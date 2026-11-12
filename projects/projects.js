@@ -481,4 +481,19 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE GATE OF WELCOME \u00b7 PLANET UNITY',
+    html: '61-gateofwelcome.html',
+    brief: 'A great gate and welcome hall at the edge of Kryos where visitors from other worlds can land, be greeted, be fed and be heard: the gate, the welcome hall and landing pads, a quiet room and food halls, and strong doors \u2014 then the gate opens and the stranger\'s ship comes down.',
+    builds: 5,
+    color: '#ffe08a',
+  },
+  {
+    name: 'THE TWENTY-NINTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting29.html',
+    brief: 'The stranger has landed and sits at the table in the Quiet Room. The council votes on what comes next, then asks the Keeper what it means to share a world.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
