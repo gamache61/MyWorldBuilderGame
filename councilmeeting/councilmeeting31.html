@@ -770,15 +770,15 @@ function buildScript() {
   const S = [];
   // speakers for the open discussion may speak more than once
   const say2 = prefs => { for (const n of prefs) { const c = byName(n); if (c && c !== mira && c !== head) return c; } return members.find(c => c !== mira && c !== head) || head; };
-  S.push([head, 'People of Unity, welcome back. The Mountain House is open. The Builder's shuttle came down onto its landing pad, and the Builder walked up to their own front door and looked out over Kryos.', PORT]);
+  S.push([head, 'People of Unity, welcome back. The Mountain House is open. The Builder\'s shuttle came down onto its landing pad, and the Builder walked up to their own front door and looked out over Kryos.', PORT]);
   S.push([head, 'Steward, what has changed since we last met?']);
   S.push([steward, 'The thirty-one guests have settled, so Kryos now holds sixty-six thousand, three hundred and thirty-one. Two hundred and forty homes are still empty and filling, and the Mountain House gave forty jobs, in the hangar, the dome and the shuttle crew.', 'census']);
   S.push([steward, 'Food is still more than enough, and the crystal store holds at seventy-eight in every hundred.']);
   S.push([head, 'And the treasury?']);
   S.push([steward, 'The Mountain House cost four hundred million. All together we have now spent fifty-two billion and fifty million of what the Builder gave. That leaves four hundred and forty-seven billion nine hundred and fifty million credits.', 'treasury']);
-  S.push([steward, 'The house is the Builder's own, so it earns nothing, and its shuttle and upkeep cost one million a month. Four hundred and forty-six million comes in and three hundred and fifty-three goes out, so the month is ninety-three million to the good.', 'budget']);
+  S.push([steward, 'The house is the Builder\'s own, so it earns nothing, and its shuttle and upkeep cost one million a month. Four hundred and forty-six million comes in and three hundred and fifty-three goes out, so the month is ninety-three million to the good.', 'budget']);
   S.push([steward, 'The crystal store is steady, and at today\'s use it will last forty years and more.', 'fuel']);
-  S.push([say2(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ']), 'The families of Homeward Three can see the little light on the mountain from their windows. The children have already named it the Builder's lamp.', PORT2]);
+  S.push([say2(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ']), 'The families of Homeward Three can see the little light on the mountain from their windows. The children have already named it the Builder\'s lamp.', PORT2]);
   S.push([say2(['AMARA OKAFOR', 'ELENA VASQUEZ', 'MATEO SILVA']), 'The Builder said that from up there they can see the whole of Kryos, and the way the lights come on one by one. It is a private place, and the Builder asked us to leave it that way.']);
   S.push([say2(['KENJI MORI', 'LIAM HARTLEY', 'SOFIA LINDQVIST']), 'Then let us put the next three before the council, and ask the Keeper what a high place is for.']);
   S.push([head, 'Three proposals sit before us.']);
