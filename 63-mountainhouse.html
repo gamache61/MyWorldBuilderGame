@@ -1017,7 +1017,12 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z);
       cc.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700)); if (y > DECK_TOP + 900) cc.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
       cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, MT.F, MT.F + 70)); mc.set([cc.r, cc.g, cc.b], i * 3); }
     mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm); }
+    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
+    // a landing beacon on the summit, so the mountain top can be found from far away
+    const bx = MT.x - 105, bz = MT.z - 30, by = MT.Y + 0.6;
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 30, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 15, bz); siteGroup.add(mast);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(2, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.2, 1.6), toneMapped: false })); bulb.position.set(bx, by + 31, bz); siteGroup.add(bulb);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 700, 12, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.2, 1.0, 0.8), transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 350, bz); siteGroup.add(beam); }
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const CON = 16000, BRD = 9000;

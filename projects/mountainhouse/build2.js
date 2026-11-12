@@ -34,7 +34,7 @@
     return g;
   };
   // ---- flying it: arrow keys, Space to climb, Shift to dive, G to get in and to land ----
-  const F = P.F = { on: false, pos: null, yaw: 0, spd: 0, vy: 0, roll: 0, craft: null, parked: null, keys: new Set(), msgT: 0 };
+  const F = P.F = { view: 'cab', on: false, pos: null, yaw: 0, spd: 0, vy: 0, roll: 0, craft: null, parked: null, keys: new Set(), msgT: 0 };
   P.padWorld = (which) => which === 'summit' ? [P.OFF[0] + 1600, P.OFF[1] - 70] : [P.KP[0], P.KP[1]];
   P.padY = (which) => { const q = P.padWorld(which); return P.gy(q[0], q[1]) + 1.5; };
   P.shuttleReady = (api) => api && api.placed.some(p => p.type === 'SHUTTLE' && p.piece);
@@ -48,7 +48,7 @@
     const w = P.padWorld(F.parked), y = P.padY(F.parked);
     F.pos = new T.Vector3(w[0], y + 3, w[1]); F.craft.position.copy(F.pos); F.craft.visible = true;
     const tg = P.padWorld(F.parked === 'kryos' ? 'summit' : 'kryos'); F.yaw = Math.atan2(-(tg[1] - w[1]), tg[0] - w[0]); F.spd = 0; F.vy = 0; F.roll = 0; F.on = true; F.parked = null; F.keys.clear();
-    if (walking) { W.off(); F.cam = window.__cam.position.clone(); } else F.cam = null; window.__controls.enabled = false; F.t0 = performance.now();
+    F.cam = walking ? window.__cam.position.clone() : null; if (walking) W.off(); window.__controls.enabled = false; F.t0 = performance.now();
   };
   const land = () => {
     const api = P.api; if (!F.on) return false;
@@ -63,6 +63,7 @@
     if (k === 'g' && !e.repeat && !WALKING()) { e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
     if (!F.on) return;
     if (k !== 'm') e.stopImmediatePropagation();
+    if (k === 'c' && !e.repeat) { F.view = F.view === 'cab' ? 'chase' : 'cab'; F.cam = null; }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
   }, true);
   addEventListener('keyup', e => { if (F.on) { F.keys.delete(e.key.toLowerCase()); e.stopImmediatePropagation(); } }, true);
@@ -84,11 +85,13 @@
     if (F.pos.y > 6000) F.pos.y = 6000;
     F.roll += (turn * 0.5 * Math.min(1, F.spd / 50) - F.roll) * Math.min(1, 4 * dt);
     F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 + (K.has('arrowup') ? -0.03 : 0));
-    // chase camera
-    const cam = window.__cam, c = window.__controls, want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
-    if (!F.cam) { F.cam = want.clone(); cam.position.copy(want); } F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt);
+    // the view: from the cab (default) or behind the craft (C switches)
+    const cam = window.__cam, c = window.__controls, up = new T.Vector3(0, 1, 0);
+    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = true; }
+    else { const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+      if (!F.cam) { F.cam = cam.position.clone(); } F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const sw = P.padWorld('summit'), dk = Math.hypot(F.pos.x - sw[0], F.pos.z - sw[1]), dh = Math.hypot(F.pos.x - P.KP[0], F.pos.z - P.KP[1]);
-    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM');
+    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM');
   };
   requestAnimationFrame(loop);
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
