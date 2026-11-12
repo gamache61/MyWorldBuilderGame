@@ -50,7 +50,7 @@
         const par = P.padParent(api); this.par = par; this.px = P.OFF[0] + P.PADL[0]; this.pz = P.OFF[1] + P.PADL[1]; this.py = P.gy(this.px, this.pz) + 1.3;
         P.F.on = false; if (window.__controls) window.__controls.enabled = true;
         if (!P.F.craft) { P.F.craft = P.craft(api); window.__scene.add(P.F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; }
-        this.ship = P.F.craft; this.ship.visible = true; P.F.parked = null; this.ship.position.set(this.px, this.py + 150, this.pz);
+        this.ship = P.F.craft; this.ship.visible = true; P.F.park = null; this.ship.position.set(this.px, this.py + 150, this.pz);
         P.ring && P.ring(2);
       },
       update(api, dt, f) {
@@ -69,7 +69,7 @@
           if (this.t1 > 16) { this.stage = 2; this.t1 = 0; P.hint(''); P.cover(true, 'MOUNTAIN HOUSE IS OPEN', 'SHUTTLE · HOUSE · TOWER · LANDING PAD · HANGAR · DOME · PRESS G TO FLY THE SHUTTLE · NEXT: THE THIRTY-FIRST COUNCIL MEETING'); }
         } else {
           if (this.t1 > 4 && !this._h) { this._h = true; api.setFlag('mountainHouse', true); api.setFlag('opened', true); }
-          if (this.t1 > 6.5) { P.cover(false); this._h = false; P.F.parked = 'summit'; return true; }
+          if (this.t1 > 6.5) { P.cover(false); this._h = false; P.F.yaw = Math.PI; P.parkAt('summit'); return true; }
         }
         return false;
       },

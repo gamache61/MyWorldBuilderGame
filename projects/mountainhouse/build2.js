@@ -34,29 +34,34 @@
     return g;
   };
   // ---- flying it: arrow keys, Space to climb, Shift to dive, G to get in and to land ----
-  const F = P.F = { view: 'cab', on: false, pos: null, yaw: 0, spd: 0, vy: 0, roll: 0, craft: null, parked: null, keys: new Set(), msgT: 0 };
+  const F = P.F = { view: 'cab', on: false, pos: null, yaw: 0, spd: 0, vy: 0, roll: 0, craft: null, park: null, keys: new Set(), msgT: 0 };
   P.padWorld = (which) => which === 'summit' ? [P.OFF[0] + 1600, P.OFF[1] - 70] : [P.KP[0], P.KP[1]];
   P.padY = (which) => { const q = P.padWorld(which); return P.gy(q[0], q[1]) + 1.5; };
   P.shuttleReady = (api) => api && api.placed.some(p => p.type === 'SHUTTLE' && p.piece);
   P.flyHint = (t) => { try { P.hint(t); } catch (e) { } };
+  P.parkAt = (which) => { const w = P.padWorld(which); F.park = { x: w[0], y: P.padY(which) + 2.2, z: w[1], yaw: F.yaw || 0 }; };
   const board = () => {
     const api = P.api; if (!api || F.on || !window.__G || window.__G.loc !== 'site') return;
-    if (!P.shuttleReady(api) && !F.craft) { P.flyHint('BUILD THE SHUTTLE FIRST (BUILD 2)'); F.msgT = 3; return; }
     const T = api.THREE, W = window.__walk, walking = W && W.on;
-    if (walking) { const q = F.craft && F.parked ? P.padWorld(F.parked) : P.padWorld('kryos'); if (Math.hypot(W.pos.x - q[0], W.pos.z - q[1]) > 22) { P.flyHint('WALK UP TO THE SHUTTLE, THEN PRESS G TO GET IN'); F.msgT = 3; return; } }
-    if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; F.parked = 'kryos'; }
-    const w = P.padWorld(F.parked), y = P.padY(F.parked);
-    F.pos = new T.Vector3(w[0], y + 3, w[1]); F.craft.position.copy(F.pos); F.craft.visible = true;
-    const tg = P.padWorld(F.parked === 'kryos' ? 'summit' : 'kryos'); F.yaw = Math.atan2(-(tg[1] - w[1]), tg[0] - w[0]); F.spd = 0; F.vy = 0; F.roll = 0; F.on = true; F.parked = null; F.keys.clear();
+    if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; P.parkAt('kryos'); const sw = P.padWorld('summit'); F.park.yaw = Math.atan2(-(sw[1] - F.park.z), sw[0] - F.park.x); }
+    if (!F.park) P.parkAt('kryos');
+    // on foot and far from the shuttle: it comes to you
+    if (walking && Math.hypot(W.pos.x - F.park.x, W.pos.z - F.park.z) > 22) { const x = W.pos.x + Math.sin(W.yaw) * 16, z = W.pos.z + Math.cos(W.yaw) * 16; F.park = { x, y: P.gy(x, z) + 2.2, z, yaw: Math.atan2(-Math.cos(W.yaw), Math.sin(W.yaw)) }; }
+    F.pos = new T.Vector3(F.park.x, F.park.y + 1, F.park.z); F.craft.position.copy(F.pos); F.craft.visible = true;
+    F.yaw = F.park.yaw; F.park = null; F.spd = 0; F.vy = 0; F.roll = 0; F.on = true; F.keys.clear();
     F.cam = walking ? window.__cam.position.clone() : null; if (walking) W.off(); window.__controls.enabled = false; F.t0 = performance.now();
   };
   const land = () => {
     const api = P.api; if (!F.on) return false;
-    for (const which of ['kryos', 'summit']) { const w = P.padWorld(which), y = P.padY(which);
-      if (Math.hypot(F.pos.x - w[0], F.pos.z - w[1]) < 45 && F.pos.y - y < 30 && F.spd < 45) {
-        F.on = false; F.parked = which; F.pos.set(w[0], y + 2.2, w[1]); F.craft.position.copy(F.pos); F.craft.rotation.set(0, F.yaw, 0); F.spd = 0; P.flyHint(''); const W = window.__walk, sd = F.yaw + Math.PI / 2, ox = F.pos.x + Math.cos(sd) * 17, oz = F.pos.z - Math.sin(sd) * 17;
-        if (W && W.landed) W.at(ox, P.gy(ox, oz), oz, Math.atan2(F.pos.x - ox, F.pos.z - oz)); else { window.__controls.enabled = true; window.__controls.target.copy(F.pos); } return true; } }
-    P.flyHint('TO LAND: SLOW DOWN OVER THE KRYOS STOP OR THE SUMMIT PAD, THEN PRESS G'); F.msgT = 3; return false;
+    const gnd = P.gy(F.pos.x, F.pos.z);
+    if (F.pos.y - gnd < 30 && F.spd < 45) {
+      let x = F.pos.x, z = F.pos.z, y = gnd + 2.2;
+      for (const which of ['kryos', 'summit']) { const w = P.padWorld(which); if (Math.hypot(x - w[0], z - w[1]) < 45) { x = w[0]; z = w[1]; y = P.padY(which) + 2.2; } }
+      F.on = false; F.park = { x, y, z, yaw: F.yaw }; F.pos.set(x, y, z); F.craft.position.copy(F.pos); F.craft.rotation.set(0, F.yaw, 0); F.spd = 0; P.flyHint('');
+      const W = window.__walk, sd = F.yaw + Math.PI / 2, ox = x + Math.cos(sd) * 17, oz = z - Math.sin(sd) * 17;
+      if (W && W.landed) W.at(ox, P.gy(ox, oz), oz, Math.atan2(x - ox, z - oz)); else { window.__controls.enabled = true; window.__controls.target.copy(F.pos); }
+      return true; }
+    P.flyHint('TO LAND: SLOW DOWN AND FLY LOW (UNDER 30 M), THEN PRESS G · YOU CAN LAND ANYWHERE'); F.msgT = 3; return false;
   };
   addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
@@ -72,9 +77,9 @@
   const loop = (now) => {
     requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now;
     const api = P.api; if (!api || !F.craft) return;
-    if (!F.on && window.__walk && window.__walk.on && F.craft && F.parked && F.msgT <= 0) { const q = P.padWorld(F.parked); P.flyHint(Math.hypot(window.__walk.pos.x - q[0], window.__walk.pos.z - q[1]) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : ''); }
+    if (!F.on && window.__walk && window.__walk.on && window.__G && window.__G.loc === 'site' && F.msgT <= 0) { const q = F.park; P.flyHint(!q ? 'PRESS G TO CALL YOUR SHUTTLE' : Math.hypot(window.__walk.pos.x - q.x, window.__walk.pos.z - q.z) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : 'PRESS G TO CALL YOUR SHUTTLE TO YOU'); }
     if (F.msgT > 0 && !F.on) F.msgT -= dt;
-    if (!F.on) { if (F.parked) { const w = P.padWorld(F.parked); F.craft.position.set(w[0], P.padY(F.parked) + 2.2, w[1]); } return; }
+    if (!F.on) { if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); } return; }
     const T = api.THREE, K = F.keys;
     if (K.has('arrowup')) F.spd = Math.min(300, F.spd + 100 * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * dt); else F.spd *= 1 - 0.04 * dt;
     const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / 60) * 0.7);
