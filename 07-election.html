@@ -15,6 +15,7 @@
   #action button { font: 600 13px "Segoe UI", Arial; padding: 7px 18px; letter-spacing: 3px; border: 1px solid #5fe8d8; border-radius: 4px; background: rgba(47, 184, 200, .25); color: #fff; cursor: pointer; }
   #action button:hover { background: rgba(47, 184, 200, .45); }
   body.hideInfo #panel, body.hideInfo #report { display: none !important; }
+  body.hideInfo #menu { display: none !important; }
   #report { position: fixed; z-index: 7; right: 18px; top: 50%; transform: translateY(-50%); width: 320px; max-height: 80vh; overflow-y: auto; padding: 14px 16px; background: rgba(6, 14, 24, .85); border: 1px solid rgba(95, 232, 216, .5); border-radius: 6px; color: #d8ecff; font-size: 12px; letter-spacing: 1px; line-height: 1.6; opacity: 0; transition: opacity .8s; pointer-events: none; }
   #report h2 { margin: 0 0 2px; font-size: 16px; letter-spacing: 4px; color: #fff; font-weight: 600; }
   #report .ty { color: #5fe8d8; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; }
@@ -73,7 +74,7 @@
 }}
 </script>
 </head>
-<body>
+<body class="hideInfo">
 <div id="panel"></div>
 <div id="action"></div>
 <div id="report"></div>
@@ -959,7 +960,7 @@ function hud(dt) {
   else line = G.done ? 'THE COUNCIL IS CHOSEN · 12 SEATS' : G.phase === 'count' ? 'COUNTING…' : '11 SEATS BY VOTE · 1 BY THE KEEPER';
   const h = `<h1>ELECTION DAY · PLANET UNITY</h1><div class="ln" style="color:#ffd060;letter-spacing:3px">DAY ${day} · ${DN.clock}${DN.isNight ? ' · NIGHT' : ''}</div><div class="ln">SUNRISE ${DN.SUNRISE} · SUNSET ${DN.SUNSET}</div><div class="bn">DAY ${G.day + 1} OF 3 · ${DAY_NAMES[G.day]}</div><div class="ln">${line}</div>`;
   if (h !== hud.last) { $('panel').innerHTML = h; hud.last = h; }
-  const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep();
+  const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep() + (document.body.classList.contains('hideInfo') ? '<div style="font-size:10px;letter-spacing:2px;color:#8fb0c8;margin-top:5px">H SHOW INFO</div>' : '');
   if (a !== hud.lastA) { $('action').innerHTML = a; hud.lastA = a; const go = $('go'); if (go) go.onclick = goAction; const sk = $('skip'); if (sk) sk.onclick = skipSpeech; }
   if (menuEl.classList.contains('open')) menuRefresh();
 }

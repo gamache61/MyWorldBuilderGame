@@ -35,6 +35,7 @@
   #bpPage .bar{display:flex;justify-content:space-between;align-items:center;color:#7fd8ff;font:12px "Segoe UI",Arial;letter-spacing:1px;padding:0 4px 8px}
   #bpPage button{background:#4a1515;color:#fff;border:1px solid #d44;border-radius:3px;padding:5px 12px;cursor:pointer;font:600 11px "Segoe UI",Arial;letter-spacing:1.5px}
   #bpPage iframe{flex:1;border:0;background:#0b1622}
+  body:not(.info) #hud,body:not(.info) #status,body:not(.info) #station,body:not(.info) #menu{display:none!important}
   body.inBP #hud,body.inBP #status,body.inBP #station,body.inBP #goal,body.inBP #parkChoice,body.inBP #menu{display:none!important}
   #menu{position:fixed;left:18px;bottom:14px;font-family:"Segoe UI",Roboto,Arial,sans-serif;z-index:5}
   #menuBtn{background:rgba(8,20,35,.85);color:#fff;border:1px solid rgba(64,208,255,.6);border-radius:4px;padding:8px 14px;font:600 13px "Segoe UI",Arial;letter-spacing:2px;cursor:pointer}
@@ -3411,73 +3412,61 @@ function updateGameHUD(dt) {
   txMsgT -= dt;
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
-  let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO SEASHORE'; } }
-  else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'ENTERING THE ATMOSPHERE OF PLANET UNITY'; sub = 'DESCENDING TO KRYOS CITY'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'KRYOS CITY' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO PLANET UNITY' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE GREAT LIBRARY · KRYOS CITY' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'THE GREAT LIBRARY BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/greatlibrary NEXT TO 60-greatlibrary.html, THEN REFRESH'; }
+  let head = '', sub = '';
+  const bnum = x => x ? (x.g || x.id) : '';
+  const nextB = B ? BUILDS[G.idx + 1] : null;
+  if (warp) { head = warp.phase === 'tunnel' ? 'IN WARP · ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s' : 'WARP DRIVE ENGAGED'; sub = warp.to === 'site' ? 'GOING TO THE BUILD SITE' : 'GOING BACK TO EARTH'; }
+  else if (!BUILDS.length) { head = 'BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN THIS CHAPTER\'S projects FOLDER, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
-      head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
-      sub = TX.on ? 'BREAKING THE CRATES DOWN AND REBUILDING THEM IN THE CARGO BAY'
-        : bayCount === total ? 'ALL CRATES LOADED · ' + (bayT > 0 ? 'CLOSE THE BAY (B) · ' : '') + 'PRESS W TO WARP TO THE BUILD SITE'
-        : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
-        : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
-        : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE GREAT LIBRARY IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE LIBRARY' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE LIBRARY'; }
-    else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
+      if (TX.on) { head = 'TRANSPORTING THE LOAD · ' + bayCount + ' / ' + total; sub = ''; }
+      else {
+        head = 'LOADING · ' + bayCount + ' / ' + total + ' IN THE BAY';
+        sub = bayCount === total ? (bayT > 0 ? 'B CLOSE THE BAY · ' : '') + 'W WARP TO THE BUILD SITE'
+          : autoMode ? 'F ' + (autoFast ? 'SLOWER LOADING' : 'FAST LOADING') + ' · ARROWS TAKE OVER'
+          : CR.load.length ? 'SPACE RELEASE THE CRATES IN THE BAY'
+          : bayT < 1 ? 'B OPEN THE BAY DOOR · THEN T TRANSPORT THE LOAD · U START LOADING · F FAST LOADING'
+          : 'T TRANSPORT THE LOAD · U START LOADING · F FAST LOADING · SPACE GRAB CRATES';
+      }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE BUILD IS OPEN' : 'ALL BUILDS COMPLETE'; sub = 'W VISIT THE BUILD SITE'; }
+    else { head = 'EARTH WAREHOUSE'; sub = 'W WARP TO THE BUILD SITE'; }
   } else {
-    if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
-    else if (STORE.on) { head = 'STATION TRANSPORTER · STORING SUPPLIES'; sub = STORE.list.length + ' CRATES LEFT · ' + G.stock + ' IN THE VAULT'; }
-    else if (STX.on) {
-      head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
-      const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.mat ? 'PART MATERIAL ' + Math.min(STX.mat.u.got + 1, STX.mat.u.need) + ' OF ' + STX.mat.u.need + ' · ADDING TO THE ' + KIT_TYPES[STX.mat.u.p.type].name : STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE MINES') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
-    }
+    if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = ''; }
+    else if (STORE.on) { head = 'STORING SUPPLIES'; sub = ''; }
+    else if (STX.on) { head = 'TRANSPORTING · ' + placedNow + ' / ' + total + ' IN PLACE'; sub = STX.fast ? '' : 'T SKIP CAMERA STEPS'; }
     else if (parked) {
-      head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
       const r = buildReady(), T = curTrip();
-      sub = landing > 0 ? 'LANDING ON THE LANDING FIELD · TRANSPORTER STANDING BY' : landing < 0 ? 'LIFTING OFF THE LANDING FIELD' + (warpAfterLift ? ' · WARP ENGAGES WHEN CLEAR' : '')
-        : G.stage === 'build' && T && T.finish === 'custom' && r.ok ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD') + ' · X TO GET OFF AND WALK'
-        : G.stage === 'build' && T && T.finish === 'dock' && r.ok ? 'PRESS L TO LIFT OFF, THEN L AGAIN TO DOCK · X TO GET OFF AND WALK'
-        : 'X TO GET OFF AND WALK · W TO LIFT OFF AND WARP';
+      head = 'PARKED';
+      sub = landing > 0 ? 'LANDING…' : landing < 0 ? 'LIFTING OFF…'
+        : G.stage === 'build' && T && T.finish === 'custom' && r.ok ? 'L ' + (B.finishLabel || 'FINISH THE BUILD') + ' · X GET OFF AND WALK'
+        : G.stage === 'build' && T && T.finish === 'dock' && r.ok ? 'L LIFT OFF AND DOCK · X GET OFF AND WALK'
+        : 'X GET OFF AND WALK · W WARP BACK TO EARTH';
     }
-    else if (G.stage === 'tripdone') {
-      const nx = B.trips[G.trip + 1];
-      head = 'TRIP ' + (G.trip + 1) + ' COMPLETE · ' + T.name;
-      sub = 'PRESS W TO WARP TO EARTH FOR TRIP ' + (G.trip + 2) + (nx ? ' · ' + nx.name : '');
-    } else if (G.stage === 'build') {
+    else if (G.stage === 'tripdone') { head = 'TRIP ' + (G.trip + 1) + ' COMPLETE'; sub = 'W WARP TO EARTH FOR THE NEXT TRIP'; }
+    else if (G.stage === 'build') {
       const r = buildReady();
-      head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
-      sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE CITY TRANSPORTER'
-        : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
-        : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
-        : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
+      head = 'BUILD ' + bnum(B) + ' · ' + placedNow + ' / ' + total + ' PLACED';
+      sub = landing ? 'LANDING…'
+        : bayCount && hasStationTX() ? 'T TRANSPORT THE LOAD INTO PLACE'
+        : r.ok && dockMode ? 'L DOCK THE AEGIS ARK'
+        : r.ok && T.finish === 'custom' ? 'L ' + (B.finishLabel || 'FINISH THE BUILD')
+        : bayT < 1 && bayCount ? 'B OPEN THE BAY · U START UNLOADING · F FAST UNLOADING'
         : CR.carry ? placeMsg
         : r.ok ? r.msg
-        : 'GRAB 4 CRATES FROM THE BAY · OR LOWER THE HOOK ONTO A PLACED PART TO PICK IT BACK UP · ' + r.msg;
+        : 'SPACE GRAB 4 CRATES FROM THE BAY · ' + r.msg;
     } else if (G.stage === 'done') {
-      const nb = BUILDS[G.idx + 1];
-      const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
-      head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
-      sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE GREAT LIBRARY IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE GREAT LIBRARY'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+      head = 'BUILD ' + bnum(B) + ' COMPLETE';
+      sub = landed ? 'L LIFT OFF · THEN W WARP BACK TO EARTH' : 'W WARP TO EARTH' + (nextB ? ' FOR BUILD ' + bnum(nextB) : '');
+    } else { head = 'BUILD SITE'; sub = 'W WARP BACK TO EARTH'; }
+  }
+  if (WALK.on) {
+    head = 'ON FOOT'; sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · X BACK ABOARD';
+    if (DISC.on) sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · E AT THE INNER EDGE GOES UP THE SPINDLE · X BACK TO THE SHIP';
+    else if (HAB.inside) sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · E AT THE SPOKE LIFT GOES UP · X BACK TO THE SHIP';
+    else if (liftKiosk.visible && WALK.pos.distanceTo(liftKiosk.position) < 16) sub += ' · E LIFT DOWN THE SPINDLE';
   }
   if (flash) sub = '⚠ ' + flash;
-  if (WALK.on) {
-    if (DISC.on) { head = 'ON FOOT · ' + discPlace(); sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK · E AT THE INNER EDGE GOES UP THE SPINDLE · X BACK TO THE SHIP'; }
-    else if (HAB.inside) { head = 'ON FOOT · ' + habPlace(); sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK · E AT THE SPOKE LIFT GOES UP · X BACK TO THE SHIP'; }
-    else { head = G.loc === 'earth' ? 'ON FOOT · EARTH WAREHOUSE' : 'ON FOOT · LANDING DECK'; sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK' + (liftKiosk.visible ? (WALK.pos.distanceTo(liftKiosk.position) < 16 ? ' · PRESS E — LIFT DOWN THE SPINDLE TO THE DISC' : ' · SPINDLE LIFT IS AHEAD OF THE SHIP\'S NOSE') : '') + ' · X BACK ABOARD'; }
-  }
-  { // always show which build you are on
-    const CB = curBuild();
-    const tag = CB ? 'BUILD ' + CB.id + ' OF ' + BUILDS.length + ' · ' + CB.name + (CB.trips.length > 1 ? ' · TRIP ' + (G.trip + 1) + '/' + CB.trips.length : '') : (G.stage === 'none' ? 'ALL ' + BUILDS.length + ' BUILDS COMPLETE' : '');
-    if (tag) head = '<span style="display:block;color:#7fd8ff;font-size:12px;letter-spacing:2px;margin-bottom:2px">' + tag + '</span>' + head;
-  }
+  if (!document.body.classList.contains('info')) sub += (sub ? ' · ' : '') + 'H SHOW INFO';
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
@@ -4082,8 +4071,8 @@ addEventListener('keydown', e => {
   if (k === 's') shieldWant = !shieldWant;
   if (k === 'a') { attack = !attack; if (attack) shieldWant = true; }
   if (k === 'c') cloakOn = !cloakOn;
-  if (k === 'h') for (const id of ['hud', 'status', 'station']) { const el = $(id); el.style.display = el.style.display === 'none' ? '' : 'none'; }
 });
+addEventListener('keydown', e => { if (e.key.toLowerCase() === 'h' && !e.repeat && $('confirm').style.display !== 'flex') document.body.classList.toggle('info'); });
 controls.addEventListener('start', () => camGoal = null);
 function setView(m) {
   viewMode = m; camGoal = null;

@@ -771,23 +771,13 @@ function buildScript() {
   // speakers for the open discussion may speak more than once
   const say2 = prefs => { for (const n of prefs) { const c = byName(n); if (c && c !== mira && c !== head) return c; } return members.find(c => c !== mira && c !== head) || head; };
   S.push([head, 'People of Unity, welcome back. The Mountain House is open. The Builder\'s shuttle came down onto its landing pad, and the Builder walked up to their own front door and looked out over Kryos.', PORT]);
-  S.push([head, 'Steward, what has changed since we last met?']);
-  S.push([steward, 'The thirty-one guests have settled, so Kryos now holds sixty-six thousand, three hundred and thirty-one. Two hundred and forty homes are still empty and filling, and the Mountain House gave forty jobs, in the hangar, the dome and the shuttle crew.', 'census']);
-  S.push([steward, 'Food is still more than enough, and the crystal store holds at seventy-eight in every hundred.']);
-  S.push([head, 'And the treasury?']);
-  S.push([steward, 'The Mountain House cost four hundred million. All together we have now spent fifty-two billion and fifty million of what the Builder gave. That leaves four hundred and forty-seven billion nine hundred and fifty million credits.', 'treasury']);
-  S.push([steward, 'The house is the Builder\'s own, so it earns nothing, and its shuttle and upkeep cost one million a month. Four hundred and forty-six million comes in and three hundred and fifty-three goes out, so the month is ninety-three million to the good.', 'budget']);
-  S.push([steward, 'The crystal store is steady, and at today\'s use it will last forty years and more.', 'fuel']);
-  S.push([say2(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ']), 'The families of Homeward Three can see the little light on the mountain from their windows. The children have already named it the Builder\'s lamp.', PORT2]);
-  S.push([say2(['AMARA OKAFOR', 'ELENA VASQUEZ', 'MATEO SILVA']), 'The Builder said that from up there they can see the whole of Kryos, and the way the lights come on one by one. It is a private place, and the Builder asked us to leave it that way.']);
-  S.push([say2(['KENJI MORI', 'LIAM HARTLEY', 'SOFIA LINDQVIST']), 'Then let us put the next three before the council, and ask the Keeper what a high place is for.']);
+  S.push([steward, 'The thirty-one guests have settled, so Kryos holds sixty-six thousand, three hundred and thirty-one, and the Mountain House gave forty jobs. Food is more than enough, and the crystal store holds at seventy-eight in every hundred.', 'census']);
+  S.push([steward, 'The Mountain House cost four hundred million. We have spent fifty-two billion and fifty million in all, and four hundred and forty-seven billion, nine hundred and fifty million is left.', 'treasury']);
+  S.push([steward, 'The house is the Builder\'s own and costs one million a month, so the month is ninety-three million to the good.', 'budget']);
   S.push([head, 'Three proposals sit before us.']);
-  S.push([pick(['AYO BANKOLE', 'OWEN BRANDT', 'GRACE TAYLOR', 'NOOR HADDAD']), 'The Guests\' Quarter. Forty warm homes with gardens, a kitchen and a meeting hall at the edge of Kryos, for the thirty-one guests, for travellers, and for the families of Kryos still waiting for a home.', 0]);
-  S.push([steward, 'Eight hundred million credits. It earns four million a month.', 0]);
-  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Hall of Peoples. A great round hall at the heart of Kryos where the council, the guests and any other people who arrive can sit together, with a seat for every tongue and a table in the middle.', 1]);
-  S.push([steward, 'One billion credits. It earns five million a month from visitors.', 1]);
-  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Seed Vault. A cool vault cut into the foot of the mountain that keeps the seeds, roots and living cuttings of every plant of Unity and of Earth, so that no storm, fire or mistake can ever take them all away.', 2]);
-  S.push([steward, 'Seven hundred million credits. It earns one million a month from schools that come to see it.', 2]);
+  S.push([pick(['AYO BANKOLE', 'OWEN BRANDT', 'GRACE TAYLOR', 'NOOR HADDAD']), 'The Guests\' Quarter: forty warm homes with gardens for the guests and for travellers. Eight hundred million credits, and it earns four million a month.', 0]);
+  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Hall of Peoples: a great round hall where every people can sit together. One billion credits, and it earns five million a month.', 1]);
+  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Seed Vault: a cool vault in the mountain that keeps the seeds of every plant. Seven hundred million credits, and it earns one million a month.', 2]);
   S.push([head, 'The council will now vote.', 'vote']);
   S.push([mira, 'Twelve voices, three proposals, four votes each. We are tied once more. Builder, the deciding vote is yours again.', 'ballot']);
   return S;
@@ -935,7 +925,7 @@ async function decide(k, byCouncil) {
   }, 5000);
 }
 // the council asks the Keeper a question, and the Keeper answers
-const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, the Builder has a house on a mountain top. What is a high place for?', 1],
+const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, the Builder has a house on a mountain top. What is a high place for?', 3],
   [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'The guests looked at the roofs and not at the stars. Why would they do that?', 2],
   [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And is it right to build a place that only keeps things safe?', 4]];
 function askKeeper(q = 0) {
@@ -950,6 +940,12 @@ function finish() {
 }
 let heartPulse = 0, bannerT = 0;
 function banner(a, b) { const el = $('banner'); el.querySelector('.a').textContent = a; el.querySelector('.b').textContent = b || ''; el.style.opacity = 1; bannerT = 6; }
+function skipAhead() {
+  if (G.phase !== 'meeting') return;
+  const first = SCRIPT.findIndex(q => q[2] === 0), vote = SCRIPT.findIndex(q => q[2] === 'vote'), to = step < first - 1 ? first : vote;
+  if (to < 0 || step >= to - 1) return;
+  step = to - 1; if (speaker) skip();
+}
 function skip() { if (G.phase !== 'meeting' || !speaker) return; if ('speechSynthesis' in window) speechSynthesis.cancel(); const end = speakEnd; if (end) end(); }
 
 /* ---------- HUD, next step and the controls menu ---------- */
@@ -960,7 +956,7 @@ function nextStep() {
   if (G.phase === 'ballot') return '<button id="go">CAST THE DECIDING VOTE (V)</button>';
   if (G.phase === 'voting') return 'THE COUNCIL IS VOTING…';
   if (G.phase === 'keeper') return speaker ? speaker.name + ' ASKS THE KEEPER…' : 'THE KEEPER IS SPEAKING…';
-  return (speaker ? speaker.name + ' IS SPEAKING… ' : 'THE MEETING IS UNDER WAY… ') + '<button id="skip">NEXT (N)</button>';
+  return (speaker ? speaker.name + ' IS SPEAKING… ' : 'THE MEETING IS UNDER WAY… ') + '<button id="skip">NEXT (N)</button> <button id="skipAll">' + (step < SCRIPT.findIndex(q => q[2] === 0) ? 'SKIP TO THE PROPOSALS (K)' : 'SKIP TO THE VOTE (K)') + '</button>';
 }
 function goAction() { if (G.done) { if (!window.WB_reqBusy) location.href = '../index.html'; } else if (G.phase === 'ready') begin(); else if (G.phase === 'ballot') showBallot(); }
 const VIEWS = { heart: [V(0, 7, 21), V(0, 8, 0)], ring: [V(0, 20, 16), V(0, 1, 0)], seats: [V(0, 3.5, 3), V(0, 4, -30)], above: [V(0, 60, 0.1), V(0, 0, 0)], hall: [V(34, 12, 34), V(0, 6, 0)] };
@@ -970,7 +966,7 @@ function restart() { if (newArm > 0) { try { localStorage.removeItem(SAVE_KEY); 
 function setView(v) { G.view = v; G.cam = v === 'free' ? 'free' : 'auto'; camFirst = true; menuRefresh(); }
 function menuData() {
   return [
-    ['ACTIONS', [['Open the meeting', 'L', begin], ['Next speaker', 'N', skip], ['Cast the deciding vote', 'V', showBallot]]],
+    ['ACTIONS', [['Open the meeting', 'L', begin], ['Next speaker', 'N', skip], ['Skip to proposals / vote', 'K', skipAhead], ['Cast the deciding vote', 'V', showBallot]]],
     ['THE COUNCIL', members.map(m => ['row', m.name, m === mira ? "KEEPER'S CHOICE" : m.head ? 'HEAD · ' + m.job : m.job, m.head || m === mira])],
     ['THE PROPOSALS', PROPS.map((P, k) => ['row', P.short, G.choice === k ? 'CHOSEN' : '—', G.choice === k])],
     ['CAMERA', [['Follow the meeting', 'C', () => setView('auto')], ['The Heart', '1', () => setView('heart')], ['The council ring', '2', () => setView('ring')], ['From the seats', '3', () => setView('seats')], ['From above', '4', () => setView('above')], ['The whole hall', '5', () => setView('hall')], ['Free look', 'F', () => setView('free')], ['text', 'Look: drag · Pan: right-drag · Zoom: scroll']]],
@@ -1002,7 +998,7 @@ $('menuBtn').onclick = () => menuEl.classList.toggle('open');
 controls.addEventListener('start', () => { if (G.cam !== 'free') { G.cam = 'free'; G.view = 'free'; menuRefresh(); } });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k === 'l') goAction(); else if (k === 'n') skip(); else if (k === 'v') showBallot();
+  if (k === 'l') goAction(); else if (k === 'n') skip(); else if (k === 'k') skipAhead(); else if (k === 'v') showBallot();
   else if (k === 'c') setView('auto'); else if (k === 'f') setView('free');
   else if ('12345'.includes(k) && k) setView(['heart', 'ring', 'seats', 'above', 'hall'][+k - 1]);
   else if (k === 'h') document.body.classList.toggle('hideInfo'); else if (k === 'm') menuEl.classList.toggle('open');
@@ -1014,7 +1010,7 @@ function hud(dt) {
   const h = `<h1>THE THIRTY-FIRST COUNCIL MEETING</h1><div class="ln" style="color:#ffd060;letter-spacing:3px">DAY ${day} · ${DN.clock}${DN.isNight ? ' · NIGHT' : ''}</div><div class="ln">SUNRISE ${DN.SUNRISE} · SUNSET ${DN.SUNSET}</div><div class="bn">THE COUNCIL HALL · PLANET UNITY</div><div class="ln">${line}</div>`;
   if (h !== hud.last) { $('panel').innerHTML = h; hud.last = h; }
   const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep();
-  if (a !== hud.lastA) { $('action').innerHTML = a; hud.lastA = a; const go = $('go'); if (go) go.onclick = goAction; const sk = $('skip'); if (sk) sk.onclick = skip; }
+  if (a !== hud.lastA) { $('action').innerHTML = a; hud.lastA = a; const go = $('go'); if (go) go.onclick = goAction; const sk = $('skip'); if (sk) sk.onclick = skip; const sa = $('skipAll'); if (sa) sa.onclick = skipAhead; }
   if (menuEl.classList.contains('open')) menuRefresh();
 }
 function autoView(t) {

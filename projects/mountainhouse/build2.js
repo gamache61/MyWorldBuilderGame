@@ -96,7 +96,7 @@
     else { const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) { F.cam = cam.position.clone(); } F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const sw = P.padWorld('summit'), dk = Math.hypot(F.pos.x - sw[0], F.pos.z - sw[1]), dh = Math.hypot(F.pos.x - P.KP[0], F.pos.z - P.KP[1]);
-    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM');
+    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · G LAND' + (document.body.classList.contains('info') ? '   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM' : ''));
   };
   requestAnimationFrame(loop);
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({

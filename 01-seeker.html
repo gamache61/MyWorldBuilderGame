@@ -18,6 +18,7 @@
   #action button { font: 600 13px "Segoe UI", Arial; padding: 7px 18px; letter-spacing: 3px; border: 1px solid #5fe8d8; border-radius: 4px; background: rgba(47, 184, 200, .25); color: #fff; cursor: pointer; }
   #action button:hover { background: rgba(47, 184, 200, .45); }
   body.hideInfo #panel { display: none !important; }
+  body.hideInfo #menu { display: none !important; }
   #menu { position: fixed; left: 14px; bottom: 14px; z-index: 5; }
   #menuBtn { background: rgba(8, 20, 35, .85); color: #fff; border: 1px solid rgba(64, 208, 255, .6); border-radius: 4px; padding: 8px 14px; font: 600 13px "Segoe UI", Arial; letter-spacing: 2px; cursor: pointer; }
   #menuBtn small { color: #8fa9c2; font-weight: 400; }
@@ -45,7 +46,7 @@
   #fade { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 1.2s; }
 </style>
 </head>
-<body>
+<body class="hideInfo">
 <div id="panel" class="box"></div>
 <div id="action" class="box"></div>
 <div id="banner"><div class="a"></div><div class="b"></div></div>
@@ -1112,6 +1113,7 @@ function hud(dt) {
   else if (G.state === 'launch') a = `${TX.ship} IS LIFTING OFF`;
   else if (G.state === 'done') a = `<button id="go">BACK TO MAIN MENU</button> <button id="go2" style="margin-left:8px">WATCH THE LAUNCH AGAIN (R)</button>`;
   if (a) a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + a;
+  if (a && document.body.classList.contains('hideInfo')) a += '<div style="font-size:10px;letter-spacing:2px;color:#8fb0c8;margin-top:5px">H SHOW INFO</div>';
   if (a !== hud.lastA) { $('action').innerHTML = a; hud.lastA = a; const go = $('go'); if (go) go.onclick = () => G.state === 'done' ? (location.href = 'index.html') : G.state === 'idle' ? sendTrucks() : G.state === 'ready' ? finishBuild() : replayLaunch(); const go2 = $('go2'); if (go2) go2.onclick = () => replayLaunch(); }
   $('action').style.display = '';
 }

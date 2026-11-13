@@ -35,6 +35,7 @@
   #bpPage .bar{display:flex;justify-content:space-between;align-items:center;color:#7fd8ff;font:12px "Segoe UI",Arial;letter-spacing:1px;padding:0 4px 8px}
   #bpPage button{background:#4a1515;color:#fff;border:1px solid #d44;border-radius:3px;padding:5px 12px;cursor:pointer;font:600 11px "Segoe UI",Arial;letter-spacing:1.5px}
   #bpPage iframe{flex:1;border:0;background:#0b1622}
+  body:not(.info) #hud,body:not(.info) #status,body:not(.info) #station,body:not(.info) #menu{display:none!important}
   body.inBP #hud,body.inBP #status,body.inBP #station,body.inBP #goal,body.inBP #parkChoice,body.inBP #menu{display:none!important}
   #menu{position:fixed;left:18px;bottom:14px;font-family:"Segoe UI",Roboto,Arial,sans-serif;z-index:5}
   #menuBtn{background:rgba(8,20,35,.85);color:#fff;border:1px solid rgba(64,208,255,.6);border-radius:4px;padding:8px 14px;font:600 13px "Segoe UI",Arial;letter-spacing:2px;cursor:pointer}
@@ -1582,7 +1583,7 @@ for (let n = 1; n <= 4; n++) KIT_TYPES['SUPPLY' + n] = { code: 'SU', name: n + '
 const isSupply = t => !!(KIT_TYPES[t] && KIT_TYPES[t].supply);
 KIT_TYPES.MAT = { code: 'MT', name: 'PART MATERIAL', col: '#6c757d', w: 2.44, d: 12.2, h: 2.6, mat: true };
 const isMat = t => t === 'MAT';
-const SUPPLY_SHARE = 0.25;   // share of every load that is supply crates for the Vault
+const SUPPLY_SHARE = 0.10;   // share of every load that is supply crates for the Vault
 const kits = [];
 const kitGeo = new THREE.BoxGeometry(2.44, 2.6, 12.2);
 const kitMatCache = {};
@@ -1868,7 +1869,6 @@ function deploy(kit, x, z, rot, beam = false) {
     kit.m.visible = false; const T = KIT_TYPES[kit.type], sl = p.s !== undefined ? B.slots[p.s] : null;
     sparkle(siteGroup, sl && sl.fx ? target.clone().add(sl.fx) : target.clone().add(V(0, Math.min(T.h || 3, 30) / 2, 0)), Math.max(1, (T.fx || Math.max(T.w || 3, T.d || 3)) / 12));
   }
-  if (!isSupply(kit.type) && !isMat(kit.type)) p._need = ucNeedFor(kit);
   const piece = makePiece(p); piece.scale.setScalar(0.02); piece.position.copy(from); siteGroup.add(piece);
   p.piece = piece; kit.state = 'placed'; kit.p = p; placed.push(p);
   deploys.push({ kit, p, piece, from, target, t: 0, beam });
@@ -1886,7 +1886,6 @@ function absorbMat(list, beam = false) {
     const from = k.m.getWorldPosition(new THREE.Vector3());
     if (beam) sparkle(k.m.parent, k.m.position.clone(), 1); else sparkle(siteGroup, siteGroup.worldToLocal(from.clone()), 0.8);
     releaseSpot(k); k.m.visible = false; k.state = 'placed';
-    const uu = ucFor(k.v); if (uu) { ucAdd(uu); sparkle(siteGroup, V(uu.p.piece.position.x, ucLevelWorld(uu) - siteGroup.getWorldPosition(new THREE.Vector3()).y, uu.p.piece.position.z), 1.2); continue; }
     if (mine.length) { const p = mine[(Math.random() * mine.length) | 0]; const sl = p.s !== undefined && B.slots ? B.slots[p.s] : null; const w = p.piece.position.clone().add(sl && sl.fx ? sl.fx : V(0, 3, 0)); sparkle(siteGroup, w, 1.2); }
   }
   save();
@@ -1894,49 +1893,7 @@ function absorbMat(list, beam = false) {
 function placeInstant(p) {
   p.piece = makePiece(p); siteGroup.add(p.piece); p.busy = false; placed.push(p);
 }
-/* ---------- building piece by piece: each part-material crate adds the next layer to a part ----------
-   A part goes up from the ground: its first crate sets the base, then every part-material crate
-   that belongs to it adds one more layer, until the part is whole. */
-renderer.localClippingEnabled = true;
-const UC = new Map();   // part -> { need, got, y0, y1, show, goal, plane }
-function ucNeedFor(kit) {
-  // the part-material crates of this kind still to come, shared between the parts of this kind still to come
-  const mats = kits.filter(k => isMat(k.type) && k.v === kit.type && k.state !== 'placed').length;
-  const parts = kits.filter(k => k.type === kit.type && k.state !== 'placed').length || 1;
-  return Math.ceil(mats / parts);
-}
-function ucStart(p) {
-  if (!p._need || !p.piece || UC.has(p)) return;
-  const box = new THREE.Box3().setFromObject(p.piece); if (!isFinite(box.min.y) || box.max.y - box.min.y < 0.5) return;
-  const base = siteGroup.getWorldPosition(new THREE.Vector3()).y;
-  const plane = new THREE.Plane(V(0, -1, 0), box.min.y);
-  const clip = m => { const c = m.clone(); c.clippingPlanes = [plane]; c.clipShadows = true; return c; };
-  p.piece.traverse(o => { if (!o.material || o.userData.ucMat) return; o.userData.ucMat = o.material; o.material = Array.isArray(o.material) ? o.material.map(clip) : clip(o.material); });
-  const u = { p, need: p._need, got: 0, y0: box.min.y - base, y1: box.max.y - base + 0.5, show: 0, goal: 1 / (p._need + 1), plane };
-  UC.set(p, u);
-}
-function ucDone(u) {
-  u.p.piece.traverse(o => { if (!o.userData.ucMat) return; const c = o.material; (Array.isArray(c) ? c : [c]).forEach(m => m.dispose()); o.material = o.userData.ucMat; delete o.userData.ucMat; });
-  UC.delete(u.p);
-}
-// the part that is waiting for a part-material crate of this kind (the one furthest behind first)
-function ucFor(type) { let best = null; for (const u of UC.values()) if (u.p.type === type && u.got + (u.coming || 0) < u.need && (!best || u.got < best.got)) best = u; return best; }
-function ucAdd(u) { u.coming = Math.max(0, (u.coming || 0) - 1); u.got++; u.goal = Math.min(1, (u.got + 1) / (u.need + 1)); }
-function ucLevelWorld(u) { return siteGroup.getWorldPosition(new THREE.Vector3()).y + u.y0 + (u.y1 - u.y0) * u.show; }
-function ucTick(dt) {
-  if (!UC.size) return;
-  // once every crate of this trip is out of the bay, every part finishes going up
-  const waiting = kits.some(k => k.state !== 'placed');
-  for (const u of [...UC.values()]) {
-    if (!u.p.piece || !u.p.piece.parent) { UC.delete(u.p); continue; }
-    if (!waiting && !deploys.length) u.goal = 1;
-    u.show += (u.goal - u.show) * Math.min(1, dt * 2.5);
-    if (u.goal >= 1 && u.show > 0.995) { ucDone(u); continue; }
-    u.plane.constant = ucLevelWorld(u);
-  }
-}
 function stepDeploys(dt, t) {
-  ucTick(dt);
   let active = null;
   for (let i = deploys.length - 1; i >= 0; i--) {
     const d = deploys[i]; d.t += dt / (d.beam ? 2.2 : 3.0); const k = Math.min(1, d.t), e = k * k * (3 - 2 * k);
@@ -1948,7 +1905,7 @@ function stepDeploys(dt, t) {
     d.piece.scale.setScalar(0.02 + 0.98 * e);
     if (d.beam) d.piece.visible = k > 0.15 && (k > 0.7 || Math.sin(d.t * 90) > -0.3);
     active = d;
-    if (k >= 1) { d.kit.m.visible = false; d.piece.visible = true; d.p.busy = false; deploys.splice(i, 1); ucStart(d.p); save(); }
+    if (k >= 1) { d.kit.m.visible = false; d.piece.visible = true; d.p.busy = false; deploys.splice(i, 1); save(); }
   }
   drones.forEach((dr, i) => {
     dr.visible = !!active;
@@ -2311,7 +2268,7 @@ function updateParking() {
 }
 function startSiteTransport() {
   const why = siteTxBlock(); if (why) { txMsg = why; txMsgT = 3; return; }
-  autoMode = false; STX.on = true; STX.next = 0.6; STX.cur = null; STX.mat = null; STX.matPiece = null; STX.fast = false; STX.supShot = false; STX.matShot = false; stxMsg = '';
+  autoMode = false; STX.on = true; STX.next = 0.6; STX.cur = null; STX.fast = false; STX.supShot = false; STX.matShot = false; stxMsg = '';
   followHook = null; camGoal = null; if (viewMode) setView(0);
 }
 // camera director: show each part leave the cargo bay, then show where it is being built
@@ -2371,26 +2328,8 @@ function updateSiteTransport(dt) {
     } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.2 : 2.6)) STX.cur = null;
     return;
   }
-  if (STX.mat) {
-    const c = STX.mat; c.t += dt;
-    if (c.stage === 'bay' && c.t >= (STX.fast ? 0.08 : 0.7)) {
-      releaseSpot(c.k); c.k.m.visible = false; c.k.state = 'placed'; ucAdd(c.u);
-      const w = V(c.u.p.piece.position.x, 0, c.u.p.piece.position.z); w.y = ucLevelWorld(c.u) - siteGroup.getWorldPosition(new THREE.Vector3()).y;
-      sparkle(siteGroup, w, Math.max(1, (KIT_TYPES[c.u.p.type].fx || 3) / 3));
-      c.stage = 'site'; c.t = 0;
-    } else if (c.stage === 'site' && c.t >= (STX.fast ? 0.1 : 1.0)) { STX.mat = null; save(); }
-    return;
-  }
   STX.next -= dt; if (STX.next > 0) return;
   STX.next = 0.3;
-  for (const u of UC.values()) {
-    if (u.got + (u.coming || 0) >= u.need) continue;
-    const k = left.find(k2 => isMat(k2.type) && k2.v === u.p.type); if (!k) continue;
-    u.coming = (u.coming || 0) + 1; STX.mat = { k, u, stage: 'bay', t: 0 };
-    sparkle(k.m.parent, k.m.position.clone(), 1);
-    if (!STX.fast && STX.matPiece !== u.p) { STX.matPiece = u.p; const T = KIT_TYPES[u.p.type]; stxShot(u.p.piece.getWorldPosition(new THREE.Vector3()), u.p.piece.getWorldPosition(new THREE.Vector3()).add(V(0, Math.min(T.h || 6, 40) / 3, 0)), Math.max(T.w || 10, T.d || 10, T.h || 10) * 0.8); }
-    return;
-  }
   if (!left.length) {
     STX.on = false; save();
     if (parked && landed) bayOpen = false;   // stay parked; W lifts off and warps
@@ -2412,8 +2351,8 @@ function updateSiteTransport(dt) {
   // --- part material: drones take it straight from the bay into the build ---
   const mat = left.filter(k => isMat(k.type));
   if (mat.length) {
-    absorbMat(mat.slice(0, 1), true);
-    STX.next = STX.fast ? 0.05 : 0.5;
+    absorbMat(mat.slice(0, 4), true);
+    STX.next = STX.fast ? 0.05 : 0.25;
     if (!STX.fast && !STX.matShot) { STX.matShot = true; stxBayShot(mat[0]); }
     return;
   }
@@ -3367,7 +3306,7 @@ document.getElementById('cYes').onclick = () => { document.getElementById('confi
 function restartBuild() {
   const B = curBuild(); if (!B) return;
   // stop anything in progress
-  autoMode = false; STX.on = false; STX.cur = null; STX.mat = null; STORE.on = false; FIN.on = false; TX.on = false; warp = null; warpY = warpZ = 0;
+  autoMode = false; STX.on = false; STX.cur = null; STORE.on = false; FIN.on = false; TX.on = false; warp = null; warpY = warpZ = 0;
   for (const d of deploys) { siteGroup.remove(d.piece); } deploys.length = 0;
   // take down this build's parts
   for (const p of placed.filter(p => p.b === B.id)) { siteGroup.remove(p.piece); placed.splice(placed.indexOf(p), 1); }
@@ -3402,73 +3341,61 @@ function updateGameHUD(dt) {
   txMsgT -= dt;
   const flash = txMsgT > 0 ? txMsg : warpMsgT > 0 ? warpMsg : landMsgT > 0 ? landMsg : pickMsgT > 0 ? pickMsg : '';
   const bn = B ? 'BUILD ' + B.id + ' · ' + B.name + tn : '';
-  let head, sub;
-  if (warp && warp.phase === 'out' && warp.from === 'earth') { if (roofT < 0.995) { head = 'OPENING THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 4.5) { head = 'LIFTING OFF THROUGH THE WAREHOUSE ROOF'; sub = 'WARP DRIVE CHARGING'; } else if (warp.t < 9) { head = 'CLEAR OF THE WAREHOUSE · FULL AHEAD'; sub = 'WARP DRIVE CHARGING'; } else { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO THE TOWN ON VESH'; } }
-  else if (warp && warp.phase === 'in' && warp.to === 'earth') { head = 'DESCENDING INTO THE DESERT WAREHOUSE'; sub = 'LANDING CRADLE ALIGNED'; }
-  else if (warp && warp.phase === 'in') { head = 'APPROACHING THE MOON VESH'; sub = 'DESCENDING TO THE TOWN ON VESH'; }
-  else if (warp && warp.phase === 'tunnel') { head = 'IN WARP · ' + (warp.to === 'site' ? 'THE TOWN ON VESH' : 'EARTH') + ' IN ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s'; sub = 'DEEP SPACE · ' + (warp.to === 'site' ? 'OUTBOUND FROM EARTH TO THE MOON VESH' : 'HOMEBOUND TO THE DESERT WAREHOUSE'); }
-  else if (warp) { head = 'WARP DRIVE ENGAGED'; sub = 'EN ROUTE TO ' + (warp.to === 'site' ? 'THE TOWN ON VESH · MOON VESH' : 'EARTH · DESERT WAREHOUSE'); }
-  else if (!BUILDS.length) { head = 'TOWN ON VESH BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN projects/veshtown NEXT TO 22-veshtown.html, THEN REFRESH'; }
+  let head = '', sub = '';
+  const bnum = x => x ? (x.g || x.id) : '';
+  const nextB = B ? BUILDS[G.idx + 1] : null;
+  if (warp) { head = warp.phase === 'tunnel' ? 'IN WARP · ' + Math.max(0, Math.ceil(TUNNEL_T - warp.t)) + ' s' : 'WARP DRIVE ENGAGED'; sub = warp.to === 'site' ? 'GOING TO THE BUILD SITE' : 'GOING BACK TO EARTH'; }
+  else if (!BUILDS.length) { head = 'BUILD FILES NOT FOUND'; sub = 'PUT build1.js … IN THIS CHAPTER\'S projects FOLDER, THEN REFRESH'; }
   else if (G.loc === 'earth') {
     if (G.stage === 'load') {
-      head = (TX.on ? 'MATTER TRANSPORTER ENERGIZED · ' : 'EARTH WAREHOUSE · LOADING ' + bn + ' · ') + bayCount + ' / ' + total + ' IN BAY';
-      sub = TX.on ? 'BREAKING THE CRATES DOWN AND REBUILDING THEM IN THE CARGO BAY'
-        : bayCount === total ? 'ALL CRATES LOADED · ' + (bayT > 0 ? 'CLOSE THE BAY (B) · ' : '') + 'PRESS W TO WARP TO THE BUILD SITE'
-        : bayT < 1 && !CR.load.length ? 'PRESS T TO ENERGIZE THE TRANSPORTER · OR OPEN THE BAY (B) AND USE THE CRANE'
-        : CR.load.length ? 'LOWER THE ' + CR.load.length + ' CRATES INTO THE CARGO BAY · RELEASE (SPACE)'
-        : 'LOWER THE SPREADER ONTO A ROW OF 4 CRATES ON THE FLOOR · SPACE TO GRAB';
-    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE TOWN ON VESH IS OPEN' : 'EARTH WAREHOUSE · ALL AVAILABLE BUILDS COMPLETE'; sub = G.flags && G.flags.opened ? 'PRESS W TO VISIT THE TOWN ON VESH' : 'BUILD ' + (BUILDS.length + 1) + ' PARTS NOT READY YET · PRESS W TO VISIT THE TOWN ON VESH'; }
-    else { head = 'EARTH WAREHOUSE'; sub = 'PRESS W TO WARP TO THE BUILD SITE'; }
+      if (TX.on) { head = 'TRANSPORTING THE LOAD · ' + bayCount + ' / ' + total; sub = ''; }
+      else {
+        head = 'LOADING · ' + bayCount + ' / ' + total + ' IN THE BAY';
+        sub = bayCount === total ? (bayT > 0 ? 'B CLOSE THE BAY · ' : '') + 'W WARP TO THE BUILD SITE'
+          : autoMode ? 'F ' + (autoFast ? 'SLOWER LOADING' : 'FAST LOADING') + ' · ARROWS TAKE OVER'
+          : CR.load.length ? 'SPACE RELEASE THE CRATES IN THE BAY'
+          : bayT < 1 ? 'B OPEN THE BAY DOOR · THEN T TRANSPORT THE LOAD · U START LOADING · F FAST LOADING'
+          : 'T TRANSPORT THE LOAD · U START LOADING · F FAST LOADING · SPACE GRAB CRATES';
+      }
+    } else if (G.stage === 'none') { head = G.flags && G.flags.opened ? 'THE BUILD IS OPEN' : 'ALL BUILDS COMPLETE'; sub = 'W VISIT THE BUILD SITE'; }
+    else { head = 'EARTH WAREHOUSE'; sub = 'W WARP TO THE BUILD SITE'; }
   } else {
-    if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = 'STAND BY'; }
-    else if (STORE.on) { head = 'STATION TRANSPORTER · STORING SUPPLIES'; sub = STORE.list.length + ' CRATES LEFT · ' + G.stock + ' IN THE VAULT'; }
-    else if (STX.on) {
-      head = 'STATION TRANSPORTER · ' + placedNow + ' / ' + total + ' IN PLACE';
-      const nm = STX.cur ? KIT_TYPES[STX.cur.k.type].name : '';
-      sub = (STX.mat ? 'PART MATERIAL ' + Math.min(STX.mat.u.got + 1, STX.mat.u.need) + ' OF ' + STX.mat.u.need + ' · ADDING TO THE ' + KIT_TYPES[STX.mat.u.p.type].name : STX.cur ? (STX.cur.stage === 'bay' ? 'STEP 1 · ENERGIZING THE ' + nm + ' IN THE CARGO BAY' : 'STEP 2 · REBUILDING THE ' + nm + ' AT THE TOWN ON VESH') : (BUILDS.some(b => b._racks && b._racks.length && b !== B) ? 'BEAMING SUPPLY CRATES INTO THE VAULT · ' + G.stock + ' STORED' : 'BEAMING SUPPLY CRATES ONTO THE LANDING FIELD')) + (STX.fast ? '' : ' · T = SKIP CAMERA STEPS');
-    }
+    if (FIN.on) { head = (B.finishLabel || 'FINISHING') + '…'; sub = ''; }
+    else if (STORE.on) { head = 'STORING SUPPLIES'; sub = ''; }
+    else if (STX.on) { head = 'TRANSPORTING · ' + placedNow + ' / ' + total + ' IN PLACE'; sub = STX.fast ? '' : 'T SKIP CAMERA STEPS'; }
     else if (parked) {
-      head = 'AEGIS ARK PARKED ON THE LANDING FIELD';
       const r = buildReady(), T = curTrip();
-      sub = landing > 0 ? 'LANDING ON THE LANDING FIELD · TRANSPORTER STANDING BY' : landing < 0 ? 'LIFTING OFF THE LANDING FIELD' + (warpAfterLift ? ' · WARP ENGAGES WHEN CLEAR' : '')
-        : G.stage === 'build' && T && T.finish === 'custom' && r.ok ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD') + ' · X TO GET OFF AND WALK'
-        : G.stage === 'build' && T && T.finish === 'dock' && r.ok ? 'PRESS L TO LIFT OFF, THEN L AGAIN TO DOCK · X TO GET OFF AND WALK'
-        : 'X TO GET OFF AND WALK · W TO LIFT OFF AND WARP';
+      head = 'PARKED';
+      sub = landing > 0 ? 'LANDING…' : landing < 0 ? 'LIFTING OFF…'
+        : G.stage === 'build' && T && T.finish === 'custom' && r.ok ? 'L ' + (B.finishLabel || 'FINISH THE BUILD') + ' · X GET OFF AND WALK'
+        : G.stage === 'build' && T && T.finish === 'dock' && r.ok ? 'L LIFT OFF AND DOCK · X GET OFF AND WALK'
+        : 'X GET OFF AND WALK · W WARP BACK TO EARTH';
     }
-    else if (G.stage === 'tripdone') {
-      const nx = B.trips[G.trip + 1];
-      head = 'TRIP ' + (G.trip + 1) + ' COMPLETE · ' + T.name;
-      sub = 'PRESS W TO WARP TO EARTH FOR TRIP ' + (G.trip + 2) + (nx ? ' · ' + nx.name : '');
-    } else if (G.stage === 'build') {
+    else if (G.stage === 'tripdone') { head = 'TRIP ' + (G.trip + 1) + ' COMPLETE'; sub = 'W WARP TO EARTH FOR THE NEXT TRIP'; }
+    else if (G.stage === 'build') {
       const r = buildReady();
-      head = bn + ' · ' + placedNow + ' / ' + total + ' PLACED';
-      sub = landing ? (dockMode ? 'DOCKING… LINING UP WITH THE GATEWAY PORT' : 'LANDING… STAND CLEAR OF THE CLAMPS')
-        : bayCount && hasStationTX() ? 'PRESS T TO BEAM THE CARGO INTO PLACE WITH THE TOWN TRANSPORTER'
-        : r.ok && dockMode ? 'GATEWAY READY — PRESS L TO DOCK THE AEGIS ARK'
-        : r.ok && T.finish === 'custom' ? 'READY — PRESS L TO ' + (B.finishLabel || 'FINISH THE BUILD')
-        : bayT < 1 && bayCount ? 'OPEN THE BAY DOORS (B) · OR PRESS U FOR AUTO UNLOAD'
+      head = 'BUILD ' + bnum(B) + ' · ' + placedNow + ' / ' + total + ' PLACED';
+      sub = landing ? 'LANDING…'
+        : bayCount && hasStationTX() ? 'T TRANSPORT THE LOAD INTO PLACE'
+        : r.ok && dockMode ? 'L DOCK THE AEGIS ARK'
+        : r.ok && T.finish === 'custom' ? 'L ' + (B.finishLabel || 'FINISH THE BUILD')
+        : bayT < 1 && bayCount ? 'B OPEN THE BAY · U START UNLOADING · F FAST UNLOADING'
         : CR.carry ? placeMsg
         : r.ok ? r.msg
-        : 'GRAB 4 CRATES FROM THE BAY · OR LOWER THE HOOK ONTO A PLACED PART TO PICK IT BACK UP · ' + r.msg;
+        : 'SPACE GRAB 4 CRATES FROM THE BAY · ' + r.msg;
     } else if (G.stage === 'done') {
-      const nb = BUILDS[G.idx + 1];
-      const bn0 = 'BUILD ' + B.id + ' · ' + B.name;
-      head = landed ? (dockMode ? 'AEGIS ARK DOCKED AT THE GATEWAY · ' : 'AEGIS ARK LANDED · ') + bn0 + ' COMPLETE' : landing ? (landing > 0 ? (dockMode ? 'DOCKING…' : 'LANDING…') : (dockMode ? 'UNDOCKING…' : 'LIFTING OFF…')) : bn0 + ' COMPLETE';
-      sub = landed ? (dockMode ? 'DOCKING PORT SEALED · PRESS L TO UNDOCK, THEN W TO WARP BACK TO EARTH' : 'CLAMPS LOCKED · PRESS L TO LIFT OFF, THEN W TO WARP BACK TO EARTH')
-        : 'PRESS W TO WARP TO EARTH' + (nb ? ' FOR BUILD ' + nb.id + ' PARTS · ' + nb.name : (G.flags && G.flags.opened ? ' · ALL ' + BUILDS.length + ' BUILDS DONE — THE TOWN ON VESH IS OPEN' : ' · (NEXT BUILD FILE NOT ADDED YET)'));
-    } else { head = 'THE TOWN ON VESH'; sub = 'PRESS W TO WARP BACK TO EARTH'; }
+      head = 'BUILD ' + bnum(B) + ' COMPLETE';
+      sub = landed ? 'L LIFT OFF · THEN W WARP BACK TO EARTH' : 'W WARP TO EARTH' + (nextB ? ' FOR BUILD ' + bnum(nextB) : '');
+    } else { head = 'BUILD SITE'; sub = 'W WARP BACK TO EARTH'; }
+  }
+  if (WALK.on) {
+    head = 'ON FOOT'; sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · X BACK ABOARD';
+    if (DISC.on) sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · E AT THE INNER EDGE GOES UP THE SPINDLE · X BACK TO THE SHIP';
+    else if (HAB.inside) sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · E AT THE SPOKE LIFT GOES UP · X BACK TO THE SHIP';
+    else if (liftKiosk.visible && WALK.pos.distanceTo(liftKiosk.position) < 16) sub += ' · E LIFT DOWN THE SPINDLE';
   }
   if (flash) sub = '⚠ ' + flash;
-  if (WALK.on) {
-    if (DISC.on) { head = 'ON FOOT · ' + discPlace(); sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK · E AT THE INNER EDGE GOES UP THE SPINDLE · X BACK TO THE SHIP'; }
-    else if (HAB.inside) { head = 'ON FOOT · ' + habPlace(); sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK · E AT THE SPOKE LIFT GOES UP · X BACK TO THE SHIP'; }
-    else { head = G.loc === 'earth' ? 'ON FOOT · EARTH WAREHOUSE' : 'ON FOOT · LANDING DECK'; sub = '↑ ↓ WALK · ← → TURN · SHIFT RUN · DRAG TO LOOK' + (liftKiosk.visible ? (WALK.pos.distanceTo(liftKiosk.position) < 16 ? ' · PRESS E — LIFT DOWN THE SPINDLE TO THE DISC' : ' · SPINDLE LIFT IS AHEAD OF THE SHIP\'S NOSE') : '') + ' · X BACK ABOARD'; }
-  }
-  { // always show which build you are on
-    const CB = curBuild();
-    const tag = CB ? 'BUILD ' + CB.id + ' OF ' + BUILDS.length + ' · ' + CB.name + (CB.trips.length > 1 ? ' · TRIP ' + (G.trip + 1) + '/' + CB.trips.length : '') : (G.stage === 'none' ? 'ALL ' + BUILDS.length + ' BUILDS COMPLETE' : '');
-    if (tag) head = '<span style="display:block;color:#7fd8ff;font-size:12px;letter-spacing:2px;margin-bottom:2px">' + tag + '</span>' + head;
-  }
+  if (!document.body.classList.contains('info')) sub += (sub ? ' · ' : '') + 'H SHOW INFO';
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
@@ -4071,8 +3998,8 @@ addEventListener('keydown', e => {
   if (k === 's') shieldWant = !shieldWant;
   if (k === 'a') { attack = !attack; if (attack) shieldWant = true; }
   if (k === 'c') cloakOn = !cloakOn;
-  if (k === 'h') for (const id of ['hud', 'status', 'station']) { const el = $(id); el.style.display = el.style.display === 'none' ? '' : 'none'; }
 });
+addEventListener('keydown', e => { if (e.key.toLowerCase() === 'h' && !e.repeat && $('confirm').style.display !== 'flex') document.body.classList.toggle('info'); });
 controls.addEventListener('start', () => camGoal = null);
 function setView(m) {
   viewMode = m; camGoal = null;
