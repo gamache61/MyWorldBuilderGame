@@ -198,6 +198,14 @@
     window.open('https://gamache61.github.io/MyGamacheAppsWebsite/', '_blank');
   }
 
+  function chapLabel(p, pos) {
+    const h = (p && p.html) || '';
+    let m = h.match(/^(\d+)-/);
+    if (m) return 'CHAPTER ' + parseInt(m[1], 10);
+    m = h.match(/councilmeeting(\d*)\.html/);
+    if (m) return 'COUNCIL MEETING ' + (m[1] ? parseInt(m[1], 10) : 1);
+    return 'CHAPTER ' + pos;
+  }
   function playChapter(index1Based, project) {
     if (index1Based > save.ownedUpTo && !(save.ownedUpTo === 0 && index1Based === 1)) {
       document.getElementById('codeMessage').textContent = 'That chapter is locked. Buy it to continue.';
@@ -253,7 +261,7 @@
       if (cur) {
         banner.style.display = 'block';
         banner.innerHTML =
-          '<h2>CONTINUE — CHAPTER ' + curIdx + ' · ' + (cur.name || '') + '</h2>' +
+          '<h2>CONTINUE — ' + chapLabel(cur, curIdx) + ' · ' + (cur.name || '') + '</h2>' +
           '<p>' + (isCurOwned ? 'You are here. Press Continue to keep building in order.' : 'This chapter is locked. Buy it to continue.') + '</p>' +
           '<button class="btn ' + (isCurOwned ? 'btn-green' : 'btn-gold') + '" onclick="playChapter(' + curIdx + ', getList()[' + (curIdx-1) + '])">' +
           (isCurOwned ? 'CONTINUE ▶' : (save.ownedUpTo < 5 ? 'BUY THE BEGINNING — $4.89' : 'BUY NEXT CHAPTER — $1.99')) +
@@ -279,7 +287,7 @@
       a.style.setProperty('--c', p.color || '#40d0ff');
 
       const h = document.createElement('h2');
-      h.textContent = 'CHAPTER ' + id + ' · ' + p.name;
+      h.textContent = chapLabel(p, id) + ' · ' + p.name;
 
       const status = document.createElement('div');
       status.className = 'status' + (isComplete ? ' done' : (!isOwned ? ' locked' : ''));
