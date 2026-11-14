@@ -521,10 +521,16 @@ window.OKP = window.OKP || {
     for (const [x, y, z, r, c] of [[620, 280, -2350, 62, 0xb0aaa0], [-760, -170, -2480, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); S.add(m); }
     // the Ark
     const ark = new T.Group(); S.add(ark);
-    { const hull = new T.MeshStandardMaterial({ color: 0xd8dde4, roughness: 0.4, metalness: 0.5 }), dk = new T.MeshStandardMaterial({ color: 0x3a4658, roughness: 0.5, metalness: 0.6 }), gl = new T.MeshBasicMaterial({ color: new T.Color(0.5, 1.6, 2.0), toneMapped: false });
-      const body = new T.Mesh(new T.CapsuleGeometry(2.2, 12, 6, 16), hull); body.rotation.x = Math.PI / 2; ark.add(body);
-      for (const s of [-1, 1]) { const w = new T.Mesh(new T.BoxGeometry(11, 0.4, 5), dk); w.position.set(s * 6.5, 0, 3); w.rotation.z = s * 0.06; ark.add(w); const e = new T.Mesh(new T.CylinderGeometry(0.9, 1.2, 3, 12), dk); e.rotation.x = Math.PI / 2; e.position.set(s * 4, -0.2, 8); ark.add(e); const f = new T.Mesh(new T.SphereGeometry(0.9, 10, 8), gl); f.position.set(s * 4, -0.2, 9.6); ark.add(f); }
-      const cp = new T.Mesh(new T.SphereGeometry(1.5, 12, 8), new T.MeshBasicMaterial({ color: 0x80d8ff })); cp.position.set(0, 1.4, -5); cp.scale.set(1, 0.6, 1.4); ark.add(cp); }
+    {
+      let real = null;
+      try { if (api.ship && api.ship.clone) { real = api.ship.clone(true); real.position.set(0, 0, 0); real.rotation.set(0, Math.PI, 0); real.scale.setScalar(0.06); real.traverse(o => { if (o.isLight) o.intensity = 0; if (o.isMesh && o.material && o.material.isShaderMaterial && o.scale.x > 40) o.visible = false; }); } } catch (e) { real = null; }
+      if (real) ark.add(real);
+      else {
+        const hull = new T.MeshStandardMaterial({ color: 0xd8dde4, roughness: 0.4, metalness: 0.5 }), dk = new T.MeshStandardMaterial({ color: 0x3a4658, roughness: 0.5, metalness: 0.6 }), gl = new T.MeshBasicMaterial({ color: new T.Color(0.5, 1.6, 2.0), toneMapped: false });
+        const body = new T.Mesh(new T.CapsuleGeometry(2.2, 12, 6, 16), hull); body.rotation.x = Math.PI / 2; ark.add(body);
+        for (const s of [-1, 1]) { const w = new T.Mesh(new T.BoxGeometry(11, 0.4, 5), dk); w.position.set(s * 6.5, 0, 3); ark.add(w); const f = new T.Mesh(new T.SphereGeometry(0.9, 10, 8), gl); f.position.set(s * 4, -0.2, 9.6); ark.add(f); }
+      }
+    }
     if (home) ark.rotation.y = Math.PI;   // bow toward Unity
     const caps = home
       ? (P.HOME_CAPS || [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']])
@@ -548,7 +554,7 @@ window.OKP = window.OKP || {
       ox = Math.max(-260, Math.min(260, ox)) * (1 - assist * Math.min(1, dt * 1.5)); oy = Math.max(-170, Math.min(170, oy)) * (1 - assist * Math.min(1, dt * 1.5));
       ark.position.set(ox, y + oy, z); ark.rotation.z = -vx * 0.006 + Math.sin(t * 0.7) * 0.03; ark.rotation.x = vy * 0.004;
       const back = home ? -1 : 1;
-      cam.position.set(ox * 0.9 + Math.sin(t * 0.15) * 3, y + oy * 0.9 + 5, z + back * (24 + 14 * Math.min(1, t / 6))); cam.lookAt(V(ox * 0.6, y + oy * 0.6 + 1, z - back * 140));
+      cam.position.set(ox * 0.9 + Math.sin(t * 0.15) * 3, y + oy * 0.9 + 5, z + back * (46 + 16 * Math.min(1, t / 6))); cam.lookAt(V(ox * 0.6, y + oy * 0.6 + 1, z - back * 140));
       if (!home && u > 0.82) { const k = (u - 0.82) / 0.18; ark.position.y = y + oy - k * 40; cam.lookAt(V(ox * 0.6, y + oy * 0.6 - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); }
       if (home && u > 0.85) dust.style.opacity = 0;
       ock.rotation.y += dt * 0.01; unity.rotation.y += dt * 0.012; if (S.userData.dc) S.userData.dc.rotation.y -= dt * 0.015;
