@@ -222,14 +222,14 @@ window.PWP = window.PWP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [['childrensplayland', 'PLAY'], ['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
+  P.FINISHED = [['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
     const parent = land.piece.parent, T = api.THREE, keep = window.AEGIS_BUILDS, helpers = [];
     // the finished look: every flag of an earlier project counts as done, and nothing it does can change this game
     const bgApi = Object.create(api, { flag: { value: () => true }, setFlag: { value: () => { } }, count: { value: () => 99 }, kitsLeft: { value: () => 0 } });
-    for (const [folder, name] of P.FINISHED) {
+    for (const [folder, name, from] of P.FINISHED) {
       const list = [];
       window.AEGIS_BUILDS = list;
       for (let i = 1; i <= 12; i++) { const ok = await loadOne(P.base + folder + '/build' + i + '.js'); if (!ok) break; }
@@ -238,7 +238,7 @@ window.PWP = window.PWP || {
       H._kryos = true;   // its own simple copy of the city is not needed, this game already has the city
       helpers.push(H);
       for (const B of list.sort((a, b) => a.id - b.id)) {
-        if (!B.setup || !B.make) continue;   // the landing field is already here
+        if (!B.setup || !B.make || (from && B.id < from)) continue;   // the landing field is already here
         try {
           B.setup(bgApi);
           await new Promise(r => setTimeout(r, 0));   // let the game breathe between builds
