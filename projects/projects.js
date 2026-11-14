@@ -626,4 +626,20 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE CURE CLOUD',
+    html: '71-curecloud.html',
+    brief: 'The Ark flies the scientists back to the dusty plateau of Ocknog, and you fly it yourself. A cure plant makes the cure, four tall launchers fire it into the sky, and one great cloud spreads over Ocknog and turns the dead soil green. Then the Ark flies home.',
+    builds: 2,
+    label: '2 BUILDS',
+    color: '#8fe0a0',
+  },
+  {
+    name: 'THE THIRTY-EIGHTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting38.html',
+    brief: 'The cure cloud has healed Ocknog and the strangers go home as friends. The council hears the report, then votes on the next proposals: the Parts Works or the Hall of Peoples, and asks the Keeper what Unity should learn from Ocknog.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];

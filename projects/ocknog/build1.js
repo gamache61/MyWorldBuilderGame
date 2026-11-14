@@ -511,11 +511,11 @@ window.OKP = window.OKP || {
       for (let i = 0; i < 160; i++) blob(g, rnd() * w, rnd() * h, 40 + rnd() * 120, 6 + rnd() * 14, '#ffffff', 0.45); });
     const ockTex = paint(1024, 512, (g, w, h) => { g.fillStyle = '#b57e46'; g.fillRect(0, 0, w, h); for (let i = 0; i < 120; i++) blob(g, rnd() * w, rnd() * h, 30 + rnd() * 120, 14 + rnd() * 50, rnd() < 0.5 ? '#8a5a30' : '#d9a868', 0.55);
       for (let i = 0; i < 30; i++) blob(g, rnd() * w, rnd() * h, 60 + rnd() * 160, 4 + rnd() * 8, '#e8c898', 0.5);
-    });
+      if (home && P.HEALED_HOME) for (let i = 0; i < 26; i++) blob(g, 380 + rnd() * 240, 200 + rnd() * 120, 18 + rnd() * 50, 10 + rnd() * 30, '#4fa04a', 0.85); });
     const planet = (r, tex, haze, x, y, z) => { const grp = new T.Group(); grp.position.set(x, y, z); S.add(grp);
       const m = new T.Mesh(new T.SphereGeometry(r, 64, 40), new T.MeshStandardMaterial({ map: tex, roughness: 1 })); grp.add(m);
       const h = new T.Mesh(new T.SphereGeometry(r * 1.045, 48, 30), new T.MeshBasicMaterial({ color: haze, transparent: true, opacity: 0.22, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false })); grp.add(h); return m; };
-    const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, 0xd8a060, 0, 0, -2600);
+    const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, (home && P.HEALED_HOME) ? 0xb8d890 : 0xd8a060, 0, 0, -2600);
     // a ring of dust round poor Ocknog, two moons
     { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); dc.position.set(0, 0, -2600); S.add(dc); S.userData.dc = dc; }
     for (const [x, y, z, r, c] of [[620, 280, -2350, 62, 0xb0aaa0], [-760, -170, -2480, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); S.add(m); }
@@ -527,25 +527,33 @@ window.OKP = window.OKP || {
       const cp = new T.Mesh(new T.SphereGeometry(1.5, 12, 8), new T.MeshBasicMaterial({ color: 0x80d8ff })); cp.position.set(0, 1.4, -5); cp.scale.set(1, 0.6, 1.4); ark.add(cp); }
     if (home) ark.rotation.y = Math.PI;   // bow toward Unity
     const caps = home
-      ? [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']]
+      ? (P.HOME_CAPS || [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']])
       : [[0, 'THE ARK LIFTS OFF FROM KRYOS WITH THE SCIENTISTS'], [8, 'UNITY FALLS AWAY BEHIND US'], [16, 'DEEP SPACE · A LONG QUIET FLIGHT'], [25, 'OCKNOG · A DRY WORLD UNDER A CLOUD OF POISON DUST'], [34, 'TWO MOONS, AND NO GREEN ANYWHERE'], [41, 'DOWN THROUGH THE DUST TO THE PLATEAU']];
-    let t = 0, last = performance.now(), fin = false, ci = -1;
+    let t = 0, prog = 0, last = performance.now(), fin = false, ci = -1, ox = 0, oy = 0, vx = 0, vy = 0, mx = 0, my = 0;
+    const keys = {}, kd = e => { keys[e.key.toLowerCase()] = true; if (/^(arrow|w|a|s|d| )/i.test(e.key) || e.key === 'Shift') e.preventDefault(); e.stopPropagation(); }, ku = e => { keys[e.key.toLowerCase()] = false; e.stopPropagation(); };
+    addEventListener('keydown', kd, true); addEventListener('keyup', ku, true);
+    const mm = e => { mx = (e.clientX / innerWidth - 0.5) * 2; my = (e.clientY / innerHeight - 0.5) * 2; }; wrap.addEventListener('mousemove', mm);
+    const hint = document.createElement('div'); hint.textContent = 'YOU ARE FLYING THE ARK · ARROW KEYS OR MOUSE STEER · SHIFT BOOST'; hint.style.cssText = 'position:absolute;left:0;right:0;top:20px;text-align:center;font-size:12px;letter-spacing:4px;color:#bfe8ff;text-shadow:0 0 8px #000;transition:opacity 2s'; wrap.appendChild(hint); setTimeout(() => hint.style.opacity = 0, 9000);
     const ease = u => u * u * (3 - 2 * u);
-    const end = () => { if (fin) return; fin = true; wrap.style.opacity = 0; setTimeout(() => { removeEventListener('resize', fit); R.dispose(); wrap.remove(); done && done(); }, 1700); };
+    const end = () => { if (fin) return; fin = true; wrap.style.opacity = 0; setTimeout(() => { removeEventListener('resize', fit); removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); R.dispose(); wrap.remove(); done && done(); }, 1700); };
     skip.onclick = end;
     const V = (x, y, z) => new T.Vector3(x, y, z);
     function step() {
-      if (fin) return; const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt; const u = Math.min(1, t / TOT), e = ease(u);
-      for (let i = caps.length - 1; i >= 0; i--) if (t >= caps[i][0]) { if (ci !== i) { ci = i; cap.style.opacity = 0; setTimeout(() => { cap.textContent = caps[i][1]; cap.style.opacity = 1; }, 500); } break; }
+      if (fin) return; const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now; const boost = keys['shift'] ? 1.9 : 1; t += dt; prog += dt * boost / TOT; const u = Math.min(1, prog), e = ease(u), tt = u * TOT;
+      for (let i = caps.length - 1; i >= 0; i--) if (tt >= caps[i][0]) { if (ci !== i) { ci = i; cap.style.opacity = 0; setTimeout(() => { cap.textContent = caps[i][1]; cap.style.opacity = 1; }, 500); } break; }
       const z0 = home ? -2000 : 6, z1 = home ? -110 : -2160, z = z0 + (z1 - z0) * e, y = home ? 30 * e : 4 + 30 * Math.sin(Math.min(1, u * 3) * 1.57);
-      ark.position.set(0, y, z); ark.rotation.z = Math.sin(t * 0.7) * 0.05;
+      const ix = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0) + mx * 0.6, iy = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0) - my * 0.6;
+      const assist = Math.min(1, Math.max(0, (u - 0.45) / 0.45));   // the autopilot steadies the Ark on the planet in the last half
+      vx += (ix * 90 - vx) * Math.min(1, dt * 2.2); vy += (iy * 70 - vy) * Math.min(1, dt * 2.2); ox += vx * dt; oy += vy * dt;
+      ox = Math.max(-260, Math.min(260, ox)) * (1 - assist * Math.min(1, dt * 1.5)); oy = Math.max(-170, Math.min(170, oy)) * (1 - assist * Math.min(1, dt * 1.5));
+      ark.position.set(ox, y + oy, z); ark.rotation.z = -vx * 0.006 + Math.sin(t * 0.7) * 0.03; ark.rotation.x = vy * 0.004;
       const back = home ? -1 : 1;
-      cam.position.set(Math.sin(t * 0.15) * 3, y + 5, z + back * (24 + 14 * Math.min(1, t / 6))); cam.lookAt(V(0, y + 1, z - back * 140));
-      if (!home && u > 0.82) { const k = (u - 0.82) / 0.18; ark.position.y = y - k * 40; cam.lookAt(V(0, y - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); }
+      cam.position.set(ox * 0.9 + Math.sin(t * 0.15) * 3, y + oy * 0.9 + 5, z + back * (24 + 14 * Math.min(1, t / 6))); cam.lookAt(V(ox * 0.6, y + oy * 0.6 + 1, z - back * 140));
+      if (!home && u > 0.82) { const k = (u - 0.82) / 0.18; ark.position.y = y + oy - k * 40; cam.lookAt(V(ox * 0.6, y + oy * 0.6 - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); }
       if (home && u > 0.85) dust.style.opacity = 0;
       ock.rotation.y += dt * 0.01; unity.rotation.y += dt * 0.012; if (S.userData.dc) S.userData.dc.rotation.y -= dt * 0.015;
       R.render(S, cam);
-      if (t >= TOT) end(); else requestAnimationFrame(step);
+      if (u >= 1) end(); else requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
   };
@@ -557,12 +565,12 @@ window.OKP = window.OKP || {
       if (idx > 1) { api.setFlag('flownOut', true); }
       else if (idx === 1 && st === 'build' && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
     }
-    if (idx >= 3 && (st === 'done' || st === 'none') && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
+    if (((this.HOME_WHEN || (() => idx >= 3 && (st === 'done' || st === 'none')))(api, idx, st)) && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
     if (api.flag('flownHome') && !document.getElementById('nextMeeting')) {
       const b = document.createElement('button'); b.id = 'nextMeeting';
-      b.innerHTML = 'GO TO THE NEXT COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE SCIENTISTS REPORT FROM OCKNOG</small>';
+      b.innerHTML = 'GO TO THE NEXT COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">' + (P.NEXT_SUB || 'THE SCIENTISTS REPORT FROM OCKNOG') + '</small>';
       b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,80,60,.85);border:1px solid #9fffd8;border-radius:5px;cursor:pointer';
-      b.onclick = () => { location.href = 'councilmeeting/councilmeeting37.html'; };
+      b.onclick = () => { location.href = P.NEXT_PAGE || 'councilmeeting/councilmeeting37.html'; };
       document.body.appendChild(b);
     }
   };
