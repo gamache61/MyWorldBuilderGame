@@ -486,11 +486,13 @@ window.OKP = window.OKP || {
   const P = window.OKP;
   // its own little 3D sky on a canvas above the game, so Ocknog is seen as a world of its own
   P.flight = function (api, dir, done) {
-    const T = api.THREE, home = dir === 'home', TOT = home ? 36 : 48;
+    const T = api.THREE, home = dir === 'home', TOT = home ? 44 : 58, DROP = home ? 0.56 : 0.5;
     if (document.getElementById('okFlight')) return;
     const wrap = document.createElement('div'); wrap.id = 'okFlight';
     wrap.style.cssText = 'position:fixed;inset:0;z-index:7;background:#000;opacity:0;transition:opacity 1.6s;font-family:"Segoe UI",Arial;color:#fff';
     const cv = document.createElement('canvas'); cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; wrap.appendChild(cv);
+    const tint = document.createElement('div'); tint.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(60,120,255,0),rgba(40,90,255,.55));opacity:0;pointer-events:none'; wrap.appendChild(tint);
+    const flash = document.createElement('div'); flash.style.cssText = 'position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none'; wrap.appendChild(flash);
     const dust = document.createElement('div'); dust.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(190,130,70,.55),rgba(120,70,30,.95));opacity:0;pointer-events:none'; wrap.appendChild(dust);
     const cap = document.createElement('div'); cap.style.cssText = 'position:absolute;left:0;right:0;bottom:12%;text-align:center;font-size:20px;letter-spacing:6px;text-shadow:0 0 12px #000;transition:opacity 1s;opacity:0;padding:0 20px'; wrap.appendChild(cap);
     const skip = document.createElement('button'); skip.textContent = 'SKIP ▶'; skip.style.cssText = 'position:absolute;right:22px;top:20px;padding:6px 14px;background:rgba(8,20,35,.7);border:1px solid #7fd8ff;border-radius:4px;color:#fff;letter-spacing:3px;font:600 12px "Segoe UI",Arial;cursor:pointer'; wrap.appendChild(skip);
@@ -500,10 +502,8 @@ window.OKP = window.OKP || {
     const S = new T.Scene(), cam = new T.PerspectiveCamera(55, 1, 0.5, 30000);
     const fit = () => { R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }; fit(); addEventListener('resize', fit);
     S.add(new T.AmbientLight(0x303848, 0.7)); const sun = new T.DirectionalLight(0xfff0dc, 2.6); sun.position.set(0.55, 0.45, 0.75); S.add(sun);
-    // stars
     { const n = 2200, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, q = Math.random() * 6.283, r = Math.sqrt(1 - u * u); a[i * 3] = Math.cos(q) * r * 12000; a[i * 3 + 1] = u * 12000; a[i * 3 + 2] = Math.sin(q) * r * 12000; }
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(a, 3)); S.add(new T.Points(g, new T.PointsMaterial({ color: 0xffffff, size: 2.2, sizeAttenuation: false, fog: false }))); }
-    // painted worlds
     let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
     const paint = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t; };
     const blob = (g, x, y, rx, ry, col, a) => { g.fillStyle = col; g.globalAlpha = a; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 6.283); g.fill(); g.globalAlpha = 1; };
@@ -516,10 +516,10 @@ window.OKP = window.OKP || {
       const m = new T.Mesh(new T.SphereGeometry(r, 64, 40), new T.MeshStandardMaterial({ map: tex, roughness: 1 })); grp.add(m);
       const h = new T.Mesh(new T.SphereGeometry(r * 1.045, 48, 30), new T.MeshBasicMaterial({ color: haze, transparent: true, opacity: 0.22, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false })); grp.add(h); return m; };
     const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, (home && P.HEALED_HOME) ? 0xb8d890 : 0xd8a060, 0, 0, -2600);
-    // a ring of dust round poor Ocknog, two moons
-    { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); dc.position.set(0, 0, -2600); S.add(dc); S.userData.dc = dc; }
-    for (const [x, y, z, r, c] of [[620, 280, -2350, 62, 0xb0aaa0], [-760, -170, -2480, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); S.add(m); }
-    // the Ark
+    const UG = unity.parent, OG = ock.parent, extras = [];   // Ocknog, its dust and its two moons move together
+    { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); OG.add(dc); S.userData.dc = dc; }
+    for (const [x, y, z, r, c] of [[620, 280, 250, 62, 0xb0aaa0], [-760, -170, 120, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); OG.add(m); }
+    // the Ark: the real one
     const ark = new T.Group(); S.add(ark);
     {
       let real = null;
@@ -531,11 +531,15 @@ window.OKP = window.OKP || {
         for (const s of [-1, 1]) { const w = new T.Mesh(new T.BoxGeometry(11, 0.4, 5), dk); w.position.set(s * 6.5, 0, 3); ark.add(w); const f = new T.Mesh(new T.SphereGeometry(0.9, 10, 8), gl); f.position.set(s * 4, -0.2, 9.6); ark.add(f); }
       }
     }
-    if (home) ark.rotation.y = Math.PI;   // bow toward Unity
+    if (home) ark.rotation.y = Math.PI;
+    // warp streaks round the Ark
+    const NS = 650, wp = new Float32Array(NS * 6), wd = []; for (let i = 0; i < NS; i++) { const a = rnd() * 6.283, r = 8 + rnd() * 140; wd.push([Math.cos(a) * r, Math.sin(a) * r, rnd() * 900]); }
+    const wg = new T.BufferGeometry(); wg.setAttribute('position', new T.BufferAttribute(wp, 3));
+    const wm = new T.LineBasicMaterial({ color: 0xbfe0ff, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending }), warpL = new T.LineSegments(wg, wm); warpL.frustumCulled = false; S.add(warpL);
     const caps = home
-      ? (P.HOME_CAPS || [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']])
-      : [[0, 'THE ARK LIFTS OFF FROM KRYOS WITH THE SCIENTISTS'], [8, 'UNITY FALLS AWAY BEHIND US'], [16, 'DEEP SPACE · A LONG QUIET FLIGHT'], [25, 'OCKNOG · A DRY WORLD UNDER A CLOUD OF POISON DUST'], [34, 'TWO MOONS, AND NO GREEN ANYWHERE'], [41, 'DOWN THROUGH THE DUST TO THE PLATEAU']];
-    let t = 0, prog = 0, last = performance.now(), fin = false, ci = -1, ox = 0, oy = 0, vx = 0, vy = 0, mx = 0, my = 0;
+      ? (P.HOME_CAPS || [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK JUMPS TO WARP, THE SCIENTISTS ON BOARD'], [26, 'UNITY AHEAD · HOME'], [37, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']])
+      : [[0, 'THE ARK LIFTS OFF FROM KRYOS WITH THE SCIENTISTS'], [6, 'UNITY FALLS AWAY BEHIND US'], [10, 'THE ARK JUMPS TO WARP · OCKNOG IS A LONG WAY OFF'], [32, 'THE ARK DROPS OUT OF WARP · OCKNOG AHEAD'], [40, 'A DRY WORLD UNDER A CLOUD OF POISON DUST'], [47, 'TWO MOONS, AND NO GREEN ANYWHERE'], [52, 'DOWN THROUGH THE DUST TO THE PLATEAU']];
+    let t = 0, prog = 0, last = performance.now(), fin = false, ci = -1, ox = 0, oy = 0, vx = 0, vy = 0, mx = 0, my = 0, dropped = false, flashT = 0, oz = -2600, uz = 10;
     const keys = {}, kd = e => { keys[e.key.toLowerCase()] = true; if (/^(arrow|w|a|s|d| )/i.test(e.key) || e.key === 'Shift') e.preventDefault(); e.stopPropagation(); }, ku = e => { keys[e.key.toLowerCase()] = false; e.stopPropagation(); };
     addEventListener('keydown', kd, true); addEventListener('keyup', ku, true);
     const mm = e => { mx = (e.clientX / innerWidth - 0.5) * 2; my = (e.clientY / innerHeight - 0.5) * 2; }; wrap.addEventListener('mousemove', mm);
@@ -544,20 +548,44 @@ window.OKP = window.OKP || {
     const end = () => { if (fin) return; fin = true; wrap.style.opacity = 0; setTimeout(() => { removeEventListener('resize', fit); removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); R.dispose(); wrap.remove(); done && done(); }, 1700); };
     skip.onclick = end;
     const V = (x, y, z) => new T.Vector3(x, y, z);
+    // before the jump: the world we leave is in view; Ocknog is hidden (out), or the world we left is behind (home)
+    if (!home) { OG.visible = false; } else { UG.visible = false; }
     function step() {
-      if (fin) return; const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now; const boost = keys['shift'] ? 1.9 : 1; t += dt; prog += dt * boost / TOT; const u = Math.min(1, prog), e = ease(u), tt = u * TOT;
+      if (fin) return; const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+      const boost = keys['shift'] ? 1.9 : 1; t += dt; prog += dt * boost / TOT; const u = Math.min(1, prog), tt = u * TOT;
       for (let i = caps.length - 1; i >= 0; i--) if (tt >= caps[i][0]) { if (ci !== i) { ci = i; cap.style.opacity = 0; setTimeout(() => { cap.textContent = caps[i][1]; cap.style.opacity = 1; }, 500); } break; }
-      const z0 = home ? -2000 : 6, z1 = home ? -110 : -2160, z = z0 + (z1 - z0) * e, y = home ? 30 * e : 4 + 30 * Math.sin(Math.min(1, u * 3) * 1.57);
+      // the jump to warp starts after a short lift-off and ends when the Ark nears its world
+      const wIn = Math.min(1, Math.max(0, (u - 0.1) / 0.06)), wOut = Math.min(1, Math.max(0, (DROP - u) / 0.04)), kw = Math.min(wIn, wOut) * (u < DROP ? 1 : 0);
+      const uA = Math.min(1, u / DROP), uB = Math.max(0, (u - DROP) / (1 - DROP));
+      if (!dropped && u >= DROP) {
+        dropped = true; flashT = 1;
+        if (!home) { oz = ark.position.z - 3200; OG.position.set(0, 0, oz); OG.visible = true; UG.visible = false; }
+        else { uz = ark.position.z + 3200; UG.position.set(0, -70, uz); UG.visible = true; OG.visible = false; }
+      }
+      if (!home && u > 0.14) UG.visible = false;
+      if (home && u > 0.12) OG.visible = false;
+      const zA0 = home ? -2040 : 6, dirz = home ? 1 : -1;
+      let z;
+      if (u < DROP) z = zA0 + dirz * 150 * ease(uA);
+      else { const zD = zA0 + dirz * 150, zT = home ? uz - 120 : oz + 560; z = zD + (zT - zD) * ease(uB); }
+      const y = 4 + 30 * Math.sin(Math.min(1, u * 5) * 1.57) * (home ? 0.3 : 1);
       const ix = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0) + mx * 0.6, iy = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0) - my * 0.6;
-      const assist = Math.min(1, Math.max(0, (u - 0.45) / 0.45));   // the autopilot steadies the Ark on the planet in the last half
+      const assist = u < DROP ? 0 : Math.min(1, Math.max(0, uB / 0.5));   // the autopilot steadies the Ark on the world once it drops out of warp
       vx += (ix * 90 - vx) * Math.min(1, dt * 2.2); vy += (iy * 70 - vy) * Math.min(1, dt * 2.2); ox += vx * dt; oy += vy * dt;
       ox = Math.max(-260, Math.min(260, ox)) * (1 - assist * Math.min(1, dt * 1.5)); oy = Math.max(-170, Math.min(170, oy)) * (1 - assist * Math.min(1, dt * 1.5));
       ark.position.set(ox, y + oy, z); ark.rotation.z = -vx * 0.006 + Math.sin(t * 0.7) * 0.03; ark.rotation.x = vy * 0.004;
       const back = home ? -1 : 1;
-      cam.position.set(ox * 0.9 + Math.sin(t * 0.15) * 3, y + oy * 0.9 + 5, z + back * (46 + 16 * Math.min(1, t / 6))); cam.lookAt(V(ox * 0.6, y + oy * 0.6 + 1, z - back * 140));
-      if (!home && u > 0.82) { const k = (u - 0.82) / 0.18; ark.position.y = y + oy - k * 40; cam.lookAt(V(ox * 0.6, y + oy * 0.6 - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); }
-      if (home && u > 0.85) dust.style.opacity = 0;
-      ock.rotation.y += dt * 0.01; unity.rotation.y += dt * 0.012; if (S.userData.dc) S.userData.dc.rotation.y -= dt * 0.015;
+      cam.position.set(ox * 0.9 + Math.sin(t * 0.15) * 3, y + oy * 0.9 + 5, z + back * (46 + 16 * Math.min(1, t / 6) + 10 * kw)); cam.lookAt(V(ox * 0.6, y + oy * 0.6 + 1, z - back * 140));
+      // the great dive through the dust (out only)
+      if (!home && uB > 0.72) { const k = (uB - 0.72) / 0.28; ark.position.y = y + oy - k * 40; cam.lookAt(V(ox * 0.6, y + oy * 0.6 - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); } else dust.style.opacity = 0;
+      // warp: streaks stream past, the view widens, a blue tint
+      wm.opacity = 0.9 * kw; tint.style.opacity = 0.7 * kw; cam.fov = 55 + 28 * kw; cam.updateProjectionMatrix();
+      if (kw > 0.01) { const sp = 2600 * dt * boost, len = 30 + 260 * kw;
+        for (let i = 0; i < NS; i++) { const d = wd[i]; d[2] = (d[2] + sp * kw) % 900; const zz = ark.position.z + dirz * (50 - d[2]) , z2 = zz - dirz * len;   // streaks run past the Ark toward its tail
+          wp[i * 6] = ark.position.x + d[0]; wp[i * 6 + 1] = ark.position.y + d[1]; wp[i * 6 + 2] = zz; wp[i * 6 + 3] = ark.position.x + d[0]; wp[i * 6 + 4] = ark.position.y + d[1]; wp[i * 6 + 5] = z2; }
+        wg.attributes.position.needsUpdate = true; }
+      if (flashT > 0) { flashT = Math.max(0, flashT - dt * 1.3); flash.style.opacity = flashT; }
+      OG.rotation.y += dt * 0.01; UG.rotation.y += dt * 0.012;
       R.render(S, cam);
       if (u >= 1) end(); else requestAnimationFrame(step);
     }
