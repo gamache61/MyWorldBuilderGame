@@ -2516,11 +2516,13 @@ function parkChoiceOpen() {
     && bayT <= 0 && !bayOpen && !CR.load.length && !autoMode && kits.some(k => k.state === 'bay');
 }
 // camera on Platform-1 so you can watch the Ark set down or lift off
+const AO = () => { const o = window.__arkOff; return (o && G.loc === 'site') ? new THREE.Vector3(o.x, o.y, o.z) : new THREE.Vector3(); };
+const snapK = (a, b) => { const o = AO(); snapCam = [a.add(o), b.add(o)]; };
 function padShot() {
   if (viewMode === 1 || viewMode === 2) return;   // stay in the cockpit and watch from the bridge
   if (viewMode) setView(0);
   followHook = null; camGoal = null;
-  snapCam = [V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)]; padHold = true;   // camera stays put on the pad while the Ark comes down
+  snapK(V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)); padHold = true;   // camera stays put on the pad while the Ark comes down
 }
 function parkAndBeam() {
   if (!parkChoiceOpen()) return;
@@ -2998,8 +3000,8 @@ function enterTunnel() {
 }
 function finishTunnel() {
   arrive(warp.to); warp.t = 0; warp.phase = 'in';
-  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapCam = [V(300, 160, 900), V(0, DESCENT * 0.85, 0)]; }
-  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapCam = [V(520, 120, 640), V(0, DESCENT * 0.85, 0)]; }
+  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapK(V(300, 160, 900), V(0, DESCENT * 0.85, 0)); }
+  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapK(V(520, 120, 640), V(0, DESCENT * 0.85, 0)); }
 }
 function updateWarp(dt) {
   if (!warp) { warpZ = 0; warpY = 0; return; }
@@ -3008,12 +3010,12 @@ function updateWarp(dt) {
   if (warp.phase === 'out') {
     if (warp.from === 'earth' || warp.from === 'site') {
       // open the roof, lift up clear of the warehouse (or the Kryos plateau), climb above the mountains, then jump straight ahead
-      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapCam = [V(520, 260, 640), V(0, 0, 0)]; return; }
+      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapK(V(520, 260, 640), V(0, 0, 0)); return; }
       const LIFT = 320, TL = 4.5, CRUISE = warp.from === 'earth' ? 4200 : 6200;
       if (warp.t < TL) {
         const k = warp.t / TL, e = k * k * (3 - 2 * k);
         warpY = LIFT * e; warpZ = 0; warp.v = 0;
-        snapCam = [V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0)];
+        snapK(V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0));
         m.opacity = 0; fade.style.opacity = 0;
       } else if (warp.t < TL + 4.5) {
         // level off and fly forward over the factories, picking up speed
@@ -3056,17 +3058,17 @@ function updateWarp(dt) {
     // drop down through the open roof onto the cradle
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e);
-    if (k < 1) snapCam = [V(520, 120, 640), V(0, warpY * 0.85, 0)];
+    if (k < 1) snapK(V(520, 120, 640), V(0, warpY * 0.85, 0));
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
   } else {
     // drop down through Unity's sky onto the Kryos plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
     // watch the descent from up the open strip north of the field, where no towers stand in the way
-    if (k < 1) snapCam = [V(300, 160, 900), V(0, warpY * 0.85, 0)];
+    if (k < 1) snapK(V(300, 160, 900), V(0, warpY * 0.85, 0));
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
   }
   streaks.position.set(ship.position.x, ship.position.y, ship.position.z - (((warp ? warp.t : 0) * (warp && warp.phase === 'tunnel' ? 6000 : 4000)) % 3000));
 }
