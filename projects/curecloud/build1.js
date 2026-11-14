@@ -594,6 +594,15 @@ window.OKP = window.OKP || {
   // the story hooks: fly out when the first Ocknog build begins, and fly home when the soil is mended
   P.story = function (api) {
     const idx = api.buildIdx, st = api.stage;
+    // the Ark itself sits down at Ocknog once the flight out is over, and comes back to Kryos after the flight home
+    if (api.flag('flownOut') && !api.flag('flownHome') && !this._fh) {
+      const K = window.__OK;
+      if (K && !window.__shipFly) {
+        const dy = (K.Y != null ? K.Y : api.DECK_TOP) - api.DECK_TOP;
+        window.__shipFly = (ship) => { ship.position.x += K.x - 1550; ship.position.z += K.z; ship.position.y += dy; };
+        if (!this._snapped) { this._snapped = true; const V3 = api.THREE.Vector3, cx = K.x - 1550 + 120, cz = K.z, cy = (K.Y != null ? K.Y : api.DECK_TOP) + 10; api.shot(new V3(cx + 300, cy + 130, cz + 330), new V3(cx, cy, cz)); }
+      }
+    } else if (window.__shipFly && window.__okFly !== false && (api.flag('flownHome') || this._fh)) { if (window.__shipFly.toString().indexOf('K.x - 1550') > -1) window.__shipFly = null; }
     if (!api.flag('flownOut')) {
       if (idx > 1) { api.setFlag('flownOut', true); }
       else if (idx === 1 && st === 'build' && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
