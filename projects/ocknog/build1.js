@@ -511,13 +511,13 @@ window.OKP = window.OKP || {
       for (let i = 0; i < 160; i++) blob(g, rnd() * w, rnd() * h, 40 + rnd() * 120, 6 + rnd() * 14, '#ffffff', 0.45); });
     const ockTex = paint(1024, 512, (g, w, h) => { g.fillStyle = '#b57e46'; g.fillRect(0, 0, w, h); for (let i = 0; i < 120; i++) blob(g, rnd() * w, rnd() * h, 30 + rnd() * 120, 14 + rnd() * 50, rnd() < 0.5 ? '#8a5a30' : '#d9a868', 0.55);
       for (let i = 0; i < 30; i++) blob(g, rnd() * w, rnd() * h, 60 + rnd() * 160, 4 + rnd() * 8, '#e8c898', 0.5);
-      if (home) for (let i = 0; i < 26; i++) blob(g, 380 + rnd() * 240, 200 + rnd() * 120, 18 + rnd() * 50, 10 + rnd() * 30, '#4fa04a', 0.85); });
+    });
     const planet = (r, tex, haze, x, y, z) => { const grp = new T.Group(); grp.position.set(x, y, z); S.add(grp);
       const m = new T.Mesh(new T.SphereGeometry(r, 64, 40), new T.MeshStandardMaterial({ map: tex, roughness: 1 })); grp.add(m);
       const h = new T.Mesh(new T.SphereGeometry(r * 1.045, 48, 30), new T.MeshBasicMaterial({ color: haze, transparent: true, opacity: 0.22, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false })); grp.add(h); return m; };
-    const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, home ? 0xb8d890 : 0xd8a060, 0, 0, -2600);
+    const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, 0xd8a060, 0, 0, -2600);
     // a ring of dust round poor Ocknog, two moons
-    if (!home) { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); dc.position.set(0, 0, -2600); S.add(dc); S.userData.dc = dc; }
+    { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); dc.position.set(0, 0, -2600); S.add(dc); S.userData.dc = dc; }
     for (const [x, y, z, r, c] of [[620, 280, -2350, 62, 0xb0aaa0], [-760, -170, -2480, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); S.add(m); }
     // the Ark
     const ark = new T.Group(); S.add(ark);
@@ -527,7 +527,7 @@ window.OKP = window.OKP || {
       const cp = new T.Mesh(new T.SphereGeometry(1.5, 12, 8), new T.MeshBasicMaterial({ color: 0x80d8ff })); cp.position.set(0, 1.4, -5); cp.scale.set(1, 0.6, 1.4); ark.add(cp); }
     if (home) ark.rotation.y = Math.PI;   // bow toward Unity
     const caps = home
-      ? [[0, 'OCKNOG IS GREEN AGAIN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING']]
+      ? [[0, 'THE SAMPLES ARE TAKEN AND THE TEST BEDS GREW GREEN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING TO HEAR THE REPORT']]
       : [[0, 'THE ARK LIFTS OFF FROM KRYOS WITH THE SCIENTISTS'], [8, 'UNITY FALLS AWAY BEHIND US'], [16, 'DEEP SPACE · A LONG QUIET FLIGHT'], [25, 'OCKNOG · A DRY WORLD UNDER A CLOUD OF POISON DUST'], [34, 'TWO MOONS, AND NO GREEN ANYWHERE'], [41, 'DOWN THROUGH THE DUST TO THE PLATEAU']];
     let t = 0, last = performance.now(), fin = false, ci = -1;
     const ease = u => u * u * (3 - 2 * u);
@@ -557,6 +557,13 @@ window.OKP = window.OKP || {
       if (idx > 1) { api.setFlag('flownOut', true); }
       else if (idx === 1 && st === 'build' && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
     }
-    if (api.flag('opened') && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
+    if (idx >= 3 && (st === 'done' || st === 'none') && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
+    if (api.flag('flownHome') && !document.getElementById('nextMeeting')) {
+      const b = document.createElement('button'); b.id = 'nextMeeting';
+      b.innerHTML = 'GO TO THE NEXT COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE SCIENTISTS REPORT FROM OCKNOG</small>';
+      b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,80,60,.85);border:1px solid #9fffd8;border-radius:5px;cursor:pointer';
+      b.onclick = () => { location.href = 'councilmeeting/councilmeeting37.html'; };
+      document.body.appendChild(b);
+    }
   };
 })();

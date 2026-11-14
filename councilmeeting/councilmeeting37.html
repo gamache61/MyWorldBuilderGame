@@ -469,8 +469,8 @@ const DN = (() => {
 
 /* ============================================================
    THE THIRTY-SEVENTH COUNCIL MEETING · PLANET UNITY
-   AFTER OCKNOG. The Builder and the scientists came home. The cloud of cure healed the soil of Ocknog, the strangers go home as friends,
-   and the council chooses Unity's next great build: the Parts Works or the Hall of Peoples.
+   THE REPORT FROM OCKNOG. The Builder and the scientists are home. They took soil samples on Ocknog, tested them in the lab and grew green plants in three test beds.
+   The soil can be mended. The council votes how: one great cure cloud over the whole plateau, or the cure by hand, field by field. The cloud wins.
    ============================================================ */
 const SAVE_KEY = 'worldBuilder.councilmeeting37.v1';
 const G = { done: false, choice: -1, phase: 'ready', cam: 'auto', view: 'auto' };
@@ -582,7 +582,9 @@ const mira = members[11];
 
 /* ---------- the four proposals, shown as holograms above the Heart ---------- */
 const ALL_PROPS = [
-  { geo: 6, name: 'THE PARTS WORKS · FACTORY DISTRICT TWO', short: 'PARTS WORKS', col: [1.9, 1.5, 0.4], css: '#ffc850', what: 'More factories beside the first factory district: a beam mill, a machine hall, a circuit and glass works, a ship-parts foundry and a warehouse yard, so Unity builds its own parts from Vesh ore and crystal instead of waiting for the Ark to bring them from Earth. It costs 1.8 billion credits and earns 30 million a month from parts we no longer buy.' },  { geo: 19, name: 'THE HALL OF PEOPLES', short: 'HALL OF PEOPLES', col: [1.9, 1.5, 0.6], css: '#ffd060', what: 'A great round hall at the heart of Kryos where the council, the guests and any other people who arrive can sit together, with a seat for every tongue and a table in the middle. It costs 1 billion credits and earns 5 million a month from visitors.' },  { geo: 8, name: 'THE ELDERS\' GARDEN', short: 'ELDERS\' GARDEN', col: [1.7, 1.5, 0.8], css: '#f0d890', what: 'A quiet garden below the festival green with a moon gate, growing beds, a still pond, shade trees, benches, two greenhouses, the Story House and four cottages, for the oldest people of Unity. It cost 850 million credits from the treasury and earns 3 million a month from visitors and the tea house.' },
+  { geo: 5, name: 'THE CURE CLOUD', short: 'CURE CLOUD', col: [0.9, 1.7, 0.6], css: '#b0f080', what: 'A chemical plant on Ocknog makes the cure and four tall launchers fire it into the sky as one great cloud that spreads over the whole plateau and mends the soil at once. It costs 1.7 billion credits and earns nothing.' },
+  { geo: 0, name: 'THE CURE BY HAND', short: 'CURE BY HAND', col: [1.9, 1.3, 0.5], css: '#ffc070', what: 'Our scientists mix the cure in small batches and spread it field by field, which would take years and leave most of Ocknog hungry meanwhile. It costs 900 million credits and earns nothing.' },
+  { geo: 8, name: 'THE ELDERS\' GARDEN', short: 'ELDERS\' GARDEN', col: [1.7, 1.5, 0.8], css: '#f0d890', what: 'A quiet garden below the festival green with a moon gate, growing beds, a still pond, shade trees, benches, two greenhouses, the Story House and four cottages, for the oldest people of Unity. It cost 850 million credits from the treasury and earns 3 million a month from visitors and the tea house.' },
   { geo: 9, name: 'THE HARVEST FESTIVAL GROUNDS', short: 'FESTIVAL GROUNDS', col: [1.9, 1.3, 0.5], css: '#ffc070', what: 'A great green below the orchards with a flower gate, twelve market stalls, four food tents, a bandshell stage, a dancing green, two carousels, a feast hall and a bonfire ring, where Unity held its first Harvest Festival. It cost 700 million credits from the treasury and earns 12 million a month from visitors and stalls.' },
   { geo: 0, name: 'THE ORCHARD VALLEY', short: 'ORCHARD VALLEY', col: [0.6, 1.9, 0.6], css: '#a8f080', what: 'A wide valley of orchards, bee gardens and seed fields below the vault, where the first seeds are planted out and grown into trees, fruit and flowers for every table of Unity. It cost 900 million credits from the treasury and earns 7 million a month from fruit, honey and visitors.' },
   { geo: 7, name: 'THE GUESTS\' QUARTER', short: 'GUESTS\' QUARTER', col: [1.6, 0.9, 1.6], css: '#e8a0e8', what: 'Forty warm homes with gardens, a shared kitchen and a round meeting hall at the north-west edge of Kryos, for the thirty-one guests, for travellers who need a place to rest, and for families still waiting for a home of their own. It cost 800 million credits from the treasury and earns 4 million a month.' },
@@ -704,10 +706,10 @@ function hideSay() { $('say').style.opacity = 0; }
 
 /* the Keeper's voice — the same deep voice as in the voyage (downloaded once and kept on this computer) */
 const KLINES = ['So it is chosen.',
-  'Ocknog is green again, and I am glad of it. Ask what you wish.',
-  'It was the only way that made us stronger. An enemy who is fed and healed becomes a neighbour, and a neighbour is worth more than any wall.',
-  'That a poison can be carried a long way by the wind, and so can kindness. A small mending in one place can reach a whole world.',
-  'Build what lets you make your own parts, and a house big enough for every people to sit together. You have shown that you can mend a world. Now make your own strong.'];
+  'Ocknog waits, and the ships you fed wait with it. Ask your questions.',
+  'Because hunger does not wait for patience. A hungry child is a clock that cannot be stopped. Mend it at once, and mend it well.',
+  'It is their world, and their Elder asked you to. A world that asks for help and is refused is changed anyway, by the poison. Act with their blessing.',
+  'Then they will go home with seed in their hands and an open door to Unity, and you will have made a friend that can never be taken from you.'];
 const KEEPER_VOICE = 'en_US-ryan-medium', KEEPER_SLOW = 0.72, KEEPER_STRETCH = 1.35;
 let voiceFx = null, piper = null, keeperBufs = null, browserVoice = false;
 function makeVoiceFx() {
@@ -773,16 +775,16 @@ function buildScript() {
   const S = [];
   // speakers for the open discussion may speak more than once
   const say2 = prefs => { for (const n of prefs) { const c = byName(n); if (c && c !== mira && c !== head) return c; } return members.find(c => c !== mira && c !== head) || head; };
-  S.push([head, 'People of Unity, welcome back. The Builder and our scientists have come home from Ocknog, and the cloud of cure has healed the soil. I have called this meeting to hear how it went and to choose Unity\'s next great build.', PORT]);
-  S.push([steward, 'Kryos still holds sixty-six thousand, three hundred and sixty-two. The mother ship and nine small ships are leaving for Ocknog, and not one of our people was hurt on the whole expedition.', 'census']);
+  S.push([head, 'People of Unity, the Builder and our scientists are home from Ocknog. They took samples from the dead fields, tested them in the lab and grew green plants in three small test beds. The soil of Ocknog can be mended.', PORT]);
+  S.push([steward, 'Kryos still holds sixty-six thousand, three hundred and sixty-two. The mother ship and nine small ships still wait above us, and not one of our people was hurt on the whole expedition.', 'census']);
   S.push([steward, 'The Ocknog Expedition cost one billion, four hundred million. We have spent fifty-seven billion, four hundred million in all, and four hundred and forty-two billion, six hundred million is left.', 'treasury']);
-  S.push([steward, 'With the strangers fed and going home, the month is still about one hundred and three million to the good.', 'budget']);
-  S.push([say2(['HANA KIM', 'MATEO SILVA']), 'The Elder of Ocknog stood on the plateau as the cloud of cure rolled over the dead fields. By evening the soil had turned dark and damp, and green shoots had come up through the dust.']);
-  S.push([say2(['GRACE TAYLOR', 'NOOR HADDAD']), 'The strangers have asked to go home. They will take seed from our Seed Vault, and their Elder has promised that Ocknog will never again send ships in hunger. They call the Builder and our scientists friends of Ocknog for ever.']);
-  S.push([say2(['OWEN BRANDT', 'DARIUS COLE']), 'Unity has shown it can mend a world. Now the council must choose what Unity builds for itself.']);
+  S.push([steward, 'The month is still about one hundred and three million to the good, so another mission can be paid for without touching a single home.', 'budget']);
+  S.push([say2(['HANA KIM', 'MATEO SILVA']), 'The Elder of Ocknog met our party in the meeting circle and showed us the dead fields. The dust cloud settled long ago, and the poison lies in the top of the soil.']);
+  S.push([say2(['GRACE TAYLOR', 'NOOR HADDAD']), 'Our test cure turned dead soil green in three days. But the beds are tiny, and the plateau of Ocknog is wide. The question is how to spread the cure.']);
+  S.push([say2(['OWEN BRANDT', 'DARIUS COLE']), 'Then there are two ways to mend it.']);
   S.push([head, 'Two proposals sit before us.']);
-  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Parts Works: more factories beside the first factory district, so Unity builds its own parts from Vesh ore and crystal instead of waiting for the Ark to bring them from Earth. One billion, eight hundred million credits, and it earns thirty million a month from parts we no longer buy.', 0]);
-  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Hall of Peoples: a great round hall at the heart of Kryos where the council, our guests and any other people who arrive can sit together, with a seat for every people. One billion, five hundred million credits.', 1]);
+  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Cure Cloud: a chemical plant on Ocknog makes the cure, and four tall launchers fire it into the sky as one great cloud that spreads over the whole plateau and mends the soil at once. One billion, seven hundred million credits, and it earns nothing.', 0]);
+  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Cure by Hand: our scientists mix the cure in small batches and spread it field by field. Nine hundred million credits, and it earns nothing, but it would take years while Ocknog stays hungry.', 1]);
   S.push([head, 'The council will now vote.', 'vote']);
   S.push([mira, 'Twelve voices, three proposals, four votes each. We are tied. Builder, the deciding vote is yours.', 'ballot']);
   return S;
@@ -795,10 +797,10 @@ function begin() { if (G.phase !== 'ready' || G.done) return; audio(); setMurmur
 // the Steward of Numbers' count for Kryos, given at the start of every meeting from now on
 const CENSUS = {
   title: 'WHAT HAS CHANGED · KRYOS', rows: [
-    ['PEOPLE', '66,362 · 31 GUESTS'], ['OCKNOG', 'SOIL HEALED · GREEN SHOOTS ALREADY', '#7dff9a'], ['THE STRANGERS', 'GOING HOME · WITH SEED FROM OUR VAULT', '#7dff9a'],
-    ['THE CURE', 'ONE GREAT CLOUD · THE WHOLE PLATEAU', '#7dff9a'], ['FOOD', 'MORE THAN ENOUGH'], ['FUEL CRYSTAL', '77% · STEADY', '#ffd060'] ],
+    ['PEOPLE', '66,362 · 31 GUESTS'], ['THE SCIENTISTS', 'HOME FROM OCKNOG · SAMPLES TAKEN', '#7dff9a'], ['THE SOIL OF OCKNOG', 'POISONED · BUT IT CAN BE MENDED', '#ffd060'],
+    ['THE TEST BEDS', 'THREE BEDS GREW GREEN IN THREE DAYS', '#7dff9a'], ['FOOD', 'MORE THAN ENOUGH'], ['FUEL CRYSTAL', '77% · STEADY', '#ffd060'] ],
   bars: [['HOMES IN USE', 0.987], ['CRYSTAL STORE', 0.77]],
-  verdict: 'THE CLOUD OF CURE HEALED OCKNOG · THE STRANGERS GO HOME AS FRIENDS · WHAT SHOULD UNITY BUILD NEXT?'
+  verdict: 'THE SCIENTISTS ARE HOME FROM OCKNOG · THE SAMPLES SHOW THE SOIL CAN BE MENDED · HOW SHOULD UNITY MEND IT?'
 }
 // the treasury the Builder gave from the gold mine, and what every build so far has cost · updated at every meeting
 const TREASURY = {
@@ -813,7 +815,7 @@ const BUDGET = {
   title: 'EACH MONTH', unit: 'UNITY CREDITS · NO RENT FOR NOW · THE SKY RAIL IS FREE',
   inc: [['SHOPS, CAFÉS & MARKET (SHARE)', 47000000], ['TRADE · PEACEFUL TOWNS OF EARTH', 85000000], ['EARTH TRADE PORT', 60000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000], ['SPARE FOOD SOLD', 20000000], ['DOCKING FEES · STATION-7', 8000000], ['SKY DOCKS · REPAIR & FUEL FEES', 45000000], ['CRYSTAL FUEL SOLD · PEACEFUL TOWNS OF EARTH', 27000000], ['FERRIES & SEA TRADE', 25000000], ['VAULT RENT · HAVENREACH', 10000000], ['STARWATCH ARRAY · VISITORS & SCHOOLS', 10000000], ['KRYOS ARENA · VISITORS & EVENTS', 20000000], ['LANGUAGE HOUSE · SCHOOLS & VISITORS', 8000000], ['GREAT LIBRARY · SCHOOLS & VISITORS', 6000000], ['GATE OF WELCOME · VISITORS & TRADE', 15000000], ['HOMEWARD THREE · RENTS & MARKET', 5000000], ['SEED VAULT · SCHOOL VISITS', 1000000], ['GUESTS’ QUARTER · VISITORS & KITCHEN', 4000000], ['ORCHARD VALLEY · FRUIT, HONEY & VISITORS', 7000000], ['HARVEST FESTIVAL GROUNDS · STALLS & VISITORS', 12000000], ['ELDERS’ GARDEN · VISITORS & TEA HOUSE', 3000000]],
   out: [['THE RESCUE · CRAFT & CREWS', 6000000], ['UPKEEP · CITY & HOMES', 74000000], ['UPKEEP · HAVENREACH · SPARE POWER SAVES 15M', 15000000], ['FREE FOR ALL · FOOD, HEALING, SCHOOLS', 151000000], ['ANIMAL CARE CENTRE', 4000000], ['SKY RAIL · PODS & TRACK', 13000000], ['SHIPYARD', 6000000], ['EARTH TRADE PORT · UPKEEP', 9000000], ['SKY DOCKS · UPKEEP', 8000000], ['CRYSTAL MINES · UPKEEP & WAGES', 12000000], ['GUARDIAN YARD · CREWS & UPKEEP', 20000000], ['STARWATCH ARRAY · CREWS & UPKEEP', 9000000], ['KRYOS ARENA · CREWS & UPKEEP', 8000000], ['LANGUAGE HOUSE · CREWS & UPKEEP', 4000000], ['GREAT LIBRARY · CREWS & UPKEEP', 3000000], ['GATE OF WELCOME · CREWS & UPKEEP', 6000000], ['HOMEWARD THREE · CREWS & UPKEEP', 4000000], ['MOUNTAIN HOUSE · CREWS & UPKEEP', 1000000], ['SEED VAULT · KEEPERS & COLD PLANT', 3000000], ['GUESTS’ QUARTER · CREWS & UPKEEP', 2000000], ['ORCHARD VALLEY · PICKERS & UPKEEP', 2000000], ['HARVEST FESTIVAL GROUNDS · CREWS & UPKEEP', 3000000], ['ELDERS’ GARDEN · CREWS & UPKEEP', 1000000], ['FEEDING THE STRANGERS · SHORT TERM', 6000000]],
-  builds: [['THE PARTS WORKS', 1800000000, 'EARNS +30,000,000 A MONTH IN PARTS WE NO LONGER BUY'], ['THE HALL OF PEOPLES', 1500000000, 'A SEAT FOR EVERY PEOPLE · EARNS FROM VISITORS']],
+  builds: [['THE CURE CLOUD', 1700000000, 'EARNS NOTHING · MENDS ALL OF OCKNOG AT ONCE'], ['THE CURE BY HAND', 900000000, 'EARNS NOTHING · A SLOW FIELD-BY-FIELD CURE']],
   pay: 'HOMES STAY FREE · THE MONTH IS NOW ABOUT ONE HUNDRED AND THREE MILLION TO THE GOOD',
 }
 // what runs on the fuel crystal
@@ -917,9 +919,9 @@ async function decide(k, byCouncil) {
   }, 5000);
 }
 // the council asks the Keeper a question, and the Keeper answers
-const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, was it right to help the people who attacked us?', 2],
-  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'What should Unity learn from Ocknog?', 3],
-  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And what should we build next?', 4]];
+const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, why not mend it slowly, with care, field by field?', 2],
+  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'Is it right to change a whole world?', 3],
+  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And when the cure is done?', 4]];
 function askKeeper(q = 0) {
   const Q = QUESTIONS[q]; if (!Q) { hideSay(); finish(); return; }
   const m = Q[0].map(byName).find(c => c && c !== mira) || members.find(c => c !== mira && !c.head) || members[0];
@@ -998,7 +1000,7 @@ addEventListener('keydown', e => {
 function hud(dt) {
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').style.opacity = 0; }
   const day = dayStart() + 1;
-  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'OCKNOG IS HEALED · THE STRANGERS GO HOME' : showHolo === PORT2 ? 'THE MOUNTAIN HOUSE · THE BUILDER\'S LAMP' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 2 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
+  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'THE OCKNOG REPORT · THE SOIL CAN BE MENDED' : showHolo === PORT2 ? 'THE MOUNTAIN HOUSE · THE BUILDER\'S LAMP' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 2 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
   const h = `<h1>THE THIRTY-SEVENTH COUNCIL MEETING</h1><div class="ln" style="color:#ffd060;letter-spacing:3px">DAY ${day} · ${DN.clock}${DN.isNight ? ' · NIGHT' : ''}</div><div class="ln">SUNRISE ${DN.SUNRISE} · SUNSET ${DN.SUNSET}</div><div class="bn">THE COUNCIL HALL · PLANET UNITY</div><div class="ln">${line}</div>`;
   if (h !== hud.last) { $('panel').innerHTML = h; hud.last = h; }
   const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep() + (document.body.classList.contains('hideInfo') ? '<div style="font-size:10px;letter-spacing:2px;color:#8fb0c8;margin-top:5px">H SHOW INFO</div>' : '');
@@ -1022,7 +1024,7 @@ function updateCamera(dt, t) {
 /* ---------- the loop ---------- */
 const clock = new THREE.Clock();
 if (G.done) { showHolo = G.choice; holoGrow = 1; bigHolo = true; }
-banner('THE THIRTY-SEVENTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'OCKNOG IS HEALED · THE STRANGERS GO HOME AS FRIENDS · WHAT SHOULD UNITY BUILD NEXT?');
+banner('THE THIRTY-SEVENTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'THE SCIENTISTS ARE HOME · THE SOIL OF OCKNOG CAN BE MENDED · HOW WILL UNITY DO IT?');
 menuRefresh();
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 renderer.setAnimationLoop(() => {
