@@ -642,4 +642,20 @@ window.SPACE_PROJECTS = [
     label: '1 DAY',
     color: '#ffe08a',
   },
+  {
+    name: 'THE PARTS WORKS · FACTORY DISTRICT TWO',
+    html: '72-partsworks.html',
+    brief: 'The council chose the Parts Works. A second factory district in the valley beside the first: a yard and truck roads, a beam mill, a machine hall with robot arms, a circuit works and a glass works, a ship-parts foundry and a warehouse yard. Then opening day, when the first ship parts made on Unity roll out.',
+    builds: 5,
+    label: '5 BUILDS',
+    color: '#ffc850',
+  },
+  {
+    name: 'THE THIRTY-NINTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting39.html',
+    brief: 'Unity makes its own ship parts now. The council hears what that saves, then votes on the next proposals and asks the Keeper what Unity should make with all those parts.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
 ];
