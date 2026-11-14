@@ -222,7 +222,7 @@ window.PWP = window.PWP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [['factorydistrict', 'FAC', 2]];   // this chapter stands in the factory district itself: only the first district is drawn, not the rest of the city
+  P.FINISHED = [];   // the Parts Works stand in their own place, away from the city, so no other project is drawn here   // this chapter stands in the factory district itself: only the first district is drawn, not the rest of the city
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
@@ -327,10 +327,12 @@ window.PWP = window.PWP || {
   };
 })();
 
+// the landing field lies just west of the works, on the Parts Works' own ground, away from the city
+const FX = window.__PW.x - 340, FZ = window.__PW.z;
 (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push({
   id: 1,
-  name: 'KRYOS LANDING FIELD',
-  brief: 'Kryos city\u2019s own landing field and transporter pad, already in place in the middle of the city, so the Parts Works chapter starts straight away.',
+  name: 'PARTS WORKS LANDING FIELD',
+  brief: 'The Parts Works\u2019 own landing field and transporter pad, already in place beside the works, so the chapter starts straight away.',
 
   types: {
     DECK:  { code: 'SF', name: 'DECK TILE',  col: '#6c757d', deck: true, w: 40, d: 60, h: 2.5, droneR: 26 },
@@ -345,23 +347,23 @@ window.PWP = window.PWP || {
   // once the pad is down, the city has its own transporter (T beams the cargo)
   stationTX: [['RTXPAD', 1]],
 
-  grid: { x: [80, 120, 160], z: [-270, -210, -150, -90, -30, 30, 90, 150, 210, 270] },
+  grid: { x: [FX - 40, FX, FX + 40], z: [-270, -210, -150, -90, -30, 30, 90, 150, 210, 270].map(z => z + FZ) },
 
   zones: [
-    { x0: 60, x1: 180, z0: -180, z1: 180, color: 0x40d0ff, name: 'LANDING PAD' },
-    { x0: 60, x1: 180, z0: -40, z1: 180, color: 0x6080ff, name: 'CLAMP ZONE' },
+    { x0: FX - 60, x1: FX + 60, z0: FZ - 180, z1: FZ + 180, color: 0x40d0ff, name: 'LANDING PAD' },
+    { x0: FX - 60, x1: FX + 60, z0: FZ - 40, z1: FZ + 180, color: 0x6080ff, name: 'CLAMP ZONE' },
   ],
 
-  land: { x: 120, z: 0 },
+  land: { x: FX, z: FZ },
 
   padDone(api) {
     const g = this.grid; let pad = 0, need = 0;
-    for (const x of g.x) for (const z of g.z) if (Math.abs(z) < 180) { need++; if (api.deckAt(x, z)) pad++; }
+    for (const x of g.x) for (const z of g.z) if (Math.abs(z - FZ) < 180) { need++; if (api.deckAt(x, z)) pad++; }
     return { pad, need };
   },
 
   rule(type, x, z, rot, api) {
-    const [w, d] = api.footprint(type, rot);
+    const [w, d] = api.footprint(type, rot); z = z - FZ;
     if (type.startsWith('SUPPLY')) {
       if (Math.abs(z) - d / 2 < 182) return 'STACK SUPPLY CRATES AT THE ENDS OF THE FIELD, OFF THE LANDING PAD';
     }
@@ -375,7 +377,7 @@ window.PWP = window.PWP || {
     }
     if (type === 'CLAMP') {
       if (z - d / 2 < -40 || z + d / 2 > 180) return 'CLAMPS GO IN THE CLAMP ZONE (FRONT HALF OF THE PAD — WINGS ARE AT THE BACK)';
-      if (Math.abs(x - 120) < 44) return 'CLAMPS GO ON THE OUTER EDGE OF THE PAD, BESIDE THE HULL';
+      if (Math.abs(x - FX) < 44) return 'CLAMPS GO ON THE OUTER EDGE OF THE PAD, BESIDE THE HULL';
     }
     return null;
   },
@@ -387,7 +389,7 @@ window.PWP = window.PWP || {
     if (pad < need) return { ok: false, msg: 'LANDING PAD NEEDS ' + (need - pad) + ' MORE DECK TILE' + (need - pad > 1 ? 'S' : '') + ' — PICK UP SPARE TILES AND MOVE THEM' };
     if (api.count('CLAMP') < 4) return { ok: false, msg: 'NEEDS 4 DOCK CLAMPS' };
     if (api.count('RTXPAD') < 1) return { ok: false, msg: 'NEEDS THE TRANSPORTER PAD' };
-    return { ok: true, msg: 'LANDING FIELD READY — PRESS L TO LAND THE AEGIS ARK IN KRYOS' };
+    return { ok: true, msg: 'LANDING FIELD READY — PRESS L TO LAND THE AEGIS ARK AT THE PARTS WORKS' };
   },
 
   stats(api) {
@@ -404,11 +406,11 @@ window.PWP = window.PWP || {
 
   suggest: (() => {
     const s = [];
-    for (const z of [-150, -90, -30, 30, 90, 150, -210, 210]) for (const x of [120, 80, 160]) s.push({ type: 'DECK', x, z });
-    for (const [x, z] of [[70, 150], [170, 150], [70, 30], [170, 30]]) s.push({ type: 'CLAMP', x, z });
-    for (const [x, z] of [[66, 234], [174, 234], [66, -234], [174, -234]]) s.push({ type: 'MAST', x, z });
-    for (const z of [226, -226]) s.push({ type: 'POWER', x: 120, z });
-    s.push({ type: 'RTXPAD', x: 120, z: -196 });
+    for (const z of [-150, -90, -30, 30, 90, 150, -210, 210]) for (const x of [FX, FX - 40, FX + 40]) s.push({ type: 'DECK', x, z: z + FZ });
+    for (const [x, z] of [[-50, 150], [50, 150], [-50, 30], [50, 30]]) s.push({ type: 'CLAMP', x: FX + x, z: z + FZ });
+    for (const [x, z] of [[-54, 234], [54, 234], [-54, -234], [54, -234]]) s.push({ type: 'MAST', x: FX + x, z: z + FZ });
+    for (const z of [226, -226]) s.push({ type: 'POWER', x: FX, z: z + FZ });
+    s.push({ type: 'RTXPAD', x: FX, z: FZ - 196 });
     return s;
   })(),
 
@@ -441,7 +443,7 @@ window.PWP = window.PWP || {
       for (const z of [-25, 0, 25]) add(new THREE.BoxGeometry(34, 1.5, 1.5), M.gun, 0, -4.5, z);
       for (const [w, d, x, z] of [[39.6, 0.3, 0, 29.7], [39.6, 0.3, 0, -29.7], [0.3, 59.6, 19.7, 0], [0.3, 59.6, -19.7, 0]]) add(new THREE.BoxGeometry(w, 0.25, d), M.strip, x, 0.05, z);
     } else if (type === 'CLAMP') {
-      const dir = p.x < 120 ? 1 : -1;
+      const dir = p.x < FX ? 1 : -1;
       add(new THREE.BoxGeometry(12, 3, 14), M.yellow, 0, 1.5, 0);
       add(new THREE.BoxGeometry(6, 12, 8), M.armor, 0, 8, 0);
       const piv = new THREE.Group(); piv.position.set(dir * 2, 14, 0); g.add(piv);

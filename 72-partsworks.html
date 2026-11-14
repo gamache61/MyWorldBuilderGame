@@ -80,7 +80,7 @@ window.__GQ = { x: -700, z: -690, Y: -28.4 };  // the edge of Kryos city: the Pa
 window.__OV = { x: -5432, z: -7452, R: 700, F: 330, T: 300, Y: null };  // the Parts Works (kept so it shows built)
 window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the Parts Works (kept so it shows built)
 window.__EG = { x: -3032, z: -5652, R: 700, F: 330, T: 300, Y: null };  // the Elders Garden (kept so it shows built)
-window.__PW = { x: 590, z: 620, R: 700, F: 330, T: 300, Y: null };  // the Parts Works: the second factory district, on the first district's own ground</script>
+window.__PW = { x: 300, z: 1050, R: 700, F: 330, T: 300, Y: null };  // the Parts Works: the second factory district, on the first district's own ground</script>
 <script>
   // The Parts Works files live in projects/partsworks next to this file.
   // If they are not found there, the game also looks in projects/partsworks, an partsworks folder, and next to this file.
@@ -1116,10 +1116,11 @@ const ovBump = (x, z) => { const d = Math.hypot(x - OV.x, z - OV.z); if (d >= OV
 // the Parts Works: a second flat meadow terrace
 const HF = window.__HF; HF.Y = coaxH0(HF.x, HF.z);
 const EG = window.__EG; EG.Y = coaxH0(EG.x, EG.z);
-const PW = window.__PW;
+const PW = window.__PW; PW.Y = coaxH0(PW.x, PW.z);
+const pwBump = (x, z) => { const d = Math.hypot(x - PW.x, z - PW.z); if (d >= PW.F + PW.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, PW.F, PW.F + PW.T); return w * (PW.Y - coaxH0(x, z)); };
 const hfBump = (x, z) => { const d = Math.hypot(x - HF.x, z - HF.z); if (d >= HF.F + HF.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, HF.F, HF.F + HF.T); return w * (HF.Y - coaxH0(x, z)); };
 const egBump = (x, z) => { const d = Math.hypot(x - EG.x, z - EG.z); if (d >= EG.F + EG.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, EG.F, EG.F + EG.T); return w * (EG.Y - coaxH0(x, z)); };
-const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z) + hfBump(x, z) + egBump(x, z);
+const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z) + hfBump(x, z) + egBump(x, z) + pwBump(x, z);
 {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(42000, 48, 24), new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { sun: { value: sunDir.clone() } },
@@ -1143,7 +1144,7 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
   const meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
   for (let i = 0; i < pa.count; i++) {
     const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH0(x, z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
-    pa.setXYZ(i, x, (Math.hypot(x - SV.x, z - SV.z) < SV.R + 250 || Math.hypot(x - OV.x, z - OV.z) < OV.R + 250 || Math.hypot(x - HF.x, z - HF.z) < HF.R + 250 || Math.hypot(x - EG.x, z - EG.z) < EG.R + 250) ? Math.min(y, coaxH(x, z)) - 6 : y, z);
+    pa.setXYZ(i, x, (Math.hypot(x - SV.x, z - SV.z) < SV.R + 250 || Math.hypot(x - OV.x, z - OV.z) < OV.R + 250 || Math.hypot(x - HF.x, z - HF.z) < HF.R + 250 || Math.hypot(x - EG.x, z - EG.z) < EG.R + 250 || Math.hypot(x - PW.x, z - PW.z) < PW.R + 250) ? Math.min(y, coaxH(x, z)) - 6 : y, z);
     c.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700));
     if (y > DECK_TOP + 900) c.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
     if (y > DECK_TOP + 2400) c.lerp(snow, THREE.MathUtils.smoothstep(y, DECK_TOP + 2400, DECK_TOP + 2900));
@@ -1231,6 +1232,20 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
     const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.0, 0.9), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.0, 0.5), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
+  // the Parts Works ground: a finer mesh of meadow laid over the levelled ground, with an amber beacon so it can be found from far away
+  { const mn = 220, ms = PW.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
+    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x76aa50);
+    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + PW.x, z = mp.getZ(i) + PW.z, y = coaxH(x, z), d = Math.hypot(x - PW.x, z - PW.z);
+      const sl = Math.hypot(coaxH(x + 7, z) - y, coaxH(x, z + 7) - y) / 7;
+      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, PW.R - 140, PW.R), z);
+      cc.copy(meadow).lerp(forest, 0.3).lerp(rock, THREE.MathUtils.smoothstep(sl, 0.35, 0.8));
+      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, PW.F - 30, PW.F + 90)); mc.set([cc.r, cc.g, cc.b], i * 3); }
+    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
+    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
+    const bx = PW.x - 330, bz = PW.z + 40, by = coaxH(bx, bz) + 0.6;
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.0, 0.9), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.0, 0.5), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const CON = 16000, BRD = 9000;
@@ -1238,7 +1253,7 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680 || Math.hypot(x - MT.x, z - MT.z) < MT.R + 30 || Math.hypot(x - OV.x, z - OV.z) < OV.F + 80 || Math.hypot(x - HF.x, z - HF.z) < HF.F + 80 || Math.hypot(x - EG.x, z - EG.z) < EG.F + 80) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
+  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680 || Math.hypot(x - MT.x, z - MT.z) < MT.R + 30 || Math.hypot(x - OV.x, z - OV.z) < OV.F + 80 || Math.hypot(x - HF.x, z - HF.z) < HF.F + 80 || Math.hypot(x - EG.x, z - EG.z) < EG.F + 80 || Math.hypot(x - PW.x, z - PW.z) < PW.F + 80) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
     if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
   let ti = 0;
   for (let i = 0; i < CON + BRD; i++) {
