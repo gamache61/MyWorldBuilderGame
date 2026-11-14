@@ -80,7 +80,7 @@ window.__GQ = { x: -700, z: -690, Y: -28.4 };  // the edge of Kryos city: the Pa
 window.__OV = { x: -5432, z: -7452, R: 700, F: 330, T: 300, Y: null };  // the Parts Works (kept so it shows built)
 window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the Parts Works (kept so it shows built)
 window.__EG = { x: -3032, z: -5652, R: 700, F: 330, T: 300, Y: null };  // the Elders Garden (kept so it shows built)
-window.__PW = { x: 517, z: 52, R: 700, F: 330, T: 300, Y: null };  // the Parts Works: built on the first factory district's own ground, east of the landing field</script>
+window.__PW = { x: 517, z: 52, R: 700, F: 330, T: 300, Y: null };  // the Parts Works: the second factory district, on the first district's own ground</script>
 <script>
   // The Parts Works files live in projects/partsworks next to this file.
   // If they are not found there, the game also looks in projects/partsworks, an partsworks folder, and next to this file.
@@ -3704,7 +3704,7 @@ function updateGameHUD(dt) {
   $('goal').innerHTML = head + '<small>' + sub + '</small>';
   $('sPlat').textContent = B ? (G.loc === 'earth' ? bayCount + ' / ' + total + ' LOADED' : placedNow + ' / ' + total) : '—';
   $('sPlatL').textContent = B ? 'BUILD-' + B.id : 'BUILD';
-  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE PARTS WORKS · EAST OF THE LANDING FIELD · THE FIRST FACTORY DISTRICT SITE';
+  $('sLoc').textContent = warp ? 'WARP' : G.loc === 'earth' ? 'EARTH WAREHOUSE' : 'THE FACTORY DISTRICT · THE PARTS WORKS';
   $('sCrane').textContent = landing ? 'LOCKED' : autoMode ? 'AUTO' + (autoFast ? ' ×FAST' : '') : CR.load.length ? 'HOLDING ' + CR.load.length + ' CRATE' + (CR.load.length > 1 ? 'S' : '') : bayT < 1 ? (bayT > 0 ? 'DEPLOYING' : 'STOWED') : 'READY';
   // station panel
   let h = '<b>THE PARTS WORKS</b>';

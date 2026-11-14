@@ -600,7 +600,7 @@ window.OKP = window.OKP || {
       if (K && !window.__shipFly) {
         const dy = (K.Y != null ? K.Y : api.DECK_TOP) - api.DECK_TOP;
         window.__arkOff = { x: K.x - 1550, y: dy, z: K.z };
-        window.__shipFly = (ship) => { ship.position.x += K.x - 1550; ship.position.z += K.z; ship.position.y += dy; };
+        window.__shipFly = (ship) => { if (window.__G && window.__G.loc !== 'site') return; ship.position.x += K.x - 1550; ship.position.z += K.z; ship.position.y += dy; };
         
       }
     } else if (window.__shipFly && window.__okFly !== false && (api.flag('flownHome') || this._fh)) { if (window.__shipFly.toString().indexOf('K.x - 1550') > -1) window.__shipFly = null; window.__arkOff = null; }

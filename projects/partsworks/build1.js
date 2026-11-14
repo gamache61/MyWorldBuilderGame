@@ -159,6 +159,14 @@ window.PWP = window.PWP || {
     for (const [a, b] of []) { const L = b - a, gr = add(new T.BoxGeometry(L, 0.3, 120), grass, (a + b) / 2, Y((a + b) / 2, 0) + 0.15, 0); gr.castShadow = false; for (let x = a + 20; x < b; x += 40) for (const sd of [-1, 1]) tree(x, sd * 50, Y(x, sd * 50), 1); }
     // low ground pads under the finished projects (the projects themselves are loaded from their own build files)
     for (const [x, z, w, d] of [[565, 25, 680, 630], [-565, 25, 680, 630], [-1070, 0, 400, 470], [1160, 0, 400, 470], [-550, 705, 650, 670]]) add(new T.BoxGeometry(w, 0.24, d), grass, x, Y(x, z) - 0.02, z);
+    // the Factory District landing pad: the Ark sets down here, on the east edge of the factory district's ground
+    { const dk = new T.MeshStandardMaterial({ color: 0x3a4048, roughness: 0.85 }), ln = new T.MeshBasicMaterial({ color: new T.Color(0.6, 1.6, 2.0), toneMapped: false }), yl = new T.MeshStandardMaterial({ color: 0xf2c41a, roughness: 0.6 });
+      const px = 840, pz = 52, py = Y(px, pz);
+      add(new T.BoxGeometry(124, 0.5, 430), dk, px, py + 0.25, pz);
+      for (const sx of [-58, 58]) add(new T.BoxGeometry(1.4, 0.2, 420), yl, px + sx, py + 0.62, pz);
+      for (let i = -9; i <= 9; i++) add(new T.BoxGeometry(2, 0.15, 12), ln, px, py + 0.6, pz + i * 21);
+      for (const sx of [-64, 64]) for (const sz of [-205, -70, 70, 205]) { add(new T.CylinderGeometry(0.5, 0.7, 40, 8), new T.MeshStandardMaterial({ color: 0x9aa3ad, roughness: 0.4, metalness: 0.8 }), px + sx, py + 20, pz + sz); add(new T.SphereGeometry(2.2, 10, 8), ln, px + sx, py + 41, pz + sz); }
+    }
     // the Homeward Two ground: a paved plaza under the station
     add(new T.BoxGeometry(270, 0.24, 84), new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.95 }), 640, Y(640, -420) - 0.02, -420);
     land.piece.parent.add(this.bake(api, g));
@@ -326,6 +334,10 @@ window.PWP = window.PWP || {
     el.style.opacity = on ? 1 : 0;
   };
 })();
+
+// the Ark sets down on the Factory District landing pad (east edge of the factory district's ground), not on the city's field
+window.__arkOff = { x: 720, y: 0, z: 52 };
+window.__shipFly = (ship) => { if (window.__G && window.__G.loc === 'site') { ship.position.x += 720; ship.position.z += 52; } };
 
 (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push({
   id: 1,
