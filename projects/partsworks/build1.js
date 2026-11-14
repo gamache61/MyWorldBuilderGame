@@ -222,7 +222,7 @@ window.PWP = window.PWP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
+  P.FINISHED = [['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP'], ['factorydistrict', 'FAC', 2]];
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
@@ -345,14 +345,14 @@ window.PWP = window.PWP || {
   // once the pad is down, the city has its own transporter (T beams the cargo)
   stationTX: [['RTXPAD', 1]],
 
-  grid: { x: [800, 840, 880], z: [-270, -210, -150, -90, -30, 30, 90, 150, 210, 270] },
+  grid: { x: [860, 900, 940], z: [-270, -210, -150, -90, -30, 30, 90, 150, 210, 270] },
 
   zones: [
-    { x0: 780, x1: 900, z0: -180, z1: 180, color: 0x40d0ff, name: 'LANDING PAD' },
-    { x0: 780, x1: 900, z0: -40, z1: 180, color: 0x6080ff, name: 'CLAMP ZONE' },
+    { x0: 840, x1: 960, z0: -180, z1: 180, color: 0x40d0ff, name: 'LANDING PAD' },
+    { x0: 840, x1: 960, z0: -40, z1: 180, color: 0x6080ff, name: 'CLAMP ZONE' },
   ],
 
-  land: { x: 840, z: 0 },
+  land: { x: 900, z: 0 },
 
   padDone(api) {
     const g = this.grid; let pad = 0, need = 0;
@@ -375,7 +375,7 @@ window.PWP = window.PWP || {
     }
     if (type === 'CLAMP') {
       if (z - d / 2 < -40 || z + d / 2 > 180) return 'CLAMPS GO IN THE CLAMP ZONE (FRONT HALF OF THE PAD — WINGS ARE AT THE BACK)';
-      if (Math.abs(x - 120) < 44) return 'CLAMPS GO ON THE OUTER EDGE OF THE PAD, BESIDE THE HULL';
+      if (Math.abs(x - 900) < 44) return 'CLAMPS GO ON THE OUTER EDGE OF THE PAD, BESIDE THE HULL';
     }
     return null;
   },
@@ -404,11 +404,11 @@ window.PWP = window.PWP || {
 
   suggest: (() => {
     const s = [];
-    for (const z of [-150, -90, -30, 30, 90, 150, -210, 210]) for (const x of [120, 80, 160]) s.push({ type: 'DECK', x, z });
-    for (const [x, z] of [[70, 150], [170, 150], [70, 30], [170, 30]]) s.push({ type: 'CLAMP', x, z });
-    for (const [x, z] of [[66, 234], [174, 234], [66, -234], [174, -234]]) s.push({ type: 'MAST', x, z });
-    for (const z of [226, -226]) s.push({ type: 'POWER', x: 840, z });
-    s.push({ type: 'RTXPAD', x: 840, z: -196 });
+    for (const z of [-150, -90, -30, 30, 90, 150, -210, 210]) for (const x of [900, 860, 940]) s.push({ type: 'DECK', x, z });
+    for (const [x, z] of [[850, 150], [950, 150], [850, 30], [950, 30]]) s.push({ type: 'CLAMP', x, z });
+    for (const [x, z] of [[846, 234], [954, 234], [846, -234], [954, -234]]) s.push({ type: 'MAST', x, z });
+    for (const z of [226, -226]) s.push({ type: 'POWER', x: 900, z });
+    s.push({ type: 'RTXPAD', x: 900, z: -196 });
     return s;
   })(),
 
@@ -441,7 +441,7 @@ window.PWP = window.PWP || {
       for (const z of [-25, 0, 25]) add(new THREE.BoxGeometry(34, 1.5, 1.5), M.gun, 0, -4.5, z);
       for (const [w, d, x, z] of [[39.6, 0.3, 0, 29.7], [39.6, 0.3, 0, -29.7], [0.3, 59.6, 19.7, 0], [0.3, 59.6, -19.7, 0]]) add(new THREE.BoxGeometry(w, 0.25, d), M.strip, x, 0.05, z);
     } else if (type === 'CLAMP') {
-      const dir = p.x < 120 ? 1 : -1;
+      const dir = p.x < 900 ? 1 : -1;
       add(new THREE.BoxGeometry(12, 3, 14), M.yellow, 0, 1.5, 0);
       add(new THREE.BoxGeometry(6, 12, 8), M.armor, 0, 8, 0);
       const piv = new THREE.Group(); piv.position.set(dir * 2, 14, 0); g.add(piv);
