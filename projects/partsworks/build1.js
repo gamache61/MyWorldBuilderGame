@@ -222,7 +222,7 @@ window.PWP = window.PWP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
+  P.FINISHED = [['factorydistrict', 'FAC', 2], ['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
