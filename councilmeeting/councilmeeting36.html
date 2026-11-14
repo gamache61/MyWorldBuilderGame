@@ -469,9 +469,8 @@ const DN = (() => {
 
 /* ============================================================
    THE THIRTY-SIXTH COUNCIL MEETING · PLANET UNITY
-   THE EMERGENCY COUNCIL MEETING. Hungry ships from Ocknog attacked Kryos, the shield held, and the Keeper stopped them unhurt.
-   Ocknog's soil is poisoned by a dust cloud. The strangers have proved they are safe, and Kryos feeds them for now. The council votes:
-   take soil samples on Ocknog, or let the strangers grow food on Kryos. The council chooses the soil samples.
+   THE OCKNOG EXPEDITION. The council chose the soil mission after the hungry ships. Today it decides how Unity goes to Ocknog:
+   the Builder flies there with the scientists and builds a science camp, a soil lab and a cure plant, or the scientists go alone. The Builder goes.
    ============================================================ */
 const SAVE_KEY = 'worldBuilder.councilmeeting36.v1';
 const G = { done: false, choice: -1, phase: 'ready', cam: 'auto', view: 'auto' };
@@ -583,9 +582,8 @@ const mira = members[11];
 
 /* ---------- the four proposals, shown as holograms above the Heart ---------- */
 const ALL_PROPS = [
-  { geo: 5, name: 'THE SOIL MISSION TO OCKNOG', short: 'SOIL MISSION', col: [0.9, 1.7, 0.6], css: '#b0f080', what: 'A party of Unity scientists flies to Ocknog with the strangers as guides, takes samples of the contaminated soil and learns whether it can be mended, so that Ocknog can grow food at home again. It costs 1.4 billion credits and earns nothing.' },
-  { geo: 0, name: 'THE STRANGERS\' FIELDS ON KRYOS', short: 'STRANGERS FIELDS', col: [0.6, 1.9, 0.6], css: '#80f0a0', what: 'A wide stretch of good land on Kryos, with greenhouses, water channels and homes, given to the strangers to grow their own food on Unity and share the harvest. It costs 1.6 billion credits and earns 8 million a month in shared harvest.' },
-  { geo: 6, name: 'THE PARTS WORKS · FACTORY DISTRICT TWO', short: 'PARTS WORKS', col: [1.9, 1.5, 0.4], css: '#ffc850', what: 'More factories beside the first factory district: a beam mill, a machine hall, a circuit and glass works, a ship-parts foundry and a warehouse yard, so Unity builds its own parts from Vesh ore and crystal instead of waiting for the Ark to bring them from Earth. It costs 1.8 billion credits and earns 30 million a month from parts we no longer buy.' },
+  { geo: 5, name: 'THE OCKNOG EXPEDITION', short: 'OCKNOG EXPEDITION', col: [0.9, 1.7, 0.6], css: '#b0f080', what: 'The Builder flies to Ocknog with the scientists and the strangers as guides, and builds a science camp, a soil lab and cure tanks on the spot, so the poisoned soil can be mended where it lies and not only studied. It costs 1.4 billion credits and earns nothing.' },
+  { geo: 0, name: 'SAMPLES BY SHUTTLE', short: 'SAMPLES ONLY', col: [1.9, 1.3, 0.5], css: '#ffc070', what: 'The scientists fly to Ocknog alone, take samples of the soil and bring them home to study on Kryos while the Builder stays. It costs 600 million credits and earns nothing, but a cure could not be tested on Ocknog itself.' },
   { geo: 8, name: 'THE ELDERS\' GARDEN', short: 'ELDERS\' GARDEN', col: [1.7, 1.5, 0.8], css: '#f0d890', what: 'A quiet garden below the festival green with a moon gate, growing beds, a still pond, shade trees, benches, two greenhouses, the Story House and four cottages, for the oldest people of Unity. It cost 850 million credits from the treasury and earns 3 million a month from visitors and the tea house.' },
   { geo: 9, name: 'THE HARVEST FESTIVAL GROUNDS', short: 'FESTIVAL GROUNDS', col: [1.9, 1.3, 0.5], css: '#ffc070', what: 'A great green below the orchards with a flower gate, twelve market stalls, four food tents, a bandshell stage, a dancing green, two carousels, a feast hall and a bonfire ring, where Unity held its first Harvest Festival. It cost 700 million credits from the treasury and earns 12 million a month from visitors and stalls.' },
   { geo: 0, name: 'THE ORCHARD VALLEY', short: 'ORCHARD VALLEY', col: [0.6, 1.9, 0.6], css: '#a8f080', what: 'A wide valley of orchards, bee gardens and seed fields below the vault, where the first seeds are planted out and grown into trees, fruit and flowers for every table of Unity. It cost 900 million credits from the treasury and earns 7 million a month from fruit, honey and visitors.' },
@@ -708,10 +706,10 @@ function hideSay() { $('say').style.opacity = 0; }
 
 /* the Keeper's voice — the same deep voice as in the voyage (downloaded once and kept on this computer) */
 const KLINES = ['So it is chosen.',
-  'Nine ships fired on Kryos and I stopped them, and not one was harmed. That is how I wish to be remembered. The council has questions. Ask them.',
-  'A closed door teaches nothing, and a frozen ship is only a pause. They did not come to fight. They came because they were hungry and afraid and had nowhere else to turn. I stopped their hands, then I listened. Do the same.',
-  'Because a gift given blind can hurt the giver and the one who receives. If a poison can spread, their soil brought here could poison yours. Look first, with your own eyes and instruments. A friend who checks is a better friend than one who hurries.',
-  'Then you will have given them back their home, which is a greater gift than a field. But go as guests. Ask permission and walk gently, because a people proud of its world will hear you better than a people who are pitied.'];
+  'Ocknog is a long way from here, and food alone will not save it. A world that is hungry needs to grow food again. Ask your questions.',
+  'Because they are not our enemy now. We fed them because hunger does not know friends from enemies, and once they were fed they showed us who they are. Now we owe them more than bread.',
+  'Because a cure made far away is a guess. Soil is alive and every field is different. Build where it lies, test where it lies, and the cure will fit the land.',
+  'Go as guests, and take the scientists with you. Listen to their Elder before you build anything, and leave their world a little better than you found it.'];
 const KEEPER_VOICE = 'en_US-ryan-medium', KEEPER_SLOW = 0.72, KEEPER_STRETCH = 1.35;
 let voiceFx = null, piper = null, keeperBufs = null, browserVoice = false;
 function makeVoiceFx() {
@@ -777,16 +775,16 @@ function buildScript() {
   const S = [];
   // speakers for the open discussion may speak more than once
   const say2 = prefs => { for (const n of prefs) { const c = byName(n); if (c && c !== mira && c !== head) return c; } return members.find(c => c !== mira && c !== head) || head; };
-  S.push([head, 'People of Unity, thank you for coming at such short notice. Hungry ships from a world called Ocknog attacked the whole of Kryos. Our shield held over every home, and then the Keeper stepped in and stopped every ship without harming anyone. I have called this emergency meeting, as the Keeper asked.', PORT]);
-  S.push([steward, 'Kryos still holds sixty-six thousand, three hundred and sixty-two, and no one was hurt. The shield took the whole attack and has been mended. One mother ship and nine small ships wait above us, with about forty thousand hungry people aboard.', 'census']);
-  S.push([steward, 'The Elders\' Garden cost eight hundred and fifty million. We have spent fifty-six billion in all, and four hundred and forty-four billion is left.', 'treasury']);
-  S.push([steward, 'Feeding the strangers for now costs six million a month from our spare food. With the garden earning three million and costing one, the month is one hundred and three million to the good.', 'budget']);
-  S.push([say2(['HANA KIM', 'MATEO SILVA']), 'The Language House gave us their words. Ocknog can no longer grow food, because a poisonous dust cloud has contaminated its soil. They told the Keeper they thought Unity would never give them so much food, so they came to take it.']);
-  S.push([say2(['GRACE TAYLOR', 'NOOR HADDAD']), 'Before anything else, the people of Kryos have already decided to feed them in the short term, and the first freighters have gone up. But for three days the Keeper has watched them. They laid down every weapon, they let our healers walk among them, and they ate with our children at the Gate of Welcome. The Keeper says they have proved they are safe.']);
-  S.push([say2(['OWEN BRANDT', 'DARIUS COLE']), 'Feeding them is only a pause. They will be hungry again next year. The council must choose how to help for the long term, and there are two roads.']);
+  S.push([head, 'People of Unity, the council has chosen the Soil Mission. Three shuttles of our scientists are ready at the field. Today we decide how we go to Ocknog.', PORT]);
+  S.push([steward, 'Kryos holds sixty-six thousand, three hundred and sixty-two. Our freighters have fed the strangers all week, and the mother ship and nine small ships wait quietly above us.', 'census']);
+  S.push([steward, 'We have spent fifty-six billion in all, and four hundred and forty-four billion is left. The Soil Mission costs one billion, four hundred million.', 'treasury']);
+  S.push([steward, 'The month is still one hundred and three million to the good, so the mission can be paid for without touching a single home.', 'budget']);
+  S.push([say2(['HANA KIM', 'MATEO SILVA']), 'The strangers say the poison is a dust cloud that settled over their fields and never lifted. Their Elder will meet our party at the village and show us the dead soil.']);
+  S.push([say2(['GRACE TAYLOR', 'NOOR HADDAD']), 'Our scientists can take samples, but a cure has to be made and tested where the soil is. Ocknog has no lab and no power, and it is a very long way to carry sick soil home.']);
+  S.push([say2(['OWEN BRANDT', 'DARIUS COLE']), 'Then there are two ways to go.']);
   S.push([head, 'Two proposals sit before us.']);
-  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Soil Mission: a party of our scientists flies to Ocknog, with the strangers as our guides, and takes samples of the contaminated soil, so we can learn whether it can be mended. One billion, four hundred million credits, and it earns nothing.', 0]);
-  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'The Strangers\' Fields: we give them good land here on Kryos, with greenhouses, water and homes, so they can grow their own food on Unity and share the harvest. One billion, six hundred million credits, and it earns eight million a month in shared harvest.', 1]);
+  S.push([pick(['KENJI MORI', 'SOFIA LINDQVIST', 'DARIUS COLE', 'PRIYA NAIR']), 'The Ocknog Expedition: the Builder flies to Ocknog with the scientists and builds a science camp, a soil lab and cure tanks on the spot, so the soil can be mended where it lies. One billion, four hundred million credits, and it earns nothing.', 0]);
+  S.push([pick(['HANA KIM', 'MATEO SILVA', 'ELENA VASQUEZ', 'LIAM HARTLEY']), 'Samples by Shuttle: the scientists go alone, bring the soil home and study it here while the Builder stays on Kryos. Six hundred million credits, and it earns nothing, but we could not test a cure on Ocknog itself.', 1]);
   S.push([head, 'The council will now vote.', 'vote']);
   S.push([mira, 'Twelve voices, three proposals, four votes each. We are tied. Builder, the deciding vote is yours.', 'ballot']);
   return S;
@@ -799,11 +797,10 @@ function begin() { if (G.phase !== 'ready' || G.done) return; audio(); setMurmur
 // the Steward of Numbers' count for Kryos, given at the start of every meeting from now on
 const CENSUS = {
   title: 'WHAT HAS CHANGED · KRYOS', rows: [
-    ['PEOPLE', '66,362 · 31 GUESTS'], ['NEW JOBS', '+60 · ELDERS GARDEN'], ['JOBS PER WORKER', '1.26'],
-    ['STRANGERS ABOVE', 'MOTHER SHIP + 9 · ABOUT 40,000 · HUNGRY', '#ff9a90'], ['THE ATTACK', 'NO ONE HURT · SHIELD HELD', '#7dff9a'], ['FROZEN BY THE KEEPER', '9 SHIPS · NONE DAMAGED', '#7dff9a'], ['PROOF OF PEACE', 'EVERY WEAPON GIVEN UP · 3 DAYS WATCHED', '#7dff9a'],
-    ['FOOD', 'MORE THAN ENOUGH · FREIGHTERS GONE UP TO THE STRANGERS'], ['FUEL CRYSTAL', '77% · STEADY', '#ffd060'] ],
+    ['PEOPLE', '66,362 · 31 GUESTS'], ['THE SCIENTISTS', '3 SHUTTLES · READY AT THE FIELD', '#7dff9a'], ['STRANGERS ABOVE', 'FED · MOTHER SHIP + 9 · WAITING', '#ffd060'],
+    ['THE SOIL MISSION', 'CHOSEN BY THE COUNCIL · 1.4 BILLION', '#7dff9a'], ['FOOD', 'MORE THAN ENOUGH · FREIGHTERS GONE UP TO THE STRANGERS'], ['FUEL CRYSTAL', '77% · STEADY', '#ffd060'] ],
   bars: [['HOMES IN USE', 0.987], ['CRYSTAL STORE', 0.77]],
-  verdict: 'HUNGRY SHIPS ATTACKED · THE SHIELD HELD · THE KEEPER FROZE THEM UNHURT · THEY HAVE PROVED THEY ARE SAFE · THE SOIL OF OCKNOG IS CONTAMINATED · KRYOS FEEDS THEM FOR NOW'
+  verdict: 'THE COUNCIL CHOSE THE SOIL MISSION · THE SCIENTISTS ARE READY · HOW DO WE GO TO OCKNOG?'
 }
 // the treasury the Builder gave from the gold mine, and what every build so far has cost · updated at every meeting
 const TREASURY = {
@@ -818,7 +815,7 @@ const BUDGET = {
   title: 'EACH MONTH', unit: 'UNITY CREDITS · NO RENT FOR NOW · THE SKY RAIL IS FREE',
   inc: [['SHOPS, CAFÉS & MARKET (SHARE)', 47000000], ['TRADE · PEACEFUL TOWNS OF EARTH', 85000000], ['EARTH TRADE PORT', 60000000], ['ORE FROM VESH', 25000000], ['PARTS FROM THE FACTORIES', 30000000], ['SPARE FOOD SOLD', 20000000], ['DOCKING FEES · STATION-7', 8000000], ['SKY DOCKS · REPAIR & FUEL FEES', 45000000], ['CRYSTAL FUEL SOLD · PEACEFUL TOWNS OF EARTH', 27000000], ['FERRIES & SEA TRADE', 25000000], ['VAULT RENT · HAVENREACH', 10000000], ['STARWATCH ARRAY · VISITORS & SCHOOLS', 10000000], ['KRYOS ARENA · VISITORS & EVENTS', 20000000], ['LANGUAGE HOUSE · SCHOOLS & VISITORS', 8000000], ['GREAT LIBRARY · SCHOOLS & VISITORS', 6000000], ['GATE OF WELCOME · VISITORS & TRADE', 15000000], ['HOMEWARD THREE · RENTS & MARKET', 5000000], ['SEED VAULT · SCHOOL VISITS', 1000000], ['GUESTS’ QUARTER · VISITORS & KITCHEN', 4000000], ['ORCHARD VALLEY · FRUIT, HONEY & VISITORS', 7000000], ['HARVEST FESTIVAL GROUNDS · STALLS & VISITORS', 12000000], ['ELDERS’ GARDEN · VISITORS & TEA HOUSE', 3000000]],
   out: [['THE RESCUE · CRAFT & CREWS', 6000000], ['UPKEEP · CITY & HOMES', 74000000], ['UPKEEP · HAVENREACH · SPARE POWER SAVES 15M', 15000000], ['FREE FOR ALL · FOOD, HEALING, SCHOOLS', 151000000], ['ANIMAL CARE CENTRE', 4000000], ['SKY RAIL · PODS & TRACK', 13000000], ['SHIPYARD', 6000000], ['EARTH TRADE PORT · UPKEEP', 9000000], ['SKY DOCKS · UPKEEP', 8000000], ['CRYSTAL MINES · UPKEEP & WAGES', 12000000], ['GUARDIAN YARD · CREWS & UPKEEP', 20000000], ['STARWATCH ARRAY · CREWS & UPKEEP', 9000000], ['KRYOS ARENA · CREWS & UPKEEP', 8000000], ['LANGUAGE HOUSE · CREWS & UPKEEP', 4000000], ['GREAT LIBRARY · CREWS & UPKEEP', 3000000], ['GATE OF WELCOME · CREWS & UPKEEP', 6000000], ['HOMEWARD THREE · CREWS & UPKEEP', 4000000], ['MOUNTAIN HOUSE · CREWS & UPKEEP', 1000000], ['SEED VAULT · KEEPERS & COLD PLANT', 3000000], ['GUESTS’ QUARTER · CREWS & UPKEEP', 2000000], ['ORCHARD VALLEY · PICKERS & UPKEEP', 2000000], ['HARVEST FESTIVAL GROUNDS · CREWS & UPKEEP', 3000000], ['ELDERS’ GARDEN · CREWS & UPKEEP', 1000000], ['FEEDING THE STRANGERS · SHORT TERM', 6000000]],
-  builds: [['THE SOIL MISSION', 1400000000, 'EARNS NOTHING · MENDS THEIR WORLD'], ['THE STRANGERS’ FIELDS', 1600000000, 'EARNS +8,000,000 A MONTH IN SHARED HARVEST']],
+  builds: [['THE OCKNOG EXPEDITION', 1400000000, 'EARNS NOTHING · MENDS THEIR WORLD'], ['SAMPLES BY SHUTTLE', 600000000, 'EARNS NOTHING · SAMPLES ONLY']],
   pay: 'HOMES STAY FREE · THE MONTH IS NOW ABOUT ONE HUNDRED AND THREE MILLION TO THE GOOD',
 }
 // what runs on the fuel crystal
@@ -922,9 +919,9 @@ async function decide(k, byCouncil) {
   }, 5000);
 }
 // the council asks the Keeper a question, and the Keeper answers
-const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, they attacked us. Why feed them at all?', 2],
-  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'Why check their soil first, before we give them land of ours?', 3],
-  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And if we find that we can mend it?', 4]];
+const QUESTIONS = [[['AYO BANKOLE', 'DARIUS COLE', 'OWEN BRANDT'], 'Keeper, they attacked us. Why should the Builder go all the way to their world?', 2],
+  [['HANA KIM', 'NOOR HADDAD', 'SOFIA LINDQVIST'], 'Why not bring the soil here and study it in safety?', 3],
+  [['PRIYA NAIR', 'LIAM HARTLEY', 'GRACE TAYLOR'], 'And how should we behave when we arrive?', 4]];
 function askKeeper(q = 0) {
   const Q = QUESTIONS[q]; if (!Q) { hideSay(); finish(); return; }
   const m = Q[0].map(byName).find(c => c && c !== mira) || members.find(c => c !== mira && !c.head) || members[0];
@@ -948,14 +945,14 @@ function skip() { if (G.phase !== 'meeting' || !speaker) return; if ('speechSynt
 /* ---------- HUD, next step and the controls menu ---------- */
 const dayStart = () => window.WB_DAY_START || 0;
 function nextStep() {
-  if (G.done) return window.WB_reqBusy ? 'THE SPEAKER HAS A QUESTION FOR THE BUILDER…' : '<button id="go">BACK TO THE MAIN MENU</button>';
+  if (G.done) return window.WB_reqBusy ? 'THE SPEAKER HAS A QUESTION FOR THE BUILDER…' : '<button id="go">GO TO OCKNOG WITH THE SCIENTISTS ▶</button>';
   if (G.phase === 'ready') return '<button id="go">OPEN THE MEETING (L)</button>';
   if (G.phase === 'ballot') return '<button id="go">CAST THE DECIDING VOTE (V)</button>';
   if (G.phase === 'voting') return 'THE COUNCIL IS VOTING…';
   if (G.phase === 'keeper') return speaker ? speaker.name + ' ASKS THE KEEPER…' : 'THE KEEPER IS SPEAKING…';
   return (speaker ? speaker.name + ' IS SPEAKING… ' : 'THE MEETING IS UNDER WAY… ') + '<button id="skip">NEXT (N)</button> <button id="skipAll">' + (step < SCRIPT.findIndex(q => q[2] === 0) ? 'SKIP TO THE PROPOSALS (K)' : 'SKIP TO THE VOTE (K)') + '</button>';
 }
-function goAction() { if (G.done) { if (!window.WB_reqBusy) location.href = '../index.html'; } else if (G.phase === 'ready') begin(); else if (G.phase === 'ballot') showBallot(); }
+function goAction() { if (G.done) { if (!window.WB_reqBusy) location.href = '../70-ocknog.html'; } else if (G.phase === 'ready') begin(); else if (G.phase === 'ballot') showBallot(); }
 const VIEWS = { heart: [V(0, 7, 21), V(0, 8, 0)], ring: [V(0, 20, 16), V(0, 1, 0)], seats: [V(0, 3.5, 3), V(0, 4, -30)], above: [V(0, 60, 0.1), V(0, 0, 0)], hall: [V(34, 12, 34), V(0, 6, 0)] };
 const menuEl = $('menu'), menuPanel = $('menuPanel'), openCats = new Set(['ACTIONS']);
 let newArm = 0, camFirst = true;
@@ -1003,7 +1000,7 @@ addEventListener('keydown', e => {
 function hud(dt) {
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').style.opacity = 0; }
   const day = dayStart() + 1;
-  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'THE EMERGENCY COUNCIL · THE KEEPER STOPPED THE HUNGRY SHIPS' : showHolo === PORT2 ? 'THE MOUNTAIN HOUSE · THE BUILDER\'S LAMP' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 2 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
+  const line = G.done ? 'CHOSEN: ' + PROPS[G.choice].name : G.phase === 'ready' ? 'THE COUNCIL IS SEATED' : showHolo === PORT ? 'THE OCKNOG EXPEDITION · THE SCIENTISTS ARE READY' : showHolo === PORT2 ? 'THE MOUNTAIN HOUSE · THE BUILDER\'S LAMP' : showHolo >= 0 ? 'PROPOSAL ' + (showHolo + 1) + ' OF 2 · ' + PROPS[showHolo].short : G.phase === 'ballot' ? 'THE COUNCIL IS TIED · ' + tally().join(' · ') : 'THE MEETING IS UNDER WAY';
   const h = `<h1>THE THIRTY-SIXTH COUNCIL MEETING</h1><div class="ln" style="color:#ffd060;letter-spacing:3px">DAY ${day} · ${DN.clock}${DN.isNight ? ' · NIGHT' : ''}</div><div class="ln">SUNRISE ${DN.SUNRISE} · SUNSET ${DN.SUNSET}</div><div class="bn">THE COUNCIL HALL · PLANET UNITY</div><div class="ln">${line}</div>`;
   if (h !== hud.last) { $('panel').innerHTML = h; hud.last = h; }
   const a = '<div style="font-size:10px;letter-spacing:3px;color:#8fb0c8;margin-bottom:4px">NEXT STEP</div>' + nextStep() + (document.body.classList.contains('hideInfo') ? '<div style="font-size:10px;letter-spacing:2px;color:#8fb0c8;margin-top:5px">H SHOW INFO</div>' : '');
@@ -1027,7 +1024,7 @@ function updateCamera(dt, t) {
 /* ---------- the loop ---------- */
 const clock = new THREE.Clock();
 if (G.done) { showHolo = G.choice; holoGrow = 1; bigHolo = true; }
-banner('THE THIRTY-SIXTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'THE EMERGENCY COUNCIL · THE KEEPER STOPPED THE HUNGRY SHIPS · OCKNOG\'S SOIL IS POISONED · HOW WILL UNITY HELP?');
+banner('THE THIRTY-SIXTH COUNCIL MEETING', G.done ? 'UNITY WILL BUILD ' + PROPS[G.choice].name : 'THE SCIENTISTS ARE READY · THE COUNCIL CHOSE THE SOIL MISSION · HOW WILL UNITY GO TO OCKNOG?');
 menuRefresh();
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 renderer.setAnimationLoop(() => {

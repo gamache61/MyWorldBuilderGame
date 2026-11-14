@@ -603,11 +603,27 @@ window.SPACE_PROJECTS = [
     color: '#ff9a7a',
   },
   {
+    name: 'THE THIRTY-SIXTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting36.html',
+    brief: 'The scientists are ready at the field. The council decides how Unity goes to Ocknog: the Builder flies with the scientists to build a science camp, a soil lab and a cure plant on the spot, or the scientists go alone.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
+  },
+  {
     name: 'OCKNOG',
     html: '70-ocknog.html',
     brief: 'The scientists of Unity fly to Ocknog: a science camp on a dusty plateau, the village and the Elder of Ocknog, a soil lab and cure tanks, and four launchers that fire one great cloud of cure over the planet to put its soil back to normal.',
     builds: 5,
     label: '5 BUILDS',
     color: '#d9a05a',
+  },
+  {
+    name: 'THE THIRTY-SEVENTH COUNCIL MEETING',
+    html: 'councilmeeting/councilmeeting37.html',
+    brief: 'The soil of Ocknog is mended and the strangers go home as friends. The council hears the report, then votes on the next proposals: the Parts Works or the Hall of Peoples, and asks the Keeper what Unity should learn from Ocknog.',
+    builds: 1,
+    label: '1 DAY',
+    color: '#ffe08a',
   },
 ];

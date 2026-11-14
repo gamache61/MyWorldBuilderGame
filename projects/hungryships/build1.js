@@ -355,10 +355,10 @@ window.HSP = window.HSP || {
     window.HSP.update(api, dt, t);
     if (api.flag('opened') && !document.getElementById('nextMeeting')) {
       const b = document.createElement('button'); b.id = 'nextMeeting';
-      b.innerHTML = 'GO TO THE NEXT CHAPTER · OCKNOG ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE SCIENTISTS ARE ON THEIR WAY</small>';
+      b.innerHTML = 'GO TO THE NEXT COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE SCIENTISTS ARE READY TO LEAVE</small>';
       b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,80,60,.85);border:1px solid #9fffd8;border-radius:5px;cursor:pointer';
       b.onmouseenter = () => b.style.background = 'rgba(30,110,80,.95)'; b.onmouseleave = () => b.style.background = 'rgba(20,80,60,.85)';
-      b.onclick = () => { location.href = '70-ocknog.html'; };
+      b.onclick = () => { location.href = 'councilmeeting/councilmeeting36.html'; };
       document.body.appendChild(b);
     }
   },
