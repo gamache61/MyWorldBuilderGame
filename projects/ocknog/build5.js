@@ -41,7 +41,7 @@
       }
     },
     tick(api, dt, t) {
-      if (api.flag('opened') && !document.getElementById('nextMeeting')) {
+      if (api.flag('flownHome') && !document.getElementById('nextMeeting')) {
         const b = document.createElement('button'); b.id = 'nextMeeting';
         b.innerHTML = 'GO TO THE NEXT COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#c8ecff;margin-top:3px">THE SOIL OF OCKNOG IS MENDED</small>';
         b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(20,80,60,.85);border:1px solid #9fffd8;border-radius:5px;cursor:pointer';

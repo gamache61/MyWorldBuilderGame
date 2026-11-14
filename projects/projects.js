@@ -613,7 +613,7 @@ window.SPACE_PROJECTS = [
   {
     name: 'OCKNOG',
     html: '70-ocknog.html',
-    brief: 'The scientists of Unity fly to Ocknog: a science camp on a dusty plateau, the village and the Elder of Ocknog, soil samples from the dead fields, a soil lab and cure tanks, and four launchers that fire one great cloud of cure over the planet to put its soil back to normal.',
+    brief: 'The Ark flies the scientists across deep space to the planet Ocknog, a dry brown world with two moons: a science camp on a dusty plateau, the village and the Elder of Ocknog, soil samples from the dead fields, a soil lab and cure tanks, and four launchers that fire one great cloud of cure over the planet to put its soil back to normal.',
     builds: 5,
     label: '5 BUILDS',
     color: '#d9a05a',

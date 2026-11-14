@@ -172,6 +172,7 @@ window.OKP = window.OKP || {
     if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.kryos(api); } catch (e) { console.warn('kryos city', e); } }
     if (!this._fin && api.placed && api.placed.length) { this._fin = true; this.finished(api); }
     if (this.bgTick) this.bgTick(api, dt, t);
+    if (this.story) { try { this.story(api); } catch (e) { console.warn('ocknog story', e); } }
     if (t === this._t) return; this._t = t;
     if (window.WB_PERSON && this.people.length) for (const q of this.people.splice(0)) { try { const c = window.WB_PERSON(q.group, q.o, q.act, q.x, q.y, q.z, q.ry || 0, q.extra || {}); if (c && q.extra && q.extra.scale) c.P.root.scale.setScalar(q.extra.scale); } catch (e) { } }
     if (this.onTick) this.onTick(api, dt, t);
@@ -479,3 +480,83 @@ window.OKP = window.OKP || {
 
   tick(api, dt, t) { window.OKP.update(api, dt, t); },
 });
+
+/* ---------- the flights: Unity to the planet Ocknog, and home again ---------- */
+(function () {
+  const P = window.OKP;
+  // its own little 3D sky on a canvas above the game, so Ocknog is seen as a world of its own
+  P.flight = function (api, dir, done) {
+    const T = api.THREE, home = dir === 'home', TOT = home ? 36 : 48;
+    if (document.getElementById('okFlight')) return;
+    const wrap = document.createElement('div'); wrap.id = 'okFlight';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:7;background:#000;opacity:0;transition:opacity 1.6s;font-family:"Segoe UI",Arial;color:#fff';
+    const cv = document.createElement('canvas'); cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; wrap.appendChild(cv);
+    const dust = document.createElement('div'); dust.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(190,130,70,.55),rgba(120,70,30,.95));opacity:0;pointer-events:none'; wrap.appendChild(dust);
+    const cap = document.createElement('div'); cap.style.cssText = 'position:absolute;left:0;right:0;bottom:12%;text-align:center;font-size:20px;letter-spacing:6px;text-shadow:0 0 12px #000;transition:opacity 1s;opacity:0;padding:0 20px'; wrap.appendChild(cap);
+    const skip = document.createElement('button'); skip.textContent = 'SKIP ▶'; skip.style.cssText = 'position:absolute;right:22px;top:20px;padding:6px 14px;background:rgba(8,20,35,.7);border:1px solid #7fd8ff;border-radius:4px;color:#fff;letter-spacing:3px;font:600 12px "Segoe UI",Arial;cursor:pointer'; wrap.appendChild(skip);
+    document.body.appendChild(wrap); requestAnimationFrame(() => wrap.style.opacity = 1);
+    let R; try { R = new T.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { wrap.remove(); done && done(); return; }
+    R.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1)); R.setClearColor(0x000308);
+    const S = new T.Scene(), cam = new T.PerspectiveCamera(55, 1, 0.5, 30000);
+    const fit = () => { R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }; fit(); addEventListener('resize', fit);
+    S.add(new T.AmbientLight(0x303848, 0.7)); const sun = new T.DirectionalLight(0xfff0dc, 2.6); sun.position.set(0.55, 0.45, 0.75); S.add(sun);
+    // stars
+    { const n = 2200, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, q = Math.random() * 6.283, r = Math.sqrt(1 - u * u); a[i * 3] = Math.cos(q) * r * 12000; a[i * 3 + 1] = u * 12000; a[i * 3 + 2] = Math.sin(q) * r * 12000; }
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(a, 3)); S.add(new T.Points(g, new T.PointsMaterial({ color: 0xffffff, size: 2.2, sizeAttenuation: false, fog: false }))); }
+    // painted worlds
+    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const paint = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t; };
+    const blob = (g, x, y, rx, ry, col, a) => { g.fillStyle = col; g.globalAlpha = a; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 6.283); g.fill(); g.globalAlpha = 1; };
+    const unityTex = paint(1024, 512, (g, w, h) => { g.fillStyle = '#2a6fb4'; g.fillRect(0, 0, w, h); for (let i = 0; i < 70; i++) blob(g, rnd() * w, rnd() * h, 30 + rnd() * 110, 18 + rnd() * 60, rnd() < 0.7 ? '#3f9a4a' : '#8a7a50', 0.9);
+      for (let i = 0; i < 160; i++) blob(g, rnd() * w, rnd() * h, 40 + rnd() * 120, 6 + rnd() * 14, '#ffffff', 0.45); });
+    const ockTex = paint(1024, 512, (g, w, h) => { g.fillStyle = '#b57e46'; g.fillRect(0, 0, w, h); for (let i = 0; i < 120; i++) blob(g, rnd() * w, rnd() * h, 30 + rnd() * 120, 14 + rnd() * 50, rnd() < 0.5 ? '#8a5a30' : '#d9a868', 0.55);
+      for (let i = 0; i < 30; i++) blob(g, rnd() * w, rnd() * h, 60 + rnd() * 160, 4 + rnd() * 8, '#e8c898', 0.5);
+      if (home) for (let i = 0; i < 26; i++) blob(g, 380 + rnd() * 240, 200 + rnd() * 120, 18 + rnd() * 50, 10 + rnd() * 30, '#4fa04a', 0.85); });
+    const planet = (r, tex, haze, x, y, z) => { const grp = new T.Group(); grp.position.set(x, y, z); S.add(grp);
+      const m = new T.Mesh(new T.SphereGeometry(r, 64, 40), new T.MeshStandardMaterial({ map: tex, roughness: 1 })); grp.add(m);
+      const h = new T.Mesh(new T.SphereGeometry(r * 1.045, 48, 30), new T.MeshBasicMaterial({ color: haze, transparent: true, opacity: 0.22, side: T.BackSide, blending: T.AdditiveBlending, depthWrite: false })); grp.add(h); return m; };
+    const unity = planet(65, unityTex, 0x6fb4ff, 0, -70, 10), ock = planet(420, ockTex, home ? 0xb8d890 : 0xd8a060, 0, 0, -2600);
+    // a ring of dust round poor Ocknog, two moons
+    if (!home) { const dc = new T.Mesh(new T.SphereGeometry(452, 40, 24), new T.MeshBasicMaterial({ map: paint(512, 256, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 110; i++) blob(g, rnd() * w, rnd() * h, 20 + rnd() * 90, 4 + rnd() * 14, '#c89050', 0.5); }), transparent: true, opacity: 0.55, depthWrite: false })); dc.position.set(0, 0, -2600); S.add(dc); S.userData.dc = dc; }
+    for (const [x, y, z, r, c] of [[620, 280, -2350, 62, 0xb0aaa0], [-760, -170, -2480, 36, 0x8a8680]]) { const m = new T.Mesh(new T.SphereGeometry(r, 24, 16), new T.MeshStandardMaterial({ color: c, roughness: 1 })); m.position.set(x, y, z); S.add(m); }
+    // the Ark
+    const ark = new T.Group(); S.add(ark);
+    { const hull = new T.MeshStandardMaterial({ color: 0xd8dde4, roughness: 0.4, metalness: 0.5 }), dk = new T.MeshStandardMaterial({ color: 0x3a4658, roughness: 0.5, metalness: 0.6 }), gl = new T.MeshBasicMaterial({ color: new T.Color(0.5, 1.6, 2.0), toneMapped: false });
+      const body = new T.Mesh(new T.CapsuleGeometry(2.2, 12, 6, 16), hull); body.rotation.x = Math.PI / 2; ark.add(body);
+      for (const s of [-1, 1]) { const w = new T.Mesh(new T.BoxGeometry(11, 0.4, 5), dk); w.position.set(s * 6.5, 0, 3); w.rotation.z = s * 0.06; ark.add(w); const e = new T.Mesh(new T.CylinderGeometry(0.9, 1.2, 3, 12), dk); e.rotation.x = Math.PI / 2; e.position.set(s * 4, -0.2, 8); ark.add(e); const f = new T.Mesh(new T.SphereGeometry(0.9, 10, 8), gl); f.position.set(s * 4, -0.2, 9.6); ark.add(f); }
+      const cp = new T.Mesh(new T.SphereGeometry(1.5, 12, 8), new T.MeshBasicMaterial({ color: 0x80d8ff })); cp.position.set(0, 1.4, -5); cp.scale.set(1, 0.6, 1.4); ark.add(cp); }
+    if (home) ark.rotation.y = Math.PI;   // bow toward Unity
+    const caps = home
+      ? [[0, 'OCKNOG IS GREEN AGAIN'], [10, 'THE ARK LEAVES THE PLATEAU, THE SCIENTISTS ON BOARD'], [20, 'UNITY AHEAD · HOME'], [29, 'THE COUNCIL IS WAITING']]
+      : [[0, 'THE ARK LIFTS OFF FROM KRYOS WITH THE SCIENTISTS'], [8, 'UNITY FALLS AWAY BEHIND US'], [16, 'DEEP SPACE · A LONG QUIET FLIGHT'], [25, 'OCKNOG · A DRY WORLD UNDER A CLOUD OF POISON DUST'], [34, 'TWO MOONS, AND NO GREEN ANYWHERE'], [41, 'DOWN THROUGH THE DUST TO THE PLATEAU']];
+    let t = 0, last = performance.now(), fin = false, ci = -1;
+    const ease = u => u * u * (3 - 2 * u);
+    const end = () => { if (fin) return; fin = true; wrap.style.opacity = 0; setTimeout(() => { removeEventListener('resize', fit); R.dispose(); wrap.remove(); done && done(); }, 1700); };
+    skip.onclick = end;
+    const V = (x, y, z) => new T.Vector3(x, y, z);
+    function step() {
+      if (fin) return; const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt; const u = Math.min(1, t / TOT), e = ease(u);
+      for (let i = caps.length - 1; i >= 0; i--) if (t >= caps[i][0]) { if (ci !== i) { ci = i; cap.style.opacity = 0; setTimeout(() => { cap.textContent = caps[i][1]; cap.style.opacity = 1; }, 500); } break; }
+      const z0 = home ? -2000 : 6, z1 = home ? -110 : -2160, z = z0 + (z1 - z0) * e, y = home ? 30 * e : 4 + 30 * Math.sin(Math.min(1, u * 3) * 1.57);
+      ark.position.set(0, y, z); ark.rotation.z = Math.sin(t * 0.7) * 0.05;
+      const back = home ? -1 : 1;
+      cam.position.set(Math.sin(t * 0.15) * 3, y + 5, z + back * (24 + 14 * Math.min(1, t / 6))); cam.lookAt(V(0, y + 1, z - back * 140));
+      if (!home && u > 0.82) { const k = (u - 0.82) / 0.18; ark.position.y = y - k * 40; cam.lookAt(V(0, y - k * 120, z - 150)); dust.style.opacity = Math.min(1, k * 1.15); }
+      if (home && u > 0.85) dust.style.opacity = 0;
+      ock.rotation.y += dt * 0.01; unity.rotation.y += dt * 0.012; if (S.userData.dc) S.userData.dc.rotation.y -= dt * 0.015;
+      R.render(S, cam);
+      if (t >= TOT) end(); else requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  };
+
+  // the story hooks: fly out when the first Ocknog build begins, and fly home when the soil is mended
+  P.story = function (api) {
+    const idx = api.buildIdx, st = api.stage;
+    if (!api.flag('flownOut')) {
+      if (idx > 1) { api.setFlag('flownOut', true); }
+      else if (idx === 1 && st === 'build' && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
+    }
+    if (api.flag('opened') && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
+  };
+})();
