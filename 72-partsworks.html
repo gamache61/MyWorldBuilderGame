@@ -222,7 +222,7 @@ window.__PW = { x: 590, z: 620, R: 700, F: 330, T: 300, Y: null };  // the Parts
     else { if (F.dash) F.dash.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) F.cam = cam.position.clone(); F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const dq = Math.hypot(F.pos.x - GQ.x, F.pos.z - GQ.z);
-    if (F.msgT > 0) F.msgT -= dt; else hint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · B ×4 · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - gy(F.pos.x, F.pos.z)) + ' M · ORCHARD VALLEY ' + (dq / 1000).toFixed(1) + ' KM');
+    if (F.msgT > 0) F.msgT -= dt; else hint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · B ×4 · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - gy(F.pos.x, F.pos.z)) + ' M · KRYOS CITY ' + (dq / 1000).toFixed(1) + ' KM');
   };
   requestAnimationFrame(loop);
 })();
