@@ -606,7 +606,7 @@ window.OKP = window.OKP || {
     } else if (window.__shipFly && window.__okFly !== false && (api.flag('flownHome') || this._fh)) { if (window.__shipFly.toString().indexOf('K.x - 1550') > -1) window.__shipFly = null; }
     if (!api.flag('flownOut')) {
       if (idx > 1) { api.setFlag('flownOut', true); }
-      else if (idx === 1 && st === 'build' && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
+      else if (idx === 1 && (api.warping || st === 'build') && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }
     }
     if (((this.HOME_WHEN || (() => idx >= 3 && (st === 'done' || st === 'none')))(api, idx, st)) && !api.flag('flownHome') && !this._fh) { this._fh = true; this.flight(api, 'home', () => { api.setFlag('flownHome', true); }); }
     if (api.flag('flownHome') && !document.getElementById('nextMeeting')) {

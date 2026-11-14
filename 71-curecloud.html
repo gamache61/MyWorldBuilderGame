@@ -1963,7 +1963,7 @@ const api = {
   isBuilt: (type, slotIndex) => placed.some(p => p.type === type && (slotIndex === undefined || p.s === slotIndex)),
   slotFilled: (i) => placed.some(p => p.b === (curBuild() || {}).id && p.s === i),
   get trip() { return G.trip; },
-  get buildIdx() { return G.idx; }, get stage() { return G.stage; },
+  get buildIdx() { return G.idx; }, get stage() { return G.stage; }, get warping() { return !!warp && warp.from === 'earth'; },
   get stock() { return G.stock || 0; },
   flag: k => !!(G.flags && G.flags[k]),
   setFlag: (k, v) => { (G.flags || (G.flags = {}))[k] = v; save(); },
