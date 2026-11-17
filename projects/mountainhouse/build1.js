@@ -81,7 +81,7 @@ window.MTN = window.MTN || {
         this.slots = [];
         for (const t of def.order) def.at[t].forEach(([ax, az], k) => {
           const x = ax + OFF[0], z = az + OFF[1];
-          this.slots.push({ type: t, k, x, z, y: PLAY.ground(api, x, z), fx: V(0, Math.min(types[t].h || 6, 30) / 2, 0), look: V(0, 6, 0), eye: V(E[0] + OFF[0], E[1], E[2] + OFF[1]) });
+          const gy0 = PLAY.ground(api, x, z); this.slots.push({ type: t, k, x, z, y: gy0, fx: V(0, Math.min(types[t].h || 6, 30) / 2, 0), look: V(0, 6, 0), eye: V(E[0] + OFF[0] - x, E[1] - gy0, E[2] + OFF[1] - z) });   // the camera spot is an offset from the part: E is a place near the build, so the follow camera stays close and above the ground
         });
         if (def.finish) this.finishCam = def.finish.cam.map(c => V(c[0] + OFF[0], c[1], c[2] + OFF[1]));
       },
@@ -169,6 +169,7 @@ window.MTN = window.MTN || {
         if (hit) o.instanceMatrix.needsUpdate = true; }); }
   },
   update(api, dt, t) {
+    window.MTN.api = api;
     if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.kryos(api); } catch (e) { console.warn('kryos city', e); } }
     if (!this._fin && api.placed && api.placed.length) { this._fin = true; this.finished(api); }
     if (this.bgTick) this.bgTick(api, dt, t);

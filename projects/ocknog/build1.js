@@ -169,7 +169,7 @@ window.OKP = window.OKP || {
         if (hit) o.instanceMatrix.needsUpdate = true; }); }
   },
   update(api, dt, t) {
-    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.kryos(api); } catch (e) { console.warn('kryos city', e); } }
+    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; }
     if (!this._fin && api.placed && api.placed.length) { this._fin = true; this.finished(api); }
     if (this.bgTick) this.bgTick(api, dt, t);
     if (this.story) { try { this.story(api); } catch (e) { console.warn('ocknog story', e); } }
@@ -223,7 +223,7 @@ window.OKP = window.OKP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [['childrensplayland', 'PLAY'], ['greatschool', 'SCHOOL'], ['newhomes', 'HOMES'], ['houseofhealing', 'HEAL'], ['shoppingcentre', 'SHOP'], ['animalcare', 'VET'], ['skyrail', 'SKY'], ['homewardtwo', 'HW2'], ['kryosarena', 'ARENA'], ['languagehouse', 'LANG'], ['greatlibrary', 'LIB'], ['gateofwelcome', 'GATE'], ['homewardthree', 'HW3'], ['mountainhouse', 'MTN'], ['seedvault', 'SDV'], ['guestsquarter', 'GSQ'], ['orchardvalley', 'ORV'], ['harvestfestival', 'HFG'], ['eldersgarden', 'EGP']];
+  P.FINISHED = [];   // Ocknog is its own planet: none of Unity's buildings stand here
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
@@ -598,13 +598,13 @@ window.OKP = window.OKP || {
     // the Ark itself sits down at Ocknog once the flight out is over, and comes back to Kryos after the flight home
     if (api.flag('flownOut') && !api.flag('flownHome') && !this._fh) {
       const K = window.__OK;
-      if (K && !window.__shipFly) {
+      if (false && K && !window.__shipFly) {   // the Ark stays on its landing pad; the camp is beamed to
         const dy = (K.Y != null ? K.Y : api.DECK_TOP) - api.DECK_TOP;
-        window.__arkOff = { x: K.x - 1550, y: dy, z: K.z };
-        window.__shipFly = (ship) => { if (window.__G && window.__G.loc !== 'site') return; ship.position.x += K.x - 1550; ship.position.z += K.z; ship.position.y += dy; };
+        window.__arkOff = { x: K.x - 520, y: dy, z: K.z };
+        window.__shipFly = (ship) => { if (window.__G && window.__G.loc !== 'site') return; ship.position.x += K.x - 520; ship.position.z += K.z; ship.position.y += dy; };
         
       }
-    } else if (window.__shipFly && window.__okFly !== false && (api.flag('flownHome') || this._fh)) { if (window.__shipFly.toString().indexOf('K.x - 1550') > -1) window.__shipFly = null; window.__arkOff = null; }
+    } else if (window.__shipFly && window.__okFly !== false && (api.flag('flownHome') || this._fh)) { if (window.__shipFly.toString().indexOf('K.x - 520') > -1) window.__shipFly = null; window.__arkOff = null; }
     if (!api.flag('flownOut')) {
       if (idx > 1) { api.setFlag('flownOut', true); }
       else if (idx === 1 && (api.warping || st === 'build') && !this._fo) { this._fo = true; api.setFlag('flownOut', true); this.flight(api, 'out'); }

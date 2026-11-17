@@ -941,10 +941,10 @@ function labelFor(type) {
 const earthGroup = new THREE.Group(); scene.add(earthGroup);
 const siteGroup = new THREE.Group(); scene.add(siteGroup);
 for (const n of ['sitePlanet', 'siteAtmo']) { const o = scene.getObjectByName(n); if (o) { siteGroup.add(o); o.visible = false; } }
-// --- Planet Unity: the Kryos plateau, forests, hills and a green-blue sky ---
+// --- Planet Unity: the Ironvale industrial plateau (its own site, far from Kryos city): bare rock and gravel, a few trees, high ridges and a green-blue sky ---
 const COAX_SKY = new THREE.Color(0.62, 0.76, 0.84);
 const coaxFog = new THREE.Fog(COAX_SKY, 3500, 34000);
-const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400;
+const KRYOS_C = { x: 480, z: 40 }, PLATEAU_R = 1300;   // centre of the Ironvale plateau (name kept from the shared site code)
 window.coaxH = (x, z) => coaxH(x, z);
 const coaxH = (() => {
   const P = new Uint8Array(512); { let s = 4242; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 16807) % 2147483647; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
@@ -959,8 +959,8 @@ const coaxH = (() => {
     // the plateau edge drops into forested valleys, then rolls up into hills and far mountains
     const k = THREE.MathUtils.smoothstep(r, PLATEAU_R, PLATEAU_R + 700);
     const valley = DECK_TOP - 160 + (fbm(x / 1400, z / 1400, 5) - 0.5) * 380;
-    const far = THREE.MathUtils.smoothstep(r, 5000, 16000);
-    const mtn = Math.pow(fbm(x / 3800 + 7, z / 3800, 5), 2.2) * 4200 * far;
+    const far = THREE.MathUtils.smoothstep(r, 2600, 9000);
+    const mtn = Math.pow(fbm(x / 3000 + 7, z / 3000, 5), 2.0) * 4600 * far;
     return top * (1 - k) + (valley + mtn) * k;
   };
 })();
@@ -984,7 +984,7 @@ const coaxH = (() => {
   const N = 260, SIZE = 60000;
   const geo = new THREE.PlaneGeometry(SIZE, SIZE, N, N); geo.rotateX(-Math.PI / 2);
   const pa = geo.attributes.position, cols = new Float32Array(pa.count * 3), c = new THREE.Color();
-  const meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
+  const meadow = new THREE.Color(0x9a8f78), forest = new THREE.Color(0x6e6a5c), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
   for (let i = 0; i < pa.count; i++) {
     const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH(x, z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
     pa.setXYZ(i, x, y, z);
@@ -995,24 +995,24 @@ const coaxH = (() => {
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3)); geo.computeVertexNormals();
   const grassTex = canvasTex(512, 512, (g, w, h) => {
-    g.fillStyle = '#b8c8a8'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 30000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(90,120,70,.16)' : 'rgba(250,255,235,.16)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
+    g.fillStyle = '#cfc6b2'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 30000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(90,80,65,.18)' : 'rgba(255,250,235,.16)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
   });
   grassTex.repeat.set(1400, 1400);
   const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; siteGroup.add(ground);
   // the plateau, cleared and ready to build on: a ring of light marker posts round the city site
   const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1) });
-  for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, x = KRYOS_C.x + Math.cos(a) * 900, z = KRYOS_C.z + Math.sin(a) * 900; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
+  // (no city marker posts here: this plateau is the factory district's own site)
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const CON = 16000, BRD = 9000;
+  const CON = 3500, BRD = 500;
   const conifer = new THREE.InstancedMesh(new THREE.ConeGeometry(4.5, 22, 6).translate(0, 15, 0), new THREE.MeshStandardMaterial({ color: 0x1f4a22, roughness: 0.9, flatShading: true }), CON);
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), tc = new THREE.Color();
-  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1000 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z); if (Math.hypot(x - 960, z) < 680) continue;   // keep the wild forest off the council grounds, its plaza, paths and pools
-    if (y < DECK_TOP + 1300 && (r > 1150 || rnd() < 0.35)) return [x, y, z]; } };
+  const spot = () => { for (;;) { const a = rnd() * Math.PI * 2, r = 1500 + Math.pow(rnd(), 1.6) * 9000, x = KRYOS_C.x + Math.cos(a) * r, z = KRYOS_C.z + Math.sin(a) * r, y = coaxH(x, z);    // keep the wild forest off the council grounds, its plaza, paths and pools
+    if (y < DECK_TOP + 1300 && r > 1500) return [x, y, z]; } };
   let ti = 0;
   for (let i = 0; i < CON + BRD; i++) {
     const [x, y, z] = spot(), s = 0.7 + rnd() * 0.9;
@@ -1023,7 +1023,7 @@ const coaxH = (() => {
   }
   for (const t of [conifer, crown, trunks]) { t.castShadow = true; t.receiveShadow = true; siteGroup.add(t); }
   // a river winding through the valley below the plateau
-  const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60, a = -1.2 + t * 2.6, r = 2300 + Math.sin(t * 9) * 260; pts.push(V(KRYOS_C.x + Math.cos(a) * r, 0, KRYOS_C.z + Math.sin(a) * r)); }
+  const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60, a = -1.2 + t * 2.6, r = 2000 + Math.sin(t * 9) * 260; pts.push(V(KRYOS_C.x + Math.cos(a) * r, 0, KRYOS_C.z + Math.sin(a) * r)); }
   const curve = new THREE.CatmullRomCurve3(pts), rv = [], ri = [];
   for (let i = 0; i <= 300; i++) { const t = i / 300, p = curve.getPoint(t), tg = curve.getTangent(t), nx = -tg.z, nz = tg.x, w = 55;
     for (const s of [-1, 1]) { const x = p.x + nx * w * s, z = p.z + nz * w * s; rv.push(x, Math.max(coaxH(p.x, p.z), coaxH(x, z)) + 14, z); } if (i) { const b = (i - 1) * 2; ri.push(b, b + 2, b + 1, b + 1, b + 2, b + 3); } }
@@ -2759,7 +2759,7 @@ function updateWarp(dt) {
   const m = streaks.material;
   if (warp.phase === 'out') {
     if (warp.from === 'earth' || warp.from === 'site') {
-      // open the roof, lift up clear of the warehouse (or the Kryos plateau), climb above the mountains, then jump straight ahead
+      // open the roof, lift up clear of the warehouse (or the plateau), climb above the mountains, then jump straight ahead
       if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapCam = [V(520, 260, 640), V(0, 0, 0)]; return; }
       const LIFT = 320, TL = 4.5, CRUISE = warp.from === 'earth' ? 4200 : 6200;
       if (warp.t < TL) {
@@ -2812,7 +2812,7 @@ function updateWarp(dt) {
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
     if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   } else {
-    // drop down through Unity's sky onto the Kryos plateau
+    // drop down through Unity's sky onto the Ironvale plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
     if (k < 1) snapCam = [V(700, 160, 900), V(0, warpY * 0.85, 0)];

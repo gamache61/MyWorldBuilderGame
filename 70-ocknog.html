@@ -80,7 +80,7 @@ window.__GQ = { x: -700, z: -690, Y: -28.4 };  // the edge of Kryos city: the Oc
 window.__OV = { x: -5432, z: -7452, R: 700, F: 330, T: 300, Y: null };  // the Ocknog (kept so it shows built)
 window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the Ocknog (kept so it shows built)
 window.__EG = { x: -3032, z: -5652, R: 700, F: 330, T: 300, Y: null };
-window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ocknog: a dusty, poisoned plain, far from the green valleys  // the Ocknog: a low flat valley floor below the vault (its height is worked out from the ground)</script>
+window.__OK = { x: 3400, z: 0, R: 3800, F: 330, T: 300, Y: null };  // Ocknog: a dusty, poisoned plain, far from the green valleys  // the Ocknog: a low flat valley floor below the vault (its height is worked out from the ground)</script>
 <script>
   // The Ocknog files live in projects/ocknog next to this file.
   // If they are not found there, the game also looks in projects/ocknog, an ocknog folder, and next to this file.
@@ -133,21 +133,6 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     return g;
   }
 
-  function makeDash(T) {   // the cockpit dash: a dark console with glowing screens, window pillars and a flight yoke, fixed to the camera
-    const d = new T.Group(), dark = new T.MeshStandardMaterial({ color: 0x0b1424, roughness: 0.4, metalness: 0.6 }), trim = new T.MeshStandardMaterial({ color: 0x1c2c4a, roughness: 0.3, metalness: 0.7 });
-    const scr = (c) => new T.MeshBasicMaterial({ color: c, toneMapped: false }), add = (geo, mat, x, y, z, rx = 0, ry = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); d.add(m); return m; };
-    add(new T.BoxGeometry(3.8, 0.5, 1.3), dark, 0, -0.98, -2.0, 0.22);
-    add(new T.BoxGeometry(3.8, 0.06, 0.1), trim, 0, -0.8, -2.5, 0.22);
-    add(new T.PlaneGeometry(0.9, 0.34), scr(new T.Color(0.3, 1.6, 1.3)), -0.9, -0.8, -2.38, -0.2);
-    add(new T.PlaneGeometry(0.9, 0.34), scr(new T.Color(0.4, 1.0, 2.0)), 0.9, -0.8, -2.38, -0.2);
-    add(new T.PlaneGeometry(0.5, 0.34), scr(new T.Color(2.0, 1.3, 0.4)), 0, -0.8, -2.38, -0.2);
-    for (const x of [-1.35, -1.2, 1.2, 1.35]) add(new T.SphereGeometry(0.035, 8, 6), scr(new T.Color(x < 0 ? 2.0 : 0.5, x < 0 ? 0.5 : 2.0, 0.4)), x, -0.88, -2.3);
-    for (const s of [-1, 1]) { add(new T.BoxGeometry(0.16, 2.6, 0.3), dark, s * 1.75, 0, -2.1, 0, 0).rotation.z = -s * 0.28; }
-    add(new T.BoxGeometry(3.8, 0.12, 0.3), dark, 0, 0.98, -2.1);
-    add(new T.CylinderGeometry(0.04, 0.05, 0.55, 8), trim, 0, -0.95, -1.6, -0.5);
-    const yk = add(new T.TorusGeometry(0.2, 0.03, 6, 20, Math.PI), trim, 0, -0.74, -1.5, 0.5); yk.rotation.z = Math.PI;
-    d.visible = false; return d;
-  }
   const gqPad = () => [GQ.x + 140, GQ.z + 60];
   const parkAt = (x, z, yaw) => { F.park = { x, y: gy(x, z) + 3.2, z, yaw: yaw || 0 }; };
 
@@ -161,7 +146,7 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     if (F.on || !window.__G || window.__G.loc !== 'site') { if (window.__G && window.__G.loc !== 'site') { hint('WARP TO OCKNOG FIRST (W) — THEN PRESS G'); setTimeout(() => hint(''), 3000); } return; }
     const T = await ensureTHREE(); if (!T) { hint('THE SHUTTLE COULD NOT LOAD'); return; }
     const W = window.__walk, walking = W && W.on;
-    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); F.dash = makeDash(T); window.__scene.add(window.__cam); window.__cam.add(F.dash); const q = gqPad(); parkAt(q[0], q[1], 0); }
+    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); if (window.SHUTTLE_DASH) { F.dash = window.SHUTTLE_DASH.make(T); window.__scene.add(window.__cam); window.__cam.add(F.dash.group); } const q = gqPad(); parkAt(q[0], q[1], 0); }
     if (!F.park) { const q = gqPad(); parkAt(q[0], q[1], 0); }
     // on foot and far from the shuttle: it comes to you
     if (walking && Math.hypot(W.pos.x - F.park.x, W.pos.z - F.park.z) > 22) {
@@ -191,7 +176,9 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const k = e.key.toLowerCase();
     if (k === 'g' && !e.repeat) { const cf = document.getElementById('confirm'); if (cf && cf.style.display === 'flex') return; e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
     if (!F.on) return;
+    if ((k === 'v' || k === 'w' || k === 'escape') && !e.repeat) { F.on = false; F.park = { x: F.pos.x, y: F.pos.y, z: F.pos.z, yaw: F.yaw }; F.keys.clear(); window.__controls.enabled = true; window.__controls.target.copy(F.pos); hint(''); return; }
     if (k !== 'm') e.stopImmediatePropagation();
+    if (k === 'n' && !e.repeat && F.dash) F.dash.zoomNext();
     if (k === 'c' && !e.repeat) { F.view = F.view === 'cab' ? 'chase' : 'cab'; F.cam = null; }
     if (k === 'b' && !e.repeat) { F.fast = !F.fast; F.msgT = 2; hint(F.fast ? 'SHUTTLE SPEED ×4' : 'SHUTTLE SPEED NORMAL'); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
@@ -205,8 +192,8 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const W = window.__walk;
     if (!F.on && W && W.on && window.__G.loc === 'site' && F.msgT <= 0) { const q = F.park; hint(!q ? 'PRESS G TO CALL YOUR SHUTTLE' : Math.hypot(W.pos.x - q.x, W.pos.z - q.z) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : 'PRESS G TO CALL YOUR SHUTTLE TO YOU'); }
     if (F.msgT > 0 && !F.on) F.msgT -= dt;
-    if (!F.on) { if (F.dash) F.dash.visible = false; if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); F.craft.visible = window.__G.loc === 'site'; } return; }
-    if (window.__G.loc !== 'site') { F.on = false; F.craft.visible = false; if (F.dash) F.dash.visible = false; window.__controls.enabled = true; hint(''); return; }
+    if (!F.on) { if (F.dash) F.dash.group.visible = false; if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); F.craft.visible = window.__G.loc === 'site'; } return; }
+    if (window.__G.loc !== 'site') { F.on = false; F.craft.visible = false; if (F.dash) F.dash.group.visible = false; window.__controls.enabled = true; hint(''); return; }
     const T = F.T, K = F.keys, mul = F.fast ? 4 : 1;
     if (K.has('arrowup')) F.spd = Math.min(300 * mul, F.spd + 100 * mul * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * mul * dt); else F.spd *= 1 - 0.04 * dt;
     const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / (60 * mul)) * 0.7);
@@ -216,18 +203,20 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const gmin = gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
     if (F.pos.y > 6000) F.pos.y = 6000;
     F.roll += (-turn * 0.5 * Math.min(1, F.spd / (50 * mul)) - F.roll) * Math.min(1, 4 * dt);
-    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0));
+    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.view === 'chase' ? F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0) : 0);
     const cam = window.__cam, c = window.__controls;
-    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = true; if (F.dash) F.dash.visible = true; }
-    else { if (F.dash) F.dash.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = !F.dash; if (F.dash) F.dash.group.visible = true; }
+    else { F.craft.visible = true; if (F.dash) F.dash.group.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) F.cam = cam.position.clone(); F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const dq = Math.hypot(F.pos.x - GQ.x, F.pos.z - GQ.z);
-    if (F.msgT > 0) F.msgT -= dt; else hint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · B ×4 · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - gy(F.pos.x, F.pos.z)) + ' M · ORCHARD VALLEY ' + (dq / 1000).toFixed(1) + ' KM');
+    if (F.dash && F.dash.group.visible) { F.dash.update({ speed: F.spd * 3.6, maxSpeed: 1080 * mul, alt: F.pos.y - gy(F.pos.x, F.pos.z), climb: F.vy, headingDeg: Math.atan2(fx, -fz) * 180 / Math.PI, x: F.pos.x, z: F.pos.z, fx, fz, fast: F.fast }, dt); if (window.__renderer) F.dash.renderDown(window.__renderer, window.__scene, F.pos, [F.dash.group, F.craft], dt, fx, fz); }
+    if (F.msgT > 0) F.msgT -= dt; else hint('');
   };
   requestAnimationFrame(loop);
 })();
 
 </script>
+<script src="projects/shuttledash.js" onerror="this.remove()"></script>
 <script src="projects/projects.js" onerror="this.remove()"></script>
 <script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script src="projects/townspeople.js" onerror="this.remove()"></script>
@@ -281,7 +270,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ---------- renderer / scene ---------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true }); window.__renderer = renderer;
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1081,9 +1070,9 @@ const earthGroup = new THREE.Group(); scene.add(earthGroup);
 const siteGroup = new THREE.Group(); scene.add(siteGroup);
 for (const n of ['sitePlanet', 'siteAtmo']) { const o = scene.getObjectByName(n); if (o) { siteGroup.add(o); o.visible = false; } }
 // --- Planet Unity: the Kryos plateau, forests, hills and a green-blue sky ---
-const COAX_SKY = new THREE.Color(0.62, 0.76, 0.84);
-const coaxFog = new THREE.Fog(COAX_SKY, 3500, 34000);
-const KRYOS_C = { x: 120, z: 0 }, PLATEAU_R = 1400;
+const COAX_SKY = new THREE.Color(0.8, 0.62, 0.44);   // Ocknog is its own planet: a dusty ochre sky
+const coaxFog = new THREE.Fog(COAX_SKY, 1800, 26000);
+const KRYOS_C = { x: 300, z: 0 }, PLATEAU_R = 3800;
 const MT = window.__MT;
 window.coaxH = (x, z) => coaxH(x, z);
 const coaxH0 = (() => {
@@ -1095,7 +1084,7 @@ const coaxH0 = (() => {
   window.__coaxFbm = fbm;
   return (x, z) => {
     const r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
-    const top = DECK_TOP - 0.4 + (fbm(x / 300, z / 300, 2) - 0.5) * 3 * THREE.MathUtils.smoothstep(r, 400, PLATEAU_R);
+    const top = DECK_TOP - 0.4 + (fbm(x / 300, z / 300, 2) - 0.5) * 3 * THREE.MathUtils.smoothstep(r, 3000, PLATEAU_R);
     if (r < PLATEAU_R) return top;
     // the plateau edge drops into forested valleys, then rolls up into hills and far mountains
     const k = THREE.MathUtils.smoothstep(r, PLATEAU_R, PLATEAU_R + 700);
@@ -1120,31 +1109,32 @@ const OKN = window.__OK; OKN.Y = coaxH0(OKN.x, OKN.z);
 const hfBump = (x, z) => { const d = Math.hypot(x - HF.x, z - HF.z); if (d >= HF.F + HF.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, HF.F, HF.F + HF.T); return w * (HF.Y - coaxH0(x, z)); };
 const egBump = (x, z) => { const d = Math.hypot(x - EG.x, z - EG.z); if (d >= EG.F + EG.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, EG.F, EG.F + EG.T); return w * (EG.Y - coaxH0(x, z)); };
 const okBump = (x, z) => { const d = Math.hypot(x - OKN.x, z - OKN.z); if (d >= OKN.F + OKN.T) return 0; const w = 1 - THREE.MathUtils.smoothstep(d, OKN.F, OKN.F + OKN.T); return w * (OKN.Y - coaxH0(x, z)); };
-const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z) + hfBump(x, z) + egBump(x, z) + okBump(x, z);
+const coaxH = (x, z) => coaxH0(x, z) + okBump(x, z);
 {
   const sky = new THREE.Mesh(new THREE.SphereGeometry(42000, 48, 24), new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { sun: { value: sunDir.clone() } },
     vertexShader: `varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
     fragmentShader: `uniform vec3 sun;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);
-      vec3 zen=vec3(0.16,0.42,0.66),hor=vec3(0.62,0.76,0.84);vec3 c=mix(hor,zen,pow(h,0.55));if(vD.y<0.)c=hor;
+      vec3 zen=vec3(0.40,0.25,0.22),hor=vec3(0.86,0.62,0.40);vec3 c=mix(hor,zen,pow(h,0.55));if(vD.y<0.)c=hor;
       float s=max(dot(vD,normalize(sun)),0.);c+=vec3(1.,0.9,0.7)*(pow(s,900.)*14.+pow(s,24.)*0.2);gl_FragColor=vec4(c,1.);}`,
   }));
   sky.renderOrder = -1; siteGroup.add(sky);
-  // reflections for the glass towers come from Unity's own sky
+  // reflections for the spires come from Ocknog's own sky
   { const es = new THREE.Scene(); es.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), sky.material));
-    const gd = new THREE.Mesh(new THREE.CircleGeometry(100, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x55704a })); gd.position.y = -2; es.add(gd);
+    const gd = new THREE.Mesh(new THREE.CircleGeometry(100, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x7a5a3c })); gd.position.y = -2; es.add(gd);
     window.__coaxEnv = pmrem.fromScene(es, 0.02).texture; window.__earthEnv = scene.environment; }
-  // the big moon Vesh hanging in the sky
-  const vesh = new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 20), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.86, 0.86, 0.84), fog: false, transparent: true, opacity: 0.55, depthWrite: false }));
-  vesh.position.set(-16000, 9500, -26000); vesh.renderOrder = -1; siteGroup.add(vesh);
+  // Ocknog's two moons
+  for (const [col, rad, px, py, pz] of [[[0.74, 0.66, 0.86], 1300, -16000, 9000, -26000], [[0.95, 0.7, 0.45], 520, 21000, 6500, -19000]]) {
+    const mo = new THREE.Mesh(new THREE.SphereGeometry(rad, 32, 20), new THREE.MeshBasicMaterial({ color: new THREE.Color(...col), fog: false, transparent: true, opacity: 0.6, depthWrite: false }));
+    mo.position.set(px, py, pz); mo.renderOrder = -1; siteGroup.add(mo); }
   // ground
   const N = 260, SIZE = 60000;
   const geo = new THREE.PlaneGeometry(SIZE, SIZE, N, N); geo.rotateX(-Math.PI / 2);
   const pa = geo.attributes.position, cols = new Float32Array(pa.count * 3), c = new THREE.Color();
-  const meadow = new THREE.Color(0x4f7a36), forest = new THREE.Color(0x2c5a26), rock = new THREE.Color(0x7a776c), snow = new THREE.Color(0xeef3f6);
+  const meadow = new THREE.Color(0xa98a5c), forest = new THREE.Color(0x8a6a46), rock = new THREE.Color(0x7a5a44), snow = new THREE.Color(0xd2b88e);   // Ocknog: dust, clay and red rock, no grass
   for (let i = 0; i < pa.count; i++) {
     const x = pa.getX(i) + KRYOS_C.x, z = pa.getZ(i) + KRYOS_C.z, y = coaxH0(x, z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
-    pa.setXYZ(i, x, (Math.hypot(x - SV.x, z - SV.z) < SV.R + 250 || Math.hypot(x - OV.x, z - OV.z) < OV.R + 250 || Math.hypot(x - HF.x, z - HF.z) < HF.R + 250 || Math.hypot(x - EG.x, z - EG.z) < EG.R + 250 || Math.hypot(x - OKN.x, z - OKN.z) < OKN.R + 250) ? Math.min(y, coaxH(x, z)) - 6 : y, z);
+    pa.setXYZ(i, x, (Math.hypot(x - OKN.x, z - OKN.z) < OKN.R + 250 || Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z) < 2640) ? Math.min(y, coaxH(x, z)) - 6 : y, z);
     c.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700));
     if (y > DECK_TOP + 900) c.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
     if (y > DECK_TOP + 2400) c.lerp(snow, THREE.MathUtils.smoothstep(y, DECK_TOP + 2400, DECK_TOP + 2900));
@@ -1152,91 +1142,17 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3)); geo.computeVertexNormals();
   const grassTex = canvasTex(512, 512, (g, w, h) => {
-    g.fillStyle = '#b8c8a8'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 30000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(90,120,70,.16)' : 'rgba(250,255,235,.16)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
+    g.fillStyle = '#e0d0b0'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 30000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(120,80,50,.16)' : 'rgba(255,240,210,.16)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
   });
   grassTex.repeat.set(1400, 1400);
   const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: grassTex, roughness: 0.95 }));
   ground.receiveShadow = true; siteGroup.add(ground);
-  // the plateau, cleared and ready to build on: a ring of light marker posts round the city site
-  const postM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 1.6, 1.1) });
-  for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, x = KRYOS_C.x + Math.cos(a) * 900, z = KRYOS_C.z + Math.sin(a) * 900; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), postM); m.position.set(x, coaxH(x, z) + 3, z); siteGroup.add(m); }
-  // the mountain top: a finer mesh laid over the levelled summit so the house sits on smooth ground
-  { const mn = 200, ms = MT.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x5a8a3c);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + MT.x, z = mp.getZ(i) + MT.z, y = coaxH(x, z), d = Math.hypot(x - MT.x, z - MT.z), r = Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z);
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, MT.R - 140, MT.R), z);
-      cc.copy(meadow).lerp(forest, THREE.MathUtils.smoothstep(r, 900, 1700)); if (y > DECK_TOP + 900) cc.lerp(rock, THREE.MathUtils.smoothstep(y, DECK_TOP + 900, DECK_TOP + 1800));
-      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, MT.F, MT.F + 70)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
-    // a landing beacon on the summit, so the mountain top can be found from far away
-    const bx = MT.x - 105, bz = MT.z - 30, by = MT.Y + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 30, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 15, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(6, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.2, 1.6), toneMapped: false })); bulb.position.set(bx, by + 31, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 2500, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.2, 1.0, 0.8), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 1250, bz); siteGroup.add(beam); }
-  // the vault terrace: a finer mesh laid over the levelled ground at the foot of the mountain
-  { const mn = 200, ms = SV.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x6a9a46);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + SV.x, z = mp.getZ(i) + SV.z, y = coaxH(x, z), d = Math.hypot(x - SV.x, z - SV.z);
-      const sl = Math.hypot(coaxH(x + 7, z) - y, coaxH(x, z + 7) - y) / 7;
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, SV.R - 140, SV.R), z);
-      cc.copy(meadow).lerp(forest, 0.35).lerp(rock, THREE.MathUtils.smoothstep(sl, 0.3, 0.75));
-      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, SV.F - 30, SV.F + 90)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
-    // a green beacon on the terrace edge, so the vault can be found from far away
-    const bx = SV.x - 150, bz = SV.z + 60, by = coaxH(bx, bz) + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.2, 1.0), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.2, 1.0, 0.5), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
-  // the valley floor: a finer mesh of green meadow laid over the levelled ground, with an amber beacon so it can be found from far away
-  { const mn = 220, ms = OV.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x76aa50);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + OV.x, z = mp.getZ(i) + OV.z, y = coaxH(x, z), d = Math.hypot(x - OV.x, z - OV.z);
-      const sl = Math.hypot(coaxH(x + 7, z) - y, coaxH(x, z + 7) - y) / 7;
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, OV.R - 140, OV.R), z);
-      cc.copy(meadow).lerp(forest, 0.3).lerp(rock, THREE.MathUtils.smoothstep(sl, 0.35, 0.8));
-      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, OV.F - 30, OV.F + 90)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
-    const bx = OV.x - 330, bz = OV.z + 40, by = coaxH(bx, bz) + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.5, 0.5), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.7, 0.2), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
-  // the festival green: a finer mesh of meadow laid over the levelled ground, with an amber beacon so it can be found from far away
-  { const mn = 220, ms = HF.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x76aa50);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + HF.x, z = mp.getZ(i) + HF.z, y = coaxH(x, z), d = Math.hypot(x - HF.x, z - HF.z);
-      const sl = Math.hypot(coaxH(x + 7, z) - y, coaxH(x, z + 7) - y) / 7;
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, HF.R - 140, HF.R), z);
-      cc.copy(meadow).lerp(forest, 0.3).lerp(rock, THREE.MathUtils.smoothstep(sl, 0.35, 0.8));
-      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, HF.F - 30, HF.F + 90)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
-    const bx = HF.x - 330, bz = HF.z + 40, by = coaxH(bx, bz) + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.5, 0.5), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.7, 0.2), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
-  // the elders garden: a finer mesh of meadow laid over the levelled ground, with an amber beacon so it can be found from far away
-  { const mn = 220, ms = EG.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
-    const mp = mg.attributes.position, mc = new Float32Array(mp.count * 3), cc = new THREE.Color(), lawn = new THREE.Color(0x76aa50);
-    for (let i = 0; i < mp.count; i++) { const x = mp.getX(i) + EG.x, z = mp.getZ(i) + EG.z, y = coaxH(x, z), d = Math.hypot(x - EG.x, z - EG.z);
-      const sl = Math.hypot(coaxH(x + 7, z) - y, coaxH(x, z + 7) - y) / 7;
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, EG.R - 140, EG.R), z);
-      cc.copy(meadow).lerp(forest, 0.3).lerp(rock, THREE.MathUtils.smoothstep(sl, 0.35, 0.8));
-      cc.lerp(lawn, 1 - THREE.MathUtils.smoothstep(d, EG.F - 30, EG.F + 90)); mc.set([cc.r, cc.g, cc.b], i * 3); }
-    mg.setAttribute('color', new THREE.BufferAttribute(mc, 3)); mg.computeVertexNormals();
-    const mm = new THREE.Mesh(mg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 })); mm.receiveShadow = true; siteGroup.add(mm);
-    const bx = EG.x - 330, bz = EG.z + 40, by = coaxH(bx, bz) + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.0, 0.9), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.0, 0.5), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
-  { const mn = 360, ms = OKN.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
+  { const mn = 440, ms = OKN.R * 2, mg = new THREE.PlaneGeometry(ms, ms, mn, mn); mg.rotateX(-Math.PI / 2);
     const mp = mg.attributes.position, n = mp.count, dead = new Float32Array(n * 3), live = new Float32Array(n * 3), mc = new Float32Array(n * 3), rad = new Float32Array(n), cc = new THREE.Color();
     const d1 = new THREE.Color(0x9a7c58), d2 = new THREE.Color(0x6e553c), d3 = new THREE.Color(0xb59a74), g1 = new THREE.Color(0x76aa50), g2 = new THREE.Color(0x4f7a36);
     for (let i = 0; i < n; i++) { const x = mp.getX(i) + OKN.x, z = mp.getZ(i) + OKN.z, y = coaxH(x, z), d = Math.hypot(x - OKN.x, z - OKN.z), f = window.__coaxFbm(x / 60, z / 60, 3), f2 = window.__coaxFbm(x / 400 + 9, z / 400, 3);
-      mp.setXYZ(i, x, y + 0.6 - 60 * THREE.MathUtils.smoothstep(d, OKN.R - 140, OKN.R), z); rad[i] = d;
+      mp.setXYZ(i, x, y + 0.6 - 5 * (1 - THREE.MathUtils.smoothstep(Math.hypot(x - KRYOS_C.x, z - KRYOS_C.z), 2620, 2680)) - 60 * THREE.MathUtils.smoothstep(d, OKN.R - 140, OKN.R), z); rad[i] = d;
       cc.copy(d1).lerp(d2, THREE.MathUtils.smoothstep(f, 0.35, 0.75)).lerp(d3, THREE.MathUtils.smoothstep(f2, 0.5, 0.8) * 0.6); dead.set([cc.r, cc.g, cc.b], i * 3);
       cc.copy(g1).lerp(g2, THREE.MathUtils.smoothstep(f, 0.3, 0.8)); live.set([cc.r, cc.g, cc.b], i * 3); }
     mc.set(dead);
@@ -1245,14 +1161,140 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
     // the healing: 0 = poisoned dust, 1 = living green ground (it spreads out from the middle)
     window.__coaxSky = { sky: COAX_SKY, fog: coaxFog };
     window.__okGround = { set(c) { c = Math.max(0, Math.min(1, c)); if (c === this.c) return; this.c = c; for (let i = 0; i < n; i++) { const w = Math.max(0, Math.min(1, c * 1.7 - rad[i] / OKN.R * 0.7)); const e = w * w * (3 - 2 * w); for (let k = 0; k < 3; k++) mc[i * 3 + k] = dead[i * 3 + k] + (live[i * 3 + k] - dead[i * 3 + k]) * e; } cattr.needsUpdate = true; } };
-    const bx = OKN.x - 330, bz = OKN.z + 40, by = coaxH(bx, bz) + 0.6;
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 1, 26, 8), new THREE.MeshStandardMaterial({ color: 0xc8ced6, roughness: 0.4, metalness: 0.6 })); mast.position.set(bx, by + 13, bz); siteGroup.add(mast);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 1.4, 0.4), toneMapped: false })); bulb.position.set(bx, by + 27, bz); siteGroup.add(bulb);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 1800, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.6, 0.2), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); beam.position.set(bx, by + 900, bz); siteGroup.add(beam); }
+  }
+  /* ================= TUPONIC — the great alien city of Ocknog. It was already standing here; nobody built it. ================= */
+  {
+    const CX = KRYOS_C.x, CZ = KRYOS_C.z, Y0 = DECK_TOP;
+    let s2 = 31337; const R = () => (s2 = (s2 * 16807) % 2147483647) / 2147483647;
+    const rr = (a, b) => a + (b - a) * R();
+    const pick = a => a[(R() * a.length) | 0];
+    const GL = ['#5fe8ff', '#5fe8ff', '#b07cff', '#b07cff', '#ffb040'];
+    // ---- textures: ribbed bronze-bone hull with glowing seams and slit windows ----
+    const hullTex = canvasTex(256, 512, (g, w, h) => {
+      g.fillStyle = '#cfc6bb'; g.fillRect(0, 0, w, h);
+      for (let x = 0; x < w; x += 16) { const gr = g.createLinearGradient(x, 0, x + 16, 0); gr.addColorStop(0, 'rgba(0,0,0,.30)'); gr.addColorStop(.5, 'rgba(255,255,255,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.30)'); g.fillStyle = gr; g.fillRect(x, 0, 16, h); }
+      g.fillStyle = 'rgba(30,18,28,.6)'; for (let y = 0; y < h; y += 64) g.fillRect(0, y, w, 4);
+      for (let i = 0; i < 5000; i++) { g.fillStyle = Math.random() < .5 ? 'rgba(0,0,0,.09)' : 'rgba(255,255,255,.07)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 3); }
+    });
+    const glowTex = canvasTex(256, 512, (g, w, h) => {
+      g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+      for (let y = 0; y < h; y += 64) { g.fillStyle = pick(GL); g.globalAlpha = .95; g.fillRect(0, y, w, 4); g.globalAlpha = .3; g.fillRect(0, y + 4, w, 7); }
+      g.globalAlpha = .7; for (let i = 0; i < 170; i++) { g.fillStyle = pick(GL); g.fillRect((((Math.random() * 16) | 0) * 16) + 6, 10 + Math.random() * (h - 20), 4, 12); }
+      g.globalAlpha = 1;
+    }, true);
+    const hullMat = new THREE.MeshStandardMaterial({ map: hullTex, color: 0xffffff, roughness: 0.6, metalness: 0.15, emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 1.5 });
+    const plainMat = new THREE.MeshStandardMaterial({ color: 0x8a7462, roughness: 0.6, metalness: 0.45, emissive: 0x2a1a30, emissiveIntensity: 0.6 });
+    const glowMat = (c, k = 1) => new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(k), toneMapped: false });
+    // ---- helpers ----
+    const D = new THREE.Object3D(), tint = new THREE.Color();
+    const inst = (geo, mat, n) => { const m = new THREE.InstancedMesh(geo, mat, n); m.count = 0; m.frustumCulled = false; siteGroup.add(m); return m; };
+    const put = (m, x, y, z, sx, sy, sz, ry, col, k = 1) => { D.position.set(x, y, z); D.rotation.set(0, ry, 0); D.scale.set(sx, sy, sz); D.updateMatrix(); m.setMatrixAt(m.count, D.matrix); if (col != null) m.setColorAt(m.count, tint.set(col).multiplyScalar(k)); m.count++; };
+    const HULLS = [0xe0aa7a, 0xc8705a, 0xa27aa8, 0xf2e0c0, 0x9488b4, 0x98cab4, 0xe6bc7c];
+    // ---- shapes ----
+    const spireGeo = (seg, np) => {
+      const pts = []; for (let i = 0; i <= np; i++) { const t = i / np; const r = Math.pow(1 - t * .94, 1.25) * (1 + .26 * Math.sin(t * 22 + 1.2) * (1 - t * .6)) + (t < .06 ? (.06 - t) * 3 : 0); pts.push(new THREE.Vector2(Math.max(.012, r), t)); }
+      const g = new THREE.LatheGeometry(pts, seg), p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), a = Math.atan2(z, x), k = 1 + .09 * Math.cos(5 * a + y * 9); p.setXYZ(i, x * k, y, z * k); }
+      g.computeVertexNormals(); return g;
+    };
+    const mound = new THREE.IcosahedronGeometry(1, 1); { const p = mound.attributes.position; for (let i = 0; i < p.count; i++) { let x = p.getX(i), y = p.getY(i), z = p.getZ(i); const j = .85 + .3 * Math.abs(Math.sin(x * 7.1 + z * 5.3 + y * 3)); p.setXYZ(i, x * j, Math.max(0, y) * j, z * j); } mound.computeVertexNormals(); }
+    const bigM = inst(spireGeo(28, 72), hullMat, 160), smM = inst(spireGeo(10, 26), hullMat, 700);
+    const orbM = inst(new THREE.SphereGeometry(1, 10, 6), glowMat(0xffffff), 260);
+    const stalkM = inst(new THREE.CylinderGeometry(.5, 1, 1, 8, 1).translate(0, .5, 0), hullMat, 1600);
+    const domeM = inst(new THREE.SphereGeometry(1, 14, 9).scale(1, .62, 1), hullMat, 1800);
+    const ringM = inst(new THREE.TorusGeometry(1, .05, 5, 28).rotateX(Math.PI / 2), glowMat(0xffffff), 600);
+    const moundM = inst(mound, hullMat, 700);
+    const doorM = inst(new THREE.CircleGeometry(1, 10), glowMat(0xffffff), 700);
+    // ---- placement without overlaps, away from the glowing roads and the landing plaza ----
+    const PLAZA = 740, RINGS = [770, 1180, 1700, 2250], NSP = 12, SP0 = .13, SPW = 2 * Math.PI / NSP;
+    const cell = 160, grid = new Map();
+    const free = (x, z, r) => { const cx = Math.floor(x / cell), cz = Math.floor(z / cell); for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) { const L = grid.get((cx + i) + ',' + (cz + j)); if (L) for (const o of L) if (Math.hypot(o.x - x, o.z - z) < o.r + r + 8) return false; } return true; };
+    const claim = (x, z, r) => { const k = Math.floor(x / cell) + ',' + Math.floor(z / cell); let L = grid.get(k); if (!L) grid.set(k, L = []); L.push({ x, z, r }); };
+    const onRoad = (x, z, r) => { const dx = x - CX, dz = z - CZ, d = Math.hypot(dx, dz); for (const q of RINGS) if (Math.abs(d - q) < r + 16) return true; const a = (((Math.atan2(dz, dx) - SP0) % SPW) + SPW) % SPW; return Math.min(a, SPW - a) * d < r + 14; };
+    const spot = (r0, r1, rad, tries = 30) => { for (let i = 0; i < tries; i++) { const a = R() * Math.PI * 2, d = Math.sqrt(rr(r0 * r0, r1 * r1)), x = CX + Math.cos(a) * d, z = CZ + Math.sin(a) * d; if (d - rad < PLAZA + 20 || onRoad(x, z, rad) || !free(x, z, rad)) continue; return [x, z, a]; } return null; };
+    const towers = [];
+    const spire = (x, z, r, h, big) => {
+      put(big ? bigM : smM, x, Y0, z, r, h, r, R() * 6.28, pick(HULLS)); claim(x, z, r * 1.15); towers.push({ x, z, r, h });
+      if (h > 120) put(orbM, x, Y0 + h + r * .15, z, r * .22 + 2, r * .22 + 2, r * .22 + 2, 0, pick(GL), 2.4);
+    };
+    const pod = (x, z, rd) => {
+      const hs = rr(8, 26), c = pick(HULLS);
+      put(stalkM, x, Y0, z, rd * .38, hs, rd * .38, 0, c); put(domeM, x, Y0 + hs, z, rd, rd, rd, R() * 6, c);
+      put(ringM, x, Y0 + hs + rd * .05, z, rd * 1.02, rd, rd * 1.02, 0, pick(GL), 2.2);
+      const ns = 1 + ((R() * 3) | 0); for (let i = 0; i < ns; i++) { const a = R() * 6.28, rs = rd * rr(.42, .6), hh = hs * rr(.25, .6); put(stalkM, x + Math.cos(a) * rd * 1.25, Y0, z + Math.sin(a) * rd * 1.25, rs * .38, hh, rs * .38, 0, c); put(domeM, x + Math.cos(a) * rd * 1.25, Y0 + hh, z + Math.sin(a) * rd * 1.25, rs, rs, rs, 0, c); }
+      claim(x, z, rd * 1.9);
+    };
+    // the Heart Spire — Tuponic's tallest, with a ring of grand spires round the landing plaza
+    { const a = 2.2, d = 1080; spire(CX + Math.cos(a) * d, CZ + Math.sin(a) * d, 120, 780, true); }
+    for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + .3, d = 880 + rr(0, 60), r = rr(52, 78); const x = CX + Math.cos(a) * d, z = CZ + Math.sin(a) * d; if (free(x, z, r) && !onRoad(x, z, r)) spire(x, z, r, rr(380, 560), true); }
+    for (let i = 0, n = 0; i < 700 && n < 100; i++) { const r = rr(22, 40), p = spot(950, 1750, r * 1.15); if (p) { spire(p[0], p[1], r, rr(170, 340), true); n++; } }
+    for (let i = 0, n = 0; i < 600 && n < 150; i++) { const r = rr(11, 22), p = spot(1500, 2450, r * 1.15); if (p) { spire(p[0], p[1], r, rr(70, 180), false); n++; } }
+    for (let i = 0, n = 0; i < 1200 && n < 340; i++) { const rd = rr(14, 34), p = spot(1000, 2500, rd * 1.9); if (p) { pod(p[0], p[1], rd); n++; } }
+    for (let i = 0, n = 0; i < 400 && n < 100; i++) { const r = rr(8, 14), p = spot(2200, 2600, r * 1.15); if (p) { spire(p[0], p[1], r, rr(40, 95), false); n++; } }
+    // the low hive-mounds of the outskirts, each with a glowing doorway
+    for (let i = 0, n = 0; i < 1600 && n < 520; i++) {
+      const rx = rr(14, 40), p = spot(2150, 2600, rx * 1.1, 8); if (!p) continue; n++;
+      const ry = rx * rr(.35, .6), rot = R() * 6.28; put(moundM, p[0], Y0, p[1], rx, ry, rx * rr(.8, 1.1), rot, pick(HULLS));
+      claim(p[0], p[1], rx * 1.1); const ox = Math.cos(p[2]), oz = Math.sin(p[2]);
+      put(doorM, p[0] + ox * rx * .9, Y0 + ry * .3, p[1] + oz * rx * .9, rx * .14, rx * .14, 1, Math.atan2(ox, oz), pick(GL), 2.2);
+    }
+    // farm domes on the edge — their fields are grey and dead from the poisoned dust
+    { const dg = new THREE.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), dm = new THREE.MeshStandardMaterial({ color: 0xb8ab96, roughness: 0.15, metalness: 0.3, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false });
+      const soil = new THREE.MeshStandardMaterial({ color: 0x4a3c30, roughness: 1 }), dead = new THREE.MeshStandardMaterial({ color: 0x6b6050, roughness: 1, flatShading: true });
+      for (let i = 0, n = 0; i < 300 && n < 12; i++) { const r = rr(70, 110), p = spot(2280, 2560, r, 1); if (!p) continue; n++; claim(p[0], p[1], r);
+        const d = new THREE.Mesh(dg, dm); d.position.set(p[0], Y0, p[1]); d.scale.set(r, r * .55, r); siteGroup.add(d);
+        const f = new THREE.Mesh(new THREE.CircleGeometry(r * .98, 28).rotateX(-Math.PI / 2), soil); f.position.set(p[0], Y0 + .5, p[1]); siteGroup.add(f);
+        for (let k = 0; k < 60; k++) { const a = R() * 6.28, q = Math.sqrt(R()) * r * .85, t = new THREE.Mesh(new THREE.ConeGeometry(.5, rr(2, 5), 4), dead); t.position.set(p[0] + Math.cos(a) * q, Y0 + 2, p[1] + Math.sin(a) * q); t.rotation.z = rr(-.6, .6); siteGroup.add(t); } }
+    }
+    for (const m of [bigM, smM, orbM, stalkM, domeM, ringM, moundM, doorM]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+    // ---- sky-bridges joining the tall spires ----
+    { const geos = [], hi = towers.filter(t => t.h > 150);
+      for (let i = 0; i < hi.length && geos.length < 80; i++) for (let j = i + 1; j < hi.length && geos.length < 80; j++) { const a = hi[i], b = hi[j], d = Math.hypot(a.x - b.x, a.z - b.z); if (d < 150 || d > 340 || R() > .35) continue;
+        const ya = Y0 + Math.min(a.h, b.h) * rr(.35, .6); const c = new THREE.QuadraticBezierCurve3(V(a.x, ya, a.z), V((a.x + b.x) / 2, ya + 45, (a.z + b.z) / 2), V(b.x, ya + rr(-8, 8), b.z)); geos.push(new THREE.TubeGeometry(c, 14, 4.5, 6)); }
+      if (geos.length) { const bm = new THREE.Mesh(mergeGeometries(geos), plainMat); siteGroup.add(bm); } }
+    // ---- the ground: city paving, the great landing plaza, glowing roads ----
+    const poly = m => { m.polygonOffset = true; m.polygonOffsetFactor = -3; m.polygonOffsetUnits = -3; return m; };
+    { const cityTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#4a3b45'; g.fillRect(0, 0, w, h); for (let i = 0; i < 40; i++) { g.strokeStyle = 'rgba(20,10,24,.45)'; g.lineWidth = 2; g.beginPath(); let x = Math.random() * w, y = Math.random() * h; g.moveTo(x, y); for (let k = 0; k < 6; k++) { x += rr(-60, 60); y += rr(-60, 60); g.lineTo(x, y); } g.stroke(); } for (let i = 0; i < 9000; i++) { g.fillStyle = Math.random() < .5 ? 'rgba(0,0,0,.1)' : 'rgba(255,230,210,.07)'; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } });
+      cityTex.repeat.set(90, 90);
+      const fl = new THREE.Mesh(new THREE.CircleGeometry(2660, 128).rotateX(-Math.PI / 2), poly(new THREE.MeshStandardMaterial({ map: cityTex, roughness: .92, color: 0xd8c8c0 }))); fl.position.set(CX, Y0 - 1.4, CZ); fl.receiveShadow = true; siteGroup.add(fl);
+      const pTex = canvasTex(2048, 2048, (g, w, h) => { const c = w / 2; g.fillStyle = '#3a2f3d'; g.fillRect(0, 0, w, h);
+        for (let i = 0; i < 26; i++) { const q = (i + 1) / 26 * c * .98; g.strokeStyle = i % 5 === 0 ? 'rgba(95,232,255,.8)' : 'rgba(180,140,255,.3)'; g.lineWidth = i % 5 === 0 ? 5 : 2; g.beginPath(); g.arc(c, c, q, 0, 7); g.stroke(); }
+        for (let i = 0; i < 48; i++) { const a = i / 48 * 6.283; g.strokeStyle = 'rgba(255,176,64,.35)'; g.lineWidth = 3; g.beginPath(); g.moveTo(c + Math.cos(a) * c * .12, c + Math.sin(a) * c * .12); g.lineTo(c + Math.cos(a) * c * .98, c + Math.sin(a) * c * .98); g.stroke(); }
+        g.lineWidth = 3; for (let ring = 2; ring < 25; ring += 2) for (let k = 0; k < 40 + ring * 6; k++) { const a = R() * 6.283, q = (ring + .5) / 26 * c * .98; g.strokeStyle = pick(GL); g.globalAlpha = .75; g.beginPath(); let x = c + Math.cos(a) * q, y = c + Math.sin(a) * q; g.moveTo(x, y); for (let s = 0; s < 4; s++) { x += rr(-12, 12); y += rr(-12, 12); g.lineTo(x, y); } g.stroke(); } g.globalAlpha = 1; });
+      pTex.wrapS = pTex.wrapT = THREE.ClampToEdgeWrapping;
+      const pl = new THREE.Mesh(new THREE.CircleGeometry(PLAZA, 128).rotateX(-Math.PI / 2), poly(new THREE.MeshStandardMaterial({ map: pTex, roughness: .6, metalness: .3, emissive: 0xffffff, emissiveMap: pTex, emissiveIntensity: .35 }))); pl.position.set(CX, Y0 - .7, CZ); pl.receiveShadow = true; siteGroup.add(pl);
+      const roadM = poly(new THREE.MeshBasicMaterial({ color: new THREE.Color(.35, 1.1, 1.4), toneMapped: false })), roadA = poly(new THREE.MeshBasicMaterial({ color: new THREE.Color(1.3, .75, .25), toneMapped: false }));
+      RINGS.forEach((q, i) => { const m = new THREE.Mesh(new THREE.RingGeometry(q - 6, q + 6, 256).rotateX(-Math.PI / 2), i % 2 ? roadA : roadM); m.position.set(CX, Y0 - .1, CZ); siteGroup.add(m); });
+      const e = new THREE.Mesh(new THREE.RingGeometry(PLAZA - 3, PLAZA + 3, 256).rotateX(-Math.PI / 2), roadM); e.position.set(CX, Y0 - .1, CZ); siteGroup.add(e);
+      for (let i = 0; i < NSP; i++) { const a = SP0 + i * SPW, len = 2650 - PLAZA, m = new THREE.Mesh(new THREE.PlaneGeometry(len, 14).rotateX(-Math.PI / 2), i % 2 ? roadA : roadM); m.position.set(CX + Math.cos(a) * (PLAZA + len / 2), Y0 - .1, CZ + Math.sin(a) * (PLAZA + len / 2)); m.rotation.y = -a; siteGroup.add(m); } }
+    // ---- traffic: sleek skiffs on lanes round the city, and drifting jelly-like beings (not people) ----
+    const NS = 90, skM = inst(new THREE.SphereGeometry(1, 8, 5).scale(7, 1.7, 2.6), plainMat, NS), skG = inst(new THREE.SphereGeometry(1.1, 6, 4), glowMat(0xffffff), NS);
+    const lanes = Array.from({ length: NS }, () => ({ r: rr(760, 2500), a: R() * 6.28, w: (R() < .5 ? -1 : 1) * rr(.018, .05) * 900 / 900, h: rr(25, 420), c: pick(GL) }));
+    lanes.forEach((l, i) => { skM.setColorAt(i, tint.set(pick(HULLS))); skG.setColorAt(i, tint.set(l.c).multiplyScalar(2.4)); l.w *= 900 / l.r; });
+    const NF = 34, bellM = inst(new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd9a0ff, emissive: 0xb050ff, emissiveIntensity: .9, transparent: true, opacity: .72, roughness: .3, side: THREE.DoubleSide }), NF), tendM = inst(new THREE.CylinderGeometry(.06, .02, 1, 4).translate(0, -.5, 0), glowMat(0xc890ff, 1.4), NF * 4);
+    const fl = Array.from({ length: NF }, () => ({ x: CX + rr(-1500, 1500), z: CZ + rr(-1500, 1500), y: rr(20, 150), s: rr(5, 12), p: R() * 6.28, vx: rr(-3, 3), vz: rr(-3, 3) }));
+    const upd = () => {
+      if (siteGroup.visible) {
+        const t = performance.now() / 1000;
+        for (let i = 0; i < NS; i++) { const l = lanes[i], a = l.a + t * l.w, x = CX + Math.cos(a) * l.r, z = CZ + Math.sin(a) * l.r, d = l.w > 0 ? 1 : -1, ry = Math.atan2(-Math.cos(a) * d, -Math.sin(a) * d);
+          D.position.set(x, Y0 + l.h + Math.sin(t * .6 + i) * 4, z); D.rotation.set(0, ry, Math.sin(t + i) * .08); D.scale.set(1, 1, 1); D.updateMatrix(); skM.setMatrixAt(i, D.matrix);
+          D.position.set(x - Math.cos(ry) * 7 * 1, D.position.y, z + Math.sin(ry) * 7); D.updateMatrix(); skG.setMatrixAt(i, D.matrix); }
+        skM.count = skG.count = NS; skM.instanceMatrix.needsUpdate = skG.instanceMatrix.needsUpdate = true; if (skM.instanceColor) skM.instanceColor.needsUpdate = skG.instanceColor.needsUpdate = true;
+        let ti = 0;
+        for (let i = 0; i < NF; i++) { const f = fl[i], x = CX + ((f.x - CX + f.vx * t + 1600) % 3200 + 3200) % 3200 - 1600, z = CZ + ((f.z - CZ + f.vz * t + 1600) % 3200 + 3200) % 3200 - 1600, y = Y0 + f.y + Math.sin(t * .7 + f.p) * 8, sq = 1 + Math.sin(t * 1.6 + f.p) * .12;
+          D.position.set(x, y, z); D.rotation.set(0, f.p, 0); D.scale.set(f.s * sq, f.s * .7 / sq, f.s * sq); D.updateMatrix(); bellM.setMatrixAt(i, D.matrix);
+          for (let k = 0; k < 4; k++) { const a = k * 1.57 + f.p; D.position.set(x + Math.cos(a) * f.s * .5, y, z + Math.sin(a) * f.s * .5); D.rotation.set(Math.sin(t + k + f.p) * .25, 0, Math.cos(t * .8 + k) * .25); D.scale.set(f.s * .5, f.s * 2.4, f.s * .5); D.updateMatrix(); tendM.setMatrixAt(ti++, D.matrix); } }
+        bellM.count = NF; tendM.count = NF * 4; bellM.instanceMatrix.needsUpdate = tendM.instanceMatrix.needsUpdate = true;
+      }
+      requestAnimationFrame(upd);
+    };
+    upd();
+    window.__tuponic = { x: CX, z: CZ, plaza: PLAZA, towers };
+  }
   window.__cam = camera;
   // forests: tall conifers and round broadleaf trees all round the plateau and down into the valleys
   let seed = 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const CON = 16000, BRD = 9000;
+  const CON = 0, BRD = 0;   // no forest on Ocknog
   const conifer = new THREE.InstancedMesh(new THREE.ConeGeometry(4.5, 22, 6).translate(0, 15, 0), new THREE.MeshStandardMaterial({ color: 0x1f4a22, roughness: 0.9, flatShading: true }), CON);
   const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(7, 0).translate(0, 13, 0), new THREE.MeshStandardMaterial({ color: 0x356b2a, roughness: 0.9, flatShading: true }), BRD);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.7, 1, 8, 5).translate(0, 4, 0), new THREE.MeshStandardMaterial({ color: 0x4a3626, roughness: 1 }), CON + BRD);
@@ -1274,7 +1316,7 @@ const coaxH = (x, z) => coaxH0(x, z) + mtBump(x, z) + svBump(x, z) + ovBump(x, z
   for (let i = 0; i <= 300; i++) { const t = i / 300, p = curve.getPoint(t), tg = curve.getTangent(t), nx = -tg.z, nz = tg.x, w = 55;
     for (const s of [-1, 1]) { const x = p.x + nx * w * s, z = p.z + nz * w * s; rv.push(x, Math.max(coaxH(p.x, p.z), coaxH(x, z)) + 14, z); } if (i) { const b = (i - 1) * 2; ri.push(b, b + 2, b + 1, b + 1, b + 2, b + 3); } }
   const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(rv, 3)); rg.setIndex(ri); rg.computeVertexNormals();
-  siteGroup.add(new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: 0x3f7fa0, roughness: 0.15, metalness: 0.3, side: THREE.DoubleSide })));
+  /* no river on Ocknog */
 }
 // --- Earth: desert, sky, mountains ---
 const SKY_HOR = new THREE.Color(0.74, 0.69, 0.6), SPACE_BG = new THREE.Color(0x01020a);
@@ -1963,7 +2005,7 @@ const api = {
   isBuilt: (type, slotIndex) => placed.some(p => p.type === type && (slotIndex === undefined || p.s === slotIndex)),
   slotFilled: (i) => placed.some(p => p.b === (curBuild() || {}).id && p.s === i),
   get trip() { return G.trip; },
-  get buildIdx() { return G.idx; }, get stage() { return G.stage; }, get warping() { return !!warp && warp.from === 'earth'; },
+  get buildIdx() { return G.idx; }, get stage() { return G.stage; },
   get stock() { return G.stock || 0; },
   flag: k => !!(G.flags && G.flags[k]),
   setFlag: (k, v) => { (G.flags || (G.flags = {}))[k] = v; save(); },
@@ -2516,13 +2558,11 @@ function parkChoiceOpen() {
     && bayT <= 0 && !bayOpen && !CR.load.length && !autoMode && kits.some(k => k.state === 'bay');
 }
 // camera on Platform-1 so you can watch the Ark set down or lift off
-const AO = () => { const o = window.__arkOff; return (o && G.loc === 'site') ? new THREE.Vector3(o.x, o.y, o.z) : new THREE.Vector3(); };
-const snapK = (a, b) => { const o = AO(); snapCam = [a.add(o), b.add(o)]; };
 function padShot() {
   if (viewMode === 1 || viewMode === 2) return;   // stay in the cockpit and watch from the bridge
   if (viewMode) setView(0);
   followHook = null; camGoal = null;
-  snapK(V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)); padHold = true;   // camera stays put on the pad while the Ark comes down
+  snapCam = [V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)]; padHold = true;   // camera stays put on the pad while the Ark comes down
 }
 function parkAndBeam() {
   if (!parkChoiceOpen()) return;
@@ -3000,8 +3040,8 @@ function enterTunnel() {
 }
 function finishTunnel() {
   arrive(warp.to); warp.t = 0; warp.phase = 'in';
-  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapK(V(300, 160, 900), V(0, DESCENT * 0.85, 0)); }
-  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapK(V(520, 120, 640), V(0, DESCENT * 0.85, 0)); }
+  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapCam = [V(300, 160, 900), V(0, DESCENT * 0.85, 0)]; }
+  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapCam = [V(520, 120, 640), V(0, DESCENT * 0.85, 0)]; }
 }
 function updateWarp(dt) {
   if (!warp) { warpZ = 0; warpY = 0; return; }
@@ -3010,12 +3050,12 @@ function updateWarp(dt) {
   if (warp.phase === 'out') {
     if (warp.from === 'earth' || warp.from === 'site') {
       // open the roof, lift up clear of the warehouse (or the Kryos plateau), climb above the mountains, then jump straight ahead
-      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapK(V(520, 260, 640), V(0, 0, 0)); return; }
+      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapCam = [V(520, 260, 640), V(0, 0, 0)]; return; }
       const LIFT = 320, TL = 4.5, CRUISE = warp.from === 'earth' ? 4200 : 6200;
       if (warp.t < TL) {
         const k = warp.t / TL, e = k * k * (3 - 2 * k);
         warpY = LIFT * e; warpZ = 0; warp.v = 0;
-        snapK(V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0));
+        snapCam = [V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0)];
         m.opacity = 0; fade.style.opacity = 0;
       } else if (warp.t < TL + 4.5) {
         // level off and fly forward over the factories, picking up speed
@@ -3058,17 +3098,17 @@ function updateWarp(dt) {
     // drop down through the open roof onto the cradle
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e);
-    if (k < 1) snapK(V(520, 120, 640), V(0, warpY * 0.85, 0));
+    if (k < 1) snapCam = [V(520, 120, 640), V(0, warpY * 0.85, 0)];
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   } else {
     // drop down through Unity's sky onto the Kryos plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
     // watch the descent from up the open strip north of the field, where no towers stand in the way
-    if (k < 1) snapK(V(300, 160, 900), V(0, warpY * 0.85, 0));
+    if (k < 1) snapCam = [V(300, 160, 900), V(0, warpY * 0.85, 0)];
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   }
   streaks.position.set(ship.position.x, ship.position.y, ship.position.z - (((warp ? warp.t : 0) * (warp && warp.phase === 'tunnel' ? 6000 : 4000)) % 3000));
 }

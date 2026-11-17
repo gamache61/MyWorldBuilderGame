@@ -133,21 +133,6 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     return g;
   }
 
-  function makeDash(T) {   // the cockpit dash: a dark console with glowing screens, window pillars and a flight yoke, fixed to the camera
-    const d = new T.Group(), dark = new T.MeshStandardMaterial({ color: 0x0b1424, roughness: 0.4, metalness: 0.6 }), trim = new T.MeshStandardMaterial({ color: 0x1c2c4a, roughness: 0.3, metalness: 0.7 });
-    const scr = (c) => new T.MeshBasicMaterial({ color: c, toneMapped: false }), add = (geo, mat, x, y, z, rx = 0, ry = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); d.add(m); return m; };
-    add(new T.BoxGeometry(3.8, 0.5, 1.3), dark, 0, -0.98, -2.0, 0.22);
-    add(new T.BoxGeometry(3.8, 0.06, 0.1), trim, 0, -0.8, -2.5, 0.22);
-    add(new T.PlaneGeometry(0.9, 0.34), scr(new T.Color(0.3, 1.6, 1.3)), -0.9, -0.8, -2.38, -0.2);
-    add(new T.PlaneGeometry(0.9, 0.34), scr(new T.Color(0.4, 1.0, 2.0)), 0.9, -0.8, -2.38, -0.2);
-    add(new T.PlaneGeometry(0.5, 0.34), scr(new T.Color(2.0, 1.3, 0.4)), 0, -0.8, -2.38, -0.2);
-    for (const x of [-1.35, -1.2, 1.2, 1.35]) add(new T.SphereGeometry(0.035, 8, 6), scr(new T.Color(x < 0 ? 2.0 : 0.5, x < 0 ? 0.5 : 2.0, 0.4)), x, -0.88, -2.3);
-    for (const s of [-1, 1]) { add(new T.BoxGeometry(0.16, 2.6, 0.3), dark, s * 1.75, 0, -2.1, 0, 0).rotation.z = -s * 0.28; }
-    add(new T.BoxGeometry(3.8, 0.12, 0.3), dark, 0, 0.98, -2.1);
-    add(new T.CylinderGeometry(0.04, 0.05, 0.55, 8), trim, 0, -0.95, -1.6, -0.5);
-    const yk = add(new T.TorusGeometry(0.2, 0.03, 6, 20, Math.PI), trim, 0, -0.74, -1.5, 0.5); yk.rotation.z = Math.PI;
-    d.visible = false; return d;
-  }
   const gqPad = () => [GQ.x + 140, GQ.z + 60];
   const parkAt = (x, z, yaw) => { F.park = { x, y: gy(x, z) + 3.2, z, yaw: yaw || 0 }; };
 
@@ -161,7 +146,7 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     if (F.on || !window.__G || window.__G.loc !== 'site') { if (window.__G && window.__G.loc !== 'site') { hint('WARP TO THE SITE FIRST (W) — THEN PRESS G'); setTimeout(() => hint(''), 3000); } return; }
     const T = await ensureTHREE(); if (!T) { hint('THE SHUTTLE COULD NOT LOAD'); return; }
     const W = window.__walk, walking = W && W.on;
-    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); F.dash = makeDash(T); window.__scene.add(window.__cam); window.__cam.add(F.dash); const q = gqPad(); parkAt(q[0], q[1], 0); }
+    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); if (window.SHUTTLE_DASH) { F.dash = window.SHUTTLE_DASH.make(T); window.__scene.add(window.__cam); window.__cam.add(F.dash.group); } const q = gqPad(); parkAt(q[0], q[1], 0); }
     if (!F.park) { const q = gqPad(); parkAt(q[0], q[1], 0); }
     // on foot and far from the shuttle: it comes to you
     if (walking && Math.hypot(W.pos.x - F.park.x, W.pos.z - F.park.z) > 22) {
@@ -191,7 +176,9 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const k = e.key.toLowerCase();
     if (k === 'g' && !e.repeat) { const cf = document.getElementById('confirm'); if (cf && cf.style.display === 'flex') return; e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
     if (!F.on) return;
+    if ((k === 'v' || k === 'w' || k === 'escape') && !e.repeat) { F.on = false; F.park = { x: F.pos.x, y: F.pos.y, z: F.pos.z, yaw: F.yaw }; F.keys.clear(); window.__controls.enabled = true; window.__controls.target.copy(F.pos); hint(''); return; }
     if (k !== 'm') e.stopImmediatePropagation();
+    if (k === 'n' && !e.repeat && F.dash) F.dash.zoomNext();
     if (k === 'c' && !e.repeat) { F.view = F.view === 'cab' ? 'chase' : 'cab'; F.cam = null; }
     if (k === 'b' && !e.repeat) { F.fast = !F.fast; F.msgT = 2; hint(F.fast ? 'SHUTTLE SPEED ×4' : 'SHUTTLE SPEED NORMAL'); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
@@ -205,8 +192,8 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const W = window.__walk;
     if (!F.on && W && W.on && window.__G.loc === 'site' && F.msgT <= 0) { const q = F.park; hint(!q ? 'PRESS G TO CALL YOUR SHUTTLE' : Math.hypot(W.pos.x - q.x, W.pos.z - q.z) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : 'PRESS G TO CALL YOUR SHUTTLE TO YOU'); }
     if (F.msgT > 0 && !F.on) F.msgT -= dt;
-    if (!F.on) { if (F.dash) F.dash.visible = false; if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); F.craft.visible = window.__G.loc === 'site'; } return; }
-    if (window.__G.loc !== 'site') { F.on = false; F.craft.visible = false; if (F.dash) F.dash.visible = false; window.__controls.enabled = true; hint(''); return; }
+    if (!F.on) { if (F.dash) F.dash.group.visible = false; if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); F.craft.visible = window.__G.loc === 'site'; } return; }
+    if (window.__G.loc !== 'site') { F.on = false; F.craft.visible = false; if (F.dash) F.dash.group.visible = false; window.__controls.enabled = true; hint(''); return; }
     const T = F.T, K = F.keys, mul = F.fast ? 4 : 1;
     if (K.has('arrowup')) F.spd = Math.min(300 * mul, F.spd + 100 * mul * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * mul * dt); else F.spd *= 1 - 0.04 * dt;
     const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / (60 * mul)) * 0.7);
@@ -216,18 +203,20 @@ window.__OK = { x: -9000, z: 7500, R: 5000, F: 330, T: 300, Y: null };  // Ockno
     const gmin = gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
     if (F.pos.y > 6000) F.pos.y = 6000;
     F.roll += (-turn * 0.5 * Math.min(1, F.spd / (50 * mul)) - F.roll) * Math.min(1, 4 * dt);
-    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0));
+    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.view === 'chase' ? F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0) : 0);
     const cam = window.__cam, c = window.__controls;
-    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = true; if (F.dash) F.dash.visible = true; }
-    else { if (F.dash) F.dash.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = !F.dash; if (F.dash) F.dash.group.visible = true; }
+    else { F.craft.visible = true; if (F.dash) F.dash.group.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) F.cam = cam.position.clone(); F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const dq = Math.hypot(F.pos.x - GQ.x, F.pos.z - GQ.z);
-    if (F.msgT > 0) F.msgT -= dt; else hint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · B ×4 · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - gy(F.pos.x, F.pos.z)) + ' M · ORCHARD VALLEY ' + (dq / 1000).toFixed(1) + ' KM');
+    if (F.dash && F.dash.group.visible) { F.dash.update({ speed: F.spd * 3.6, maxSpeed: 1080 * mul, alt: F.pos.y - gy(F.pos.x, F.pos.z), climb: F.vy, headingDeg: Math.atan2(fx, -fz) * 180 / Math.PI, x: F.pos.x, z: F.pos.z, fx, fz, fast: F.fast }, dt); if (window.__renderer) F.dash.renderDown(window.__renderer, window.__scene, F.pos, [F.dash.group, F.craft], dt, fx, fz); }
+    if (F.msgT > 0) F.msgT -= dt; else hint('');
   };
   requestAnimationFrame(loop);
 })();
 
 </script>
+<script src="projects/shuttledash.js" onerror="this.remove()"></script>
 <script src="projects/projects.js" onerror="this.remove()"></script>
 <script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script src="projects/townspeople.js" onerror="this.remove()"></script>
@@ -281,7 +270,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ---------- renderer / scene ---------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true }); window.__renderer = renderer;
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1963,7 +1952,7 @@ const api = {
   isBuilt: (type, slotIndex) => placed.some(p => p.type === type && (slotIndex === undefined || p.s === slotIndex)),
   slotFilled: (i) => placed.some(p => p.b === (curBuild() || {}).id && p.s === i),
   get trip() { return G.trip; },
-  get buildIdx() { return G.idx; }, get stage() { return G.stage; }, get warping() { return !!warp && warp.from === 'earth'; },
+  get buildIdx() { return G.idx; }, get stage() { return G.stage; },
   get stock() { return G.stock || 0; },
   flag: k => !!(G.flags && G.flags[k]),
   setFlag: (k, v) => { (G.flags || (G.flags = {}))[k] = v; save(); },
@@ -2516,13 +2505,11 @@ function parkChoiceOpen() {
     && bayT <= 0 && !bayOpen && !CR.load.length && !autoMode && kits.some(k => k.state === 'bay');
 }
 // camera on Platform-1 so you can watch the Ark set down or lift off
-const AO = () => { const o = window.__arkOff; return (o && G.loc === 'site') ? new THREE.Vector3(o.x, o.y, o.z) : new THREE.Vector3(); };
-const snapK = (a, b) => { const o = AO(); snapCam = [a.add(o), b.add(o)]; };
 function padShot() {
   if (viewMode === 1 || viewMode === 2) return;   // stay in the cockpit and watch from the bridge
   if (viewMode) setView(0);
   followHook = null; camGoal = null;
-  snapK(V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)); padHold = true;   // camera stays put on the pad while the Ark comes down
+  snapCam = [V(560, DECK_TOP + 170, 620), V(90, DECK_TOP + 10, 0)]; padHold = true;   // camera stays put on the pad while the Ark comes down
 }
 function parkAndBeam() {
   if (!parkChoiceOpen()) return;
@@ -3000,8 +2987,8 @@ function enterTunnel() {
 }
 function finishTunnel() {
   arrive(warp.to); warp.t = 0; warp.phase = 'in';
-  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapK(V(300, 160, 900), V(0, DESCENT * 0.85, 0)); }
-  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapK(V(520, 120, 640), V(0, DESCENT * 0.85, 0)); }
+  if (warp.to === 'site') { warpZ = 0; warpY = DESCENT; streaks.visible = false; camGoal = null; snapCam = [V(300, 160, 900), V(0, DESCENT * 0.85, 0)]; }
+  else { warpZ = 0; warpY = DESCENT; streaks.visible = false; roofT = 1; camGoal = null; snapCam = [V(520, 120, 640), V(0, DESCENT * 0.85, 0)]; }
 }
 function updateWarp(dt) {
   if (!warp) { warpZ = 0; warpY = 0; return; }
@@ -3010,12 +2997,12 @@ function updateWarp(dt) {
   if (warp.phase === 'out') {
     if (warp.from === 'earth' || warp.from === 'site') {
       // open the roof, lift up clear of the warehouse (or the Kryos plateau), climb above the mountains, then jump straight ahead
-      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapK(V(520, 260, 640), V(0, 0, 0)); return; }
+      if (warp.from === 'earth' && roofT < 0.995) { warp.t = 0; snapCam = [V(520, 260, 640), V(0, 0, 0)]; return; }
       const LIFT = 320, TL = 4.5, CRUISE = warp.from === 'earth' ? 4200 : 6200;
       if (warp.t < TL) {
         const k = warp.t / TL, e = k * k * (3 - 2 * k);
         warpY = LIFT * e; warpZ = 0; warp.v = 0;
-        snapK(V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0));
+        snapCam = [V(520, 120 + warpY * 0.6, 640), V(0, warpY * 0.9, 0)];
         m.opacity = 0; fade.style.opacity = 0;
       } else if (warp.t < TL + 4.5) {
         // level off and fly forward over the factories, picking up speed
@@ -3058,17 +3045,17 @@ function updateWarp(dt) {
     // drop down through the open roof onto the cradle
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e);
-    if (k < 1) snapK(V(520, 120, 640), V(0, warpY * 0.85, 0));
+    if (k < 1) snapCam = [V(520, 120, 640), V(0, warpY * 0.85, 0)];
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   } else {
     // drop down through Unity's sky onto the Kryos plateau
     const k = Math.min(1, warp.t / 9), e = 1 - Math.pow(1 - k, 3);
     warpY = DESCENT * (1 - e); warpZ = 0;
     // watch the descent from up the open strip north of the field, where no towers stand in the way
-    if (k < 1) snapK(V(300, 160, 900), V(0, warpY * 0.85, 0));
+    if (k < 1) snapCam = [V(300, 160, 900), V(0, warpY * 0.85, 0)];
     fade.style.opacity = Math.max(0, 1 - warp.t / 1.2);
-    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone().add(AO()), views[1][1].clone().add(AO())]; }
+    if (k >= 1) { warp = null; warpY = 0; camGoal = [views[1][0].clone(), views[1][1].clone()]; }
   }
   streaks.position.set(ship.position.x, ship.position.y, ship.position.z - (((warp ? warp.t : 0) * (warp && warp.phase === 'tunnel' ? 6000 : 4000)) % 3000));
 }

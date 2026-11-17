@@ -42,7 +42,7 @@
   // Ocknog: a dusty brown world under a haze of poisonous dust clouds, seen only near the site
   P.world = function (api) {
     if (this._world || !api.placed || !api.placed.length) return; const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) return; this._world = true;
-    const T = api.THREE, OK = window.__OK, host = land.piece.parent, y = OK.Y;
+    const T = api.THREE, OK = window.__tuponic || window.__OK, host = land.piece.parent, y = window.__OK.Y; try { P.city(api, host); } catch (e) { console.warn('Ocknog city', e); }
     this.shell = new T.Mesh(new T.SphereGeometry(5000, 32, 16), new T.MeshBasicMaterial({ color: new T.Color(0.72, 0.5, 0.3), transparent: true, opacity: 0.5, side: T.BackSide, depthWrite: false, fog: false, toneMapped: false }));
     this.shell.position.set(OK.x, y, OK.z); this.shell.visible = false; this.shell.renderOrder = -1; host.add(this.shell);
     this.clouds = new T.Group(); this.clouds.position.set(OK.x, y, OK.z); this.clouds.visible = false; host.add(this.clouds);
@@ -53,13 +53,24 @@
     { let root = land.piece; while (root.parent) root = root.parent; const m4 = new T.Matrix4(), v = new T.Vector3(), zero = new T.Matrix4().makeScale(0, 0, 0);
       root.traverse(o => { if (!o.isInstancedMesh || o.count < 3000) return; let hit = false; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); v.setFromMatrixPosition(m4); if (Math.hypot(v.x - OK.x, v.z - OK.z) < 2500) { o.setMatrixAt(i, zero); hit = true; } } if (hit) o.instanceMatrix.needsUpdate = true; }); }
   };
+  // Tuponic itself stands in 70-ocknog.html. Here the people of Ocknog (aliens) are put out on its great plaza and streets.
+  P.city = function (api, parent) {
+    if (this._city) return; this._city = true; if (!this.alien) return;
+    const C = window.__tuponic || { x: 300, z: 0 }, Y = api.DECK_TOP;
+    let s = 31; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0, n = 0; i < 400 && n < 70; i++) {
+      const a = r() * 6.28, R = 300 + r() * 430, x = C.x + Math.cos(a) * R, z = C.z + Math.sin(a) * R;
+      if (Math.abs(x - 60) < 270 && Math.abs(z) < 330) continue;   // keep the Ark's landing field clear
+      try { this.alien(api, parent, x, Y, z, r() * 6.28, { seed: 300 + n, mode: n % 6 === 0 ? 'wave' : 'idle', scale: 1.1, elder: n === 0 }); } catch (e) { } n++;
+    }
+  };
   P.onTick = function (api, dt, t) {
     P.world(api); const cam = window.__cam, OK = window.__OK;
-    if (P.shell && cam) { const near = Math.hypot(cam.position.x - OK.x, cam.position.z - OK.z) < 5200; P.shell.visible = near && !(P.clean >= 1); if (P.clouds) P.clouds.visible = near; }
+    if (P.shell && cam) { const near = Math.hypot(cam.position.x - OK.x, cam.position.z - OK.z) < 5200 && !(window.__G && window.__G.loc !== 'site'); P.shell.visible = near && !(P.clean >= 1); if (P.clouds) P.clouds.visible = near; }
     if (P.clouds && P.clouds.visible) P.clouds.children.forEach(c => { c.userData.a += dt * 0.004 * c.userData.v; c.position.x = Math.cos(c.userData.a) * c.userData.d; c.position.z = Math.sin(c.userData.a) * c.userData.d; });
     // Ocknog's sky: dusty ochre while the soil is poisoned, clearing to a pale blue when it is mended
-    if (window.__coaxSky && cam) { const S = window.__coaxSky, d = Math.hypot(cam.position.x - OK.x, cam.position.z - OK.z), k = Math.max(0, Math.min(1, (9000 - d) / 4000)) * (1 - 0.8 * Math.min(1, P.clean || 0));
-      S.sky.setRGB(0.62 + (0.8 - 0.62) * k, 0.76 + (0.58 - 0.76) * k, 0.84 + (0.38 - 0.84) * k); S.fog.color.copy(S.sky); S.fog.near = 3500 - 3100 * k; S.fog.far = 34000 - 28000 * k; }
+    if (window.__coaxSky && cam) { const S = window.__coaxSky, d = (window.__G && window.__G.loc !== 'site') ? 1e9 : Math.hypot(cam.position.x - OK.x, cam.position.z - OK.z), k = Math.max(0, Math.min(1, (9000 - d) / 4000)) * (1 - 0.8 * Math.min(1, P.clean || 0));
+      S.sky.setRGB(0.76 + (0.8 - 0.76) * k, 0.66 + (0.58 - 0.66) * k, 0.56 + (0.38 - 0.56) * k); S.fog.color.copy(S.sky); S.fog.near = 3500 - 3100 * k; S.fog.far = 34000 - 28000 * k; }
     // when the soil is mended the haze thins and the poison clouds fade
     if (P.shell && P.clean > 0) { P.shell.material.opacity = 0.5 * (1 - Math.min(1, P.clean)); P.cloudMat.opacity = 0.3 * (1 - Math.min(1, P.clean)); }
     for (const a of P.aliens) {

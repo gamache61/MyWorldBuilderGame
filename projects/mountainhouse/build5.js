@@ -17,7 +17,7 @@
     },
     order: ['HANGAR', 'DOME'],
     at: { HANGAR: [[1550 + 92, -8]], DOME: [[1550 - 80, -70]] },
-    eye: [200, P.SY + 150, 200],
+    eye: [1550 + 150, P.SY + 120, 120],
     stats(api, c) { return [['HANGAR', c('HANGAR') ? 'STANDING' : 'NOT YET'], ['STARGAZER DOME', c('DOME') ? 'STANDING' : 'NOT YET'], ['MOUNTAIN HOUSE', api.flag('mountainHouse') ? 'OPEN' : 'NOT YET']]; },
     make(type, k, g, add, F, api, sl) {
       const T = api.THREE, H = P.mh(api);
@@ -36,7 +36,7 @@
       if (api.flag('opened') && !document.getElementById('nextMeeting')) {
         const b = document.createElement('button'); b.id = 'nextMeeting';
         b.innerHTML = 'GO TO THE THIRTY-FIRST COUNCIL MEETING ▶<small style="display:block;font-weight:400;font-size:10px;letter-spacing:2px;color:#ffe9c8;margin-top:3px">A HOUSE ON THE MOUNTAIN TOP</small>';
-        b.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(40,90,70,.88);border:1px solid #bff8d0;border-radius:5px;cursor:pointer;box-shadow:0 0 18px rgba(191,248,208,.45)';
+        b.style.cssText = 'position:fixed;left:50%;bottom:256px;transform:translateX(-50%);z-index:9;padding:10px 22px;font:600 14px "Segoe UI",Arial;letter-spacing:3px;color:#fff;background:rgba(40,90,70,.88);border:1px solid #bff8d0;border-radius:5px;cursor:pointer;box-shadow:0 0 18px rgba(191,248,208,.45)';
         b.onmouseenter = () => b.style.background = 'rgba(52,116,90,.97)'; b.onmouseleave = () => b.style.background = 'rgba(40,90,70,.88)';
         b.onclick = () => { location.href = 'councilmeeting/councilmeeting31.html'; };
         document.body.appendChild(b);
@@ -47,7 +47,7 @@
       cam: [[1550 + 150, P.SY + 55, 150], [1550 + 10, P.SY + 6, -20]],
       start(api) {
         this.stage = 0; this.t1 = 0; this.ship = null; this._fam = false;
-        const par = P.padParent(api); this.par = par; this.px = P.OFF[0] + P.PADL[0]; this.pz = P.OFF[1] + P.PADL[1]; this.py = P.gy(this.px, this.pz) + 1.3;
+        const par = P.padParent(api); this.par = par; this.px = P.OFF[0] + P.PADL[0]; this.pz = P.OFF[1] + P.PADL[1]; this.py = P.gy(this.px, this.pz) + P.PADH + 1.3;
         P.F.on = false; if (window.__controls) window.__controls.enabled = true;
         if (!P.F.craft) { P.F.craft = P.craft(api); window.__scene.add(P.F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; }
         this.ship = P.F.craft; this.ship.visible = true; P.F.park = null; this.ship.position.set(this.px, this.py + 150, this.pz);
@@ -56,17 +56,12 @@
       update(api, dt, f) {
         this.t1 += dt;
         if (this.stage === 0) {
-          P.hint('THE SHUTTLE COMES UP FROM KRYOS AND SETTLES ONTO THE NEW LANDING PAD');
+          P.hint('THE SHUTTLE COMES UP FROM KRYOS AND SETTLES ONTO THE ROOF PLATFORM');
           if (this.ship) { const k = Math.min(1, this.t1 / 11), e = 1 - Math.pow(1 - k, 2.4); this.ship.position.set(this.px + (1 - e) * 600, this.py + 2.2 + (1 - e) * 160, this.pz + (1 - e) * 200); this.ship.rotation.set(0, Math.PI - 0.3 * (1 - e), 0); }
           if (this.t1 > 12) { this.stage = 1; this.t1 = 0; }
         } else if (this.stage === 1) {
-          P.hint('THE HATCH OPENS · THE BUILDER WALKS UP TO THE DOOR OF THE MOUNTAIN HOUSE');
-          if (!this._fam && this.par) {
-            this._fam = true; const dx = P.OFF[0] + 1550 + 10, dz = P.OFF[1] + 12;
-            for (let i = 0; i < 1; i++) { const sx = this.px - 8 - i * 1.5, sz = this.pz + (i % 2 ? 9 : 12), ex = dx + 4 + (i % 3), ez = dz + (i - 2) * 2.4;
-              P.person(this.par, P.civ(63400 + i), 'walk', sx, this.py, sz, Math.PI, { path: { type: 'line', ax: sx, az: sz, bx: ex, bz: ez, speed: 1.1 }, scale: undefined }); }
-          }
-          if (this.t1 > 16) { this.stage = 2; this.t1 = 0; P.hint(''); P.cover(true, 'MOUNTAIN HOUSE IS OPEN', 'SHUTTLE · HOUSE · TOWER · LANDING PAD · HANGAR · DOME · PRESS G TO FLY THE SHUTTLE · NEXT: THE THIRTY-FIRST COUNCIL MEETING'); }
+          P.hint('THE SHUTTLE SETTLES ONTO THE ROOF PLATFORM · THE STAIR LEADS DOWN TO THE FRONT DOOR');
+          if (this.t1 > 16) { this.stage = 2; this.t1 = 0; P.hint(''); P.cover(true, 'MOUNTAIN HOUSE IS OPEN', 'SHUTTLE · HOUSE · TOWER · LANDING PAD · HANGAR · DOME · NEXT: THE THIRTY-FIRST COUNCIL MEETING'); }
         } else {
           if (this.t1 > 4 && !this._h) { this._h = true; api.setFlag('mountainHouse', true); api.setFlag('opened', true); }
           if (this.t1 > 6.5) { P.cover(false); this._h = false; P.F.yaw = Math.PI; P.parkAt('summit'); return true; }

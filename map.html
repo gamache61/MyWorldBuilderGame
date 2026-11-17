@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Builder — World Map</title>
+<style>
+  :root { --ink:#d8ecff; --dim:#8fb0c8; --line:rgba(127,216,255,.35); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; }
+  body { background:radial-gradient(ellipse at 50% 120%,#10263d 0%,#050b14 55%,#02050a 100%); color:var(--ink); font-family:"Segoe UI",Arial,sans-serif; overflow-x:hidden; }
+  #stars { position:fixed; inset:0; z-index:0; }
+  main { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:40px 24px 48px; }
+  h1 { margin:0; text-align:center; font-weight:600; letter-spacing:10px; font-size:clamp(24px,4.5vw,42px); color:#fff; text-shadow:0 0 24px rgba(64,208,255,.45); }
+  .sub { text-align:center; color:#7fd8ff; letter-spacing:4px; font-size:13px; margin:12px 0 18px; }
+  .top { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+  .btn { padding:10px 18px; border-radius:6px; border:1px solid #40d0ff; background:rgba(64,208,255,.18); color:#fff; cursor:pointer; font-size:14px; letter-spacing:1px; text-decoration:none; }
+  .btn:hover { background:rgba(64,208,255,.35); }
+  .stats { text-align:center; color:var(--dim); font-size:13px; letter-spacing:2px; margin-bottom:14px; }
+  .skymap { background:rgba(6,14,24,.8); border:1px solid var(--line); border-radius:10px; margin-bottom:30px; }
+  .skymap svg { display:block; width:100%; height:auto; }
+  .node { cursor:pointer; }
+  .node:hover circle.body { filter:brightness(1.4); }
+  .world { margin:34px 0 8px; display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--line); padding-bottom:8px; flex-wrap:wrap; }
+  .world h2 { margin:0; font-size:22px; letter-spacing:4px; color:#fff; font-weight:600; }
+  .world span { color:var(--dim); font-size:13px; letter-spacing:1px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:18px; margin-top:16px; }
+  .loc { position:relative; padding:18px 18px 14px 22px; background:linear-gradient(160deg,rgba(14,34,54,.9),rgba(6,14,24,.93)); border:1px solid var(--line); border-radius:8px; scroll-margin-top:16px; }
+  .loc::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:8px 0 0 8px; background:var(--c); }
+  .loc.flash { box-shadow:0 0 26px var(--c); }
+  .loc h3 { margin:0 0 4px; font-size:15px; letter-spacing:3px; color:#fff; display:flex; justify-content:space-between; gap:8px; }
+  .loc h3 em { font-style:normal; color:var(--c); font-size:12px; letter-spacing:1px; white-space:nowrap; }
+  .loc p.d { margin:0 0 10px; color:var(--dim); font-size:12.5px; line-height:1.5; }
+  .loc ul { list-style:none; margin:0; padding:0; }
+  .loc li { display:flex; gap:8px; align-items:baseline; padding:5px 0; border-top:1px solid rgba(127,216,255,.12); font-size:13px; }
+  .loc li .n { color:var(--c); font-size:11px; letter-spacing:1px; min-width:44px; }
+  .loc li .t { flex:1; color:#fff; }
+  .loc li .b { color:var(--dim); font-size:11px; letter-spacing:1px; white-space:nowrap; }
+  .loc li.locked { opacity:.45; }
+  .loc li.ok { cursor:pointer; }
+  .loc li.ok:hover .t { color:var(--c); }
+  .loc li.done .s { color:#3ddc84; }
+  .loc li .s { width:14px; color:var(--dim); }
+  .loc li.meeting .t { color:var(--dim); }
+  .empty { border:1px dashed var(--line); border-radius:6px; margin-top:10px; padding:8px; text-align:center; color:#5d7f98; font-size:11px; letter-spacing:2px; }
+  .newslot { border:2px dashed var(--line); background:transparent; display:flex; align-items:center; justify-content:center; text-align:center; color:#5d7f98; letter-spacing:3px; font-size:13px; line-height:1.8; min-height:120px; }
+  .newslot::before { display:none; }
+  .unplaced { --c:#ffb040; }
+  details summary { cursor:pointer; color:var(--dim); font-size:12px; letter-spacing:2px; margin-top:8px; }
+  footer { text-align:center; color:#4f6b82; font-size:11px; letter-spacing:3px; margin-top:48px; }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<main>
+  <h1>WORLD MAP</h1>
+  <div class="sub">EVERYTHING WE HAVE BUILT — AND WHERE</div>
+  <div class="top">
+    <a class="btn" href="index.html">◀ BACK TO MENU</a>
+    <button class="btn" id="togMeet">HIDE COUNCIL MEETINGS</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="skymap"><svg id="sky" viewBox="0 0 1000 400"></svg></div>
+  <div id="out"></div>
+  <footer>GAMACHE GAMES</footer>
+</main>
+<script src="projects/projects.js"></script>
+<script src="worldmap.js"></script>
+<script>
+/* Places live in worldmap.js (WORLDS, LOCS, NODES) — edit them there. */
+const {WORLDS,LOCS,NODES}=WB_MAP;
+
+const list = window.SPACE_PROJECTS || [];
+let save = {}; try { save = JSON.parse(localStorage.getItem('worldBuilderSave') || 'null') || {}; } catch(e) {}
+const owned = save.ownedUpTo || 0, prog = save.progress || {};
+const clean = n => (n||'').replace(/\s*[··]\s*(PLANET UNITY|MOON VESH|FACTORY DISTRICT TWO)\s*$/i,'');
+function numOf(p){ const m=(p.html||'').match(/^(\d+)-/); return m?parseInt(m[1],10):null; }
+function isMeeting(p){ return /councilmeeting/.test(p.html||''); }
+function meetNo(p){ const m=(p.html||'').match(/councilmeeting(\d*)\.html/); return m?(m[1]?parseInt(m[1],10):1):0; }
+
+const items = list.map((p,i)=>({ p, idx:i+1, num:numOf(p), meet:isMeeting(p) }));
+const chapters = items.filter(x=>!x.meet), meetings = items.filter(x=>x.meet);
+const byNum = {}; chapters.forEach(x=>{ if(x.num!=null) byNum[x.num]=x; });
+const placed = new Set();
+
+function li(x, c){
+  const ok = x.idx<=owned || (owned===0 && x.idx===1);
+  const done = prog[String(x.idx)]==='complete';
+  const el = document.createElement('li');
+  el.className = (ok?'ok ':'locked ') + (done?'done ':'') + (x.meet?'meeting':'');
+  const lab = x.meet ? ('MEETING '+meetNo(x.p)) : ('CH '+x.num);
+  const bl = x.p.label || ((x.p.builds||0)+' BUILDS');
+  el.innerHTML = '<span class="s">'+(done?'✓':(ok?'▶':'🔒'))+'</span><span class="n">'+lab+'</span><span class="t"></span><span class="b">'+bl+'</span>';
+  el.querySelector('.t').textContent = clean(x.p.name).replace(/^THE /,'');
+  el.title = x.p.brief || '';
+  if(ok) el.onclick = ()=>{ save.currentChapter = x.idx; try{localStorage.setItem('worldBuilderSave',JSON.stringify(save));}catch(e){} location.href = x.p.html; };
+  return el;
+}
+function card(l, xs, extra){
+  const d = document.createElement('div'); d.className='loc'+(extra?' '+extra:''); d.style.setProperty('--c', l.c);
+  d.id = 'loc-'+(l.id||l.name.replace(/\W+/g,''));
+  d.innerHTML = '<h3><span></span><em>'+xs.length+' PLACE'+(xs.length===1?'':'S')+'</em></h3><p class="d"></p><ul></ul>';
+  d.querySelector('h3 span').textContent = l.name; d.querySelector('.d').textContent = l.d||'';
+  const ul = d.querySelector('ul'); xs.forEach(x=>ul.appendChild(li(x,l.c)));
+  const e = document.createElement('div'); e.className='empty'; e.textContent='+ ROOM FOR MORE'; d.appendChild(e);
+  return d;
+}
+
+const out = document.getElementById('out');
+WORLDS.forEach(w=>{
+  const locs = LOCS.filter(l=>l.w===w.id);
+  const sec = document.createElement('section'); sec.id='world-'+w.id;
+  const total = locs.reduce((a,l)=>a+l.ch.filter(n=>byNum[n]).length,0);
+  sec.innerHTML = '<div class="world"><h2></h2><span></span></div><div class="grid"></div>';
+  sec.querySelector('h2').textContent = w.name;
+  sec.querySelector('.world span').textContent = w.note + '  ·  ' + total + ' built';
+  const g = sec.querySelector('.grid');
+  if(w.id==='unity'){ const mc=document.createElement('div'); mc.style.marginTop='16px'; sec.insertBefore(mc,g); WB_MAP.renderUnityMap(mc,list); }
+  locs.forEach(l=>{
+    const xs = l.ch.map(n=>byNum[n]).filter(Boolean); xs.forEach(x=>placed.add(x));
+    g.appendChild(card(l, xs));
+  });
+  const ns = document.createElement('div'); ns.className='loc newslot'; ns.innerHTML='+ NEW PLACE<br>ON '+w.name; g.appendChild(ns);
+  out.appendChild(sec);
+});
+
+// anything not listed above
+const lost = chapters.filter(x=>!placed.has(x));
+if(lost.length){
+  const sec = document.createElement('section');
+  sec.innerHTML = '<div class="world"><h2>NOT PLACED YET</h2><span>New chapters land here until they are given a spot in LOCS (top of map.html).</span></div><div class="grid"></div>';
+  sec.querySelector('.grid').appendChild(card({name:'NEW CHAPTERS',c:'#ffb040',d:'Add these numbers to a place in map.html.'}, lost, 'unplaced'));
+  out.appendChild(sec);
+}
+
+// council meetings
+const msec = document.createElement('section'); msec.id='meetings';
+msec.innerHTML = '<div class="world"><h2>THE COUNCIL MEETINGS</h2><span>Held round the Heart of Unity in the Council Hall, Kryos  ·  '+meetings.length+' meetings</span></div><div class="grid"></div>';
+msec.querySelector('.grid').appendChild(card({name:'ALL MEETINGS',c:'#ffe08a',d:'Every vote and every question to The Keeper, in order.'}, meetings));
+out.appendChild(msec);
+document.getElementById('togMeet').onclick = function(){
+  const h = msec.style.display!=='none'; msec.style.display = h?'none':''; this.textContent = h?'SHOW COUNCIL MEETINGS':'HIDE COUNCIL MEETINGS';
+};
+
+// stats
+const nb = list.reduce((a,p)=>a+(p.builds||0),0);
+document.getElementById('stats').textContent = chapters.length+' CHAPTERS  ·  '+meetings.length+' COUNCIL MEETINGS  ·  '+nb+' BUILDS/SCENES  ·  '+WORLDS.length+' WORLDS';
+
+// sky map
+const svg = document.getElementById('sky'); const NS='http://www.w3.org/2000/svg';
+function mk(t,a,txt){ const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); if(txt!=null) e.textContent=txt; return e; }
+const pos = {}; NODES.forEach(n=>{ if(n.id) pos[n.id]=n; });
+[['earth','space'],['space','unity'],['space','haven'],['haven','unity'],['unity','vesh'],['unity','ocknog']].forEach(([a,b])=>{
+  svg.appendChild(mk('line',{x1:pos[a].x,y1:pos[a].y,x2:pos[b].x,y2:pos[b].y,stroke:'rgba(127,216,255,.35)','stroke-width':1.5,'stroke-dasharray':'5 5'}));
+});
+NODES.forEach(n=>{
+  const g = mk('g',{class:'node'});
+  if(!n.id){
+    g.appendChild(mk('circle',{cx:n.x,cy:n.y,r:n.r,fill:'none',stroke:'rgba(127,216,255,.4)','stroke-width':2,'stroke-dasharray':'4 5'}));
+    g.appendChild(mk('text',{x:n.x,y:n.y+6,'text-anchor':'middle',fill:'#5d7f98','font-size':18},'?'));
+    g.appendChild(mk('text',{x:n.x,y:n.y+n.r+16,'text-anchor':'middle',fill:'#5d7f98','font-size':10,'letter-spacing':2},'ROOM FOR MORE'));
+    g.onclick = ()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  } else {
+    const w = WORLDS.find(x=>x.id===n.id);
+    const cnt = LOCS.filter(l=>l.w===n.id).reduce((a,l)=>a+l.ch.filter(k=>byNum[k]).length,0);
+    g.appendChild(mk('circle',{cx:n.x,cy:n.y,r:n.r+7,fill:n.c,opacity:.12}));
+    g.appendChild(mk('circle',{class:'body',cx:n.x,cy:n.y,r:n.r,fill:n.c,'fill-opacity':.55,stroke:n.c,'stroke-width':2}));
+    g.appendChild(mk('text',{x:n.x,y:n.y+5,'text-anchor':'middle',fill:'#fff','font-size':n.r>25?18:13,'font-weight':600},cnt));
+    g.appendChild(mk('text',{x:n.x,y:n.y+n.r+18,'text-anchor':'middle',fill:'#fff','font-size':11,'letter-spacing':2},w.name));
+    g.onclick = ()=>{ const el=document.getElementById('world-'+n.id); el.scrollIntoView({behavior:'smooth'}); el.querySelectorAll('.loc').forEach(c=>{c.classList.add('flash'); setTimeout(()=>c.classList.remove('flash'),1200);}); };
+  }
+  svg.appendChild(g);
+});
+if(pos.unity){ // Vesh orbit ring + Havenreach label
+  svg.insertBefore(mk('ellipse',{cx:pos.unity.x,cy:pos.unity.y,rx:190,ry:120,fill:'none',stroke:'rgba(184,196,208,.2)','stroke-dasharray':'2 6'}),svg.firstChild);
+}
+
+// stars
+const cv=document.getElementById('stars'), cx=cv.getContext('2d'); let W,H,stars=[];
+function size(){ W=cv.width=innerWidth; H=cv.height=innerHeight; stars=Array.from({length:Math.round(W*H/2600)},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random()*.9+.1})); }
+addEventListener('resize',size); size();
+(function draw(){ cx.clearRect(0,0,W,H); for(const s of stars){ s.x-=s.z*.15; if(s.x<0){s.x=W;s.y=Math.random()*H;} cx.fillStyle='rgba(200,230,255,'+(.25+s.z*.7)+')'; cx.fillRect(s.x,s.y,s.z*1.8,s.z*1.8);} requestAnimationFrame(draw); })();
+</script>
+</body>
+</html>

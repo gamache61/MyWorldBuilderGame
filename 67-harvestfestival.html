@@ -144,7 +144,7 @@ window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the H
     if (F.on || !window.__G || window.__G.loc !== 'site') { if (window.__G && window.__G.loc !== 'site') { hint('WARP TO THE HARVEST FESTIVAL GROUNDS FIRST (W) — THEN PRESS G'); setTimeout(() => hint(''), 3000); } return; }
     const T = await ensureTHREE(); if (!T) { hint('THE SHUTTLE COULD NOT LOAD'); return; }
     const W = window.__walk, walking = W && W.on;
-    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); const q = gqPad(); parkAt(q[0], q[1], 0); }
+    if (!F.craft) { F.craft = makeCraft(T); window.__scene.add(F.craft); if (window.SHUTTLE_DASH) { F.dash = window.SHUTTLE_DASH.make(T); window.__scene.add(window.__cam); window.__cam.add(F.dash.group); } const q = gqPad(); parkAt(q[0], q[1], 0); }
     if (!F.park) { const q = gqPad(); parkAt(q[0], q[1], 0); }
     // on foot and far from the shuttle: it comes to you
     if (walking && Math.hypot(W.pos.x - F.park.x, W.pos.z - F.park.z) > 22) {
@@ -174,7 +174,9 @@ window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the H
     const k = e.key.toLowerCase();
     if (k === 'g' && !e.repeat) { const cf = document.getElementById('confirm'); if (cf && cf.style.display === 'flex') return; e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
     if (!F.on) return;
+    if ((k === 'v' || k === 'w' || k === 'escape') && !e.repeat) { F.on = false; F.park = { x: F.pos.x, y: F.pos.y, z: F.pos.z, yaw: F.yaw }; F.keys.clear(); window.__controls.enabled = true; window.__controls.target.copy(F.pos); hint(''); return; }
     if (k !== 'm') e.stopImmediatePropagation();
+    if (k === 'n' && !e.repeat && F.dash) F.dash.zoomNext();
     if (k === 'c' && !e.repeat) { F.view = F.view === 'cab' ? 'chase' : 'cab'; F.cam = null; }
     if (k === 'b' && !e.repeat) { F.fast = !F.fast; F.msgT = 2; hint(F.fast ? 'SHUTTLE SPEED ×4' : 'SHUTTLE SPEED NORMAL'); }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
@@ -199,18 +201,20 @@ window.__HF = { x: -4232, z: -6552, R: 700, F: 330, T: 300, Y: null };  // the H
     const gmin = gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
     if (F.pos.y > 6000) F.pos.y = 6000;
     F.roll += (-turn * 0.5 * Math.min(1, F.spd / (50 * mul)) - F.roll) * Math.min(1, 4 * dt);
-    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0));
+    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.view === 'chase' ? F.vy * 0.004 / mul + (K.has('arrowup') ? -0.03 : 0) : 0);
     const cam = window.__cam, c = window.__controls;
-    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = true; }
-    else { const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = !F.dash; if (F.dash) F.dash.group.visible = true; }
+    else { F.craft.visible = true; if (F.dash) F.dash.group.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) F.cam = cam.position.clone(); F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
     const dq = Math.hypot(F.pos.x - GQ.x, F.pos.z - GQ.z);
-    if (F.msgT > 0) F.msgT -= dt; else hint('SHUTTLE · ↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · C VIEW · B ×4 · G LAND   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - gy(F.pos.x, F.pos.z)) + ' M · ORCHARD VALLEY ' + (dq / 1000).toFixed(1) + ' KM');
+    if (F.dash && F.dash.group.visible) { F.dash.update({ speed: F.spd * 3.6, maxSpeed: 1080 * mul, alt: F.pos.y - gy(F.pos.x, F.pos.z), climb: F.vy, headingDeg: Math.atan2(fx, -fz) * 180 / Math.PI, x: F.pos.x, z: F.pos.z, fx, fz, fast: F.fast }, dt); if (window.__renderer) F.dash.renderDown(window.__renderer, window.__scene, F.pos, [F.dash.group, F.craft], dt, fx, fz); }
+    if (F.msgT > 0) F.msgT -= dt; else hint('');
   };
   requestAnimationFrame(loop);
 })();
 
 </script>
+<script src="projects/shuttledash.js" onerror="this.remove()"></script>
 <script src="projects/projects.js" onerror="this.remove()"></script>
 <script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script src="projects/townspeople.js" onerror="this.remove()"></script>
@@ -264,7 +268,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ---------- renderer / scene ---------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true }); window.__renderer = renderer;
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;

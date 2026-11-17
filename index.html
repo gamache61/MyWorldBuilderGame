@@ -30,6 +30,9 @@
   .continue-banner { max-width: 720px; margin: 0 auto 22px; text-align: center; background: linear-gradient(160deg, rgba(14,34,54,.95), rgba(6,14,24,.95)); border: 1px solid #40d0ff; border-radius: 10px; padding: 20px; }
   .continue-banner h2 { margin: 0 0 8px; color: #fff; letter-spacing: 2px; font-size: 18px; }
   .continue-banner p { margin: 0 0 14px; color: var(--dim); font-size: 14px; }
+  .mapbox { max-width:1000px; margin:0 auto 36px; }
+  .mapbox h3 { text-align:center; margin:0 0 10px; color:#fff; letter-spacing:3px; font-size:16px; }
+  .mapbox .row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
   .card {
     position: relative; display: flex; flex-direction: column; gap: 14px; padding: 26px 24px 22px;
@@ -77,8 +80,19 @@
       <button class="btn" onclick="goBuyNext()">BUY NEXT CHAPTER — $1.99</button>
     </div>
     <div class="unlock-row">
+      <button class="btn btn-green" onclick="window.location.href='map.html'">🗺 WORLD MAP — WHAT WE BUILT</button>
       <button class="btn" onclick="window.location.href='about.html'">ABOUT / HOW TO PLAY</button>
     </div>
+  </div>
+
+  <!-- WORLD MAP - flat map of planet Unity -->
+  <div class="mapbox">
+    <h3>PLANET UNITY — WHAT WE BUILT</h3>
+    <div class="row">
+      <button class="btn btn-green" onclick="window.location.href='map.html'">🗺 FULL WORLD MAP (ALL WORLDS)</button>
+      <button class="btn" id="mapToggle">HIDE MAP</button>
+    </div>
+    <div id="unityMap"></div>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -86,6 +100,7 @@
   <footer>GAMACHE GAMES</footer>
 </main>
 <script src="projects/projects.js"></script>
+<script src="worldmap.js"></script>
 <script>
   // ===== WORLD BUILDER - CHAIN SYSTEM =====
   // Beginning = Chapters 1-5 for $4.89
@@ -322,6 +337,9 @@
   }
 
   try { renderMenu(); } catch(e) { document.getElementById('grid').innerHTML = '<div class="empty">ERROR: ' + e.message + '<br>Send me a screenshot of this message.</div>'; console.error(e); }
+
+  try { if (window.WB_MAP) WB_MAP.renderUnityMap(document.getElementById('unityMap'), getList()); } catch(e) { console.error(e); }
+  document.getElementById('mapToggle').onclick = function(){ const m=document.getElementById('unityMap'); const h=m.style.display==='none'; m.style.display=h?'':'none'; this.textContent=h?'HIDE MAP':'SHOW MAP'; };
 
   // drifting star field (unchanged)
   const cv = document.getElementById('stars'), cx = cv.getContext('2d');

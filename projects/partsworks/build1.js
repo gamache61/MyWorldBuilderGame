@@ -169,7 +169,7 @@ window.PWP = window.PWP || {
         if (hit) o.instanceMatrix.needsUpdate = true; }); }
   },
   update(api, dt, t) {
-    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; try { this.kryos(api); } catch (e) { console.warn('kryos city', e); } }
+    if (!this._kryos && api.placed && api.placed.length) { this._kryos = true; }   // the first factory district stands here: no Kryos city is drawn
     if (!this._fin && api.placed && api.placed.length) { this._fin = true; this.finished(api); }
     if (this.bgTick) this.bgTick(api, dt, t);
     if (t === this._t) return; this._t = t;
@@ -222,7 +222,7 @@ window.PWP = window.PWP || {
   const me = (document.currentScript && document.currentScript.src) || '';
   P.base = /\/homewardtwo\/build1\.js/i.test(me) ? me.replace(/homewardtwo\/build1\.js.*$/i, '') : 'projects/';
   // every project already built in Kryos: its folder, and the helper its build files share
-  P.FINISHED = [];   // the Parts Works stand in their own place, away from the city, so no other project is drawn here   // this chapter stands in the factory district itself: only the first district is drawn, not the rest of the city
+  P.FINISHED = [['factorydistrict', 'FAC']];   // the first factory district stands here, finished; no other project is drawn
   const loadOne = (src) => new Promise(res => { const s = document.createElement('script'); s.src = src; s.onload = () => res(true); s.onerror = () => { s.remove(); res(false); }; document.head.appendChild(s); });
   P.finished = async function (api) {
     const land = api.placed.find(p => p.piece && p.piece.parent); if (!land) { this._fin = false; return; }
@@ -355,6 +355,7 @@ const FX = window.__PW.x - 340, FZ = window.__PW.z;
   ],
 
   land: { x: FX, z: FZ },
+  slide: [FZ - 230, FZ + 230],   // the crane slide range follows the pad, so the Ark hovers right over it
 
   padDone(api) {
     const g = this.grid; let pad = 0, need = 0;

@@ -74,7 +74,7 @@
   #confirm #cYes{border-color:#d44;background:#4a1515}
 </style>
 <!-- Build files: one per station build. Add the next one below (build2.js, build3.js …) -->
-<script>window.__MT = { x: -6253, z: -12745, R: 520, F: 125, T: 300, Y: 1174 };</script>
+<script>window.__MT = { x: -8010, z: -11110, R: 520, F: 125, T: 300, Y: 2350 };  // the far mountain (the Mountain House stands on its summit) — same place as in chapter 64</script>
 <script>
   // Mountain House files live in projects/mountainhouse next to this file.
   // If they are not found there, the game also looks in projects/mountainhouse, a mountainhouse folder, and next to this file.
@@ -90,6 +90,7 @@
 <script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[2]); }</script>
 <script>if (!(window.AEGIS_BUILDS || []).length) { window.AEGIS_BUILDS = []; chLoad(CH_PLACES[3]); }</script>
 <!-- the story's day count: every build is one day, counted from the very first build of the Seeker -->
+<script src="projects/shuttledash.js" onerror="this.remove()"></script>
 <script src="projects/projects.js" onerror="this.remove()"></script>
 <script src="projects/chapterlock.js" onerror="this.remove()"></script>
 <script src="projects/townspeople.js" onerror="this.remove()"></script>
@@ -143,7 +144,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /* ---------- renderer / scene ---------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true }); window.__renderer = renderer;
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -4065,7 +4066,7 @@ const views = {
   5: [V(110, 140, -20), V(0, 0, -10)],
   6: [V(20, 560, 10), V(0, 0, 0)],
 };
-const siteView = [V(-3800, 1700, -9300), V(-6253, 1150, -12745)];
+const siteView = [V(-5610, 2900, -7710), V(-8010, 2330, -11110)];
 // pull right back so every part of the station built so far is in the shot
 function wholeStationView() {
   if (G.loc !== 'site' || warp) { txMsg = 'WHOLE-STATION VIEW WORKS AT THE STATION — WARP THERE FIRST (W)'; txMsgT = 3; return; }

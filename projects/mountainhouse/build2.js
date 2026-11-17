@@ -43,7 +43,7 @@
   const board = () => {
     const api = P.api; if (!api || F.on || !window.__G || window.__G.loc !== 'site') return;
     const T = api.THREE, W = window.__walk, walking = W && W.on;
-    if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; P.parkAt('kryos'); const sw = P.padWorld('summit'); F.park.yaw = Math.atan2(-(sw[1] - F.park.z), sw[0] - F.park.x); }
+    if (!F.craft) { F.craft = P.craft(api); window.__scene.add(F.craft); if (window.SHUTTLE_DASH) { F.dash = window.SHUTTLE_DASH.make(T); window.__scene.add(window.__cam); window.__cam.add(F.dash.group); } const pc = api.placed.find(p => p.type === 'SHUTTLE' && p.piece); if (pc) pc.piece.visible = false; P.parkAt('kryos'); const sw = P.padWorld('summit'); F.park.yaw = Math.atan2(-(sw[1] - F.park.z), sw[0] - F.park.x); }
     if (!F.park) P.parkAt('kryos');
     // on foot and far from the shuttle: it comes to you
     if (walking && Math.hypot(W.pos.x - F.park.x, W.pos.z - F.park.z) > 22) { const x = W.pos.x + Math.sin(W.yaw) * 16, z = W.pos.z + Math.cos(W.yaw) * 16; F.park = { x, y: P.gy(x, z) + 2.2, z, yaw: Math.atan2(-Math.cos(W.yaw), Math.sin(W.yaw)) }; }
@@ -67,7 +67,9 @@
     const k = e.key.toLowerCase();
     if (k === 'g' && !e.repeat && !WALKING()) { e.stopImmediatePropagation(); e.preventDefault(); F.on ? land() : board(); return; }
     if (!F.on) return;
+    if ((k === 'v' || k === 'w' || k === 'escape') && !e.repeat) { F.on = false; F.park = { x: F.pos.x, y: F.pos.y, z: F.pos.z, yaw: F.yaw }; F.keys.clear(); window.__controls.enabled = true; window.__controls.target.copy(F.pos); P.flyHint(''); return; }
     if (k !== 'm') e.stopImmediatePropagation();
+    if (k === 'n' && !e.repeat && F.dash) F.dash.zoomNext();
     if (k === 'c' && !e.repeat) { F.view = F.view === 'cab' ? 'chase' : 'cab'; F.cam = null; }
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift'].includes(k)) { F.keys.add(k); e.preventDefault(); }
   }, true);
@@ -79,7 +81,7 @@
     const api = P.api; if (!api || !F.craft) return;
     if (!F.on && window.__walk && window.__walk.on && window.__G && window.__G.loc === 'site' && F.msgT <= 0) { const q = F.park; P.flyHint(!q ? 'PRESS G TO CALL YOUR SHUTTLE' : Math.hypot(window.__walk.pos.x - q.x, window.__walk.pos.z - q.z) < 22 ? 'PRESS G TO GET IN THE SHUTTLE' : 'PRESS G TO CALL YOUR SHUTTLE TO YOU'); }
     if (F.msgT > 0 && !F.on) F.msgT -= dt;
-    if (!F.on) { if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); } return; }
+    if (!F.on) { if (F.dash) F.dash.group.visible = false; if (F.park) { F.craft.position.set(F.park.x, F.park.y, F.park.z); F.craft.rotation.set(0, F.park.yaw, 0); } return; }
     const T = api.THREE, K = F.keys;
     if (K.has('arrowup')) F.spd = Math.min(300, F.spd + 100 * dt); else if (K.has('arrowdown')) F.spd = Math.max(0, F.spd - 140 * dt); else F.spd *= 1 - 0.04 * dt;
     const turn = (K.has('arrowleft') ? 1 : 0) - (K.has('arrowright') ? 1 : 0); F.yaw += turn * 1.0 * dt * (0.5 + Math.min(1, F.spd / 60) * 0.7);
@@ -89,14 +91,15 @@
     const gmin = P.gy(F.pos.x, F.pos.z) + 5; if (F.pos.y < gmin) { F.pos.y = gmin; if (F.vy < 0) F.vy = 0; F.spd *= 1 - 0.6 * dt; }
     if (F.pos.y > 6000) F.pos.y = 6000;
     F.roll += (-turn * 0.5 * Math.min(1, F.spd / 50) - F.roll) * Math.min(1, 4 * dt);
-    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.vy * 0.004 + (K.has('arrowup') ? -0.03 : 0));
+    F.craft.position.copy(F.pos); F.craft.rotation.order = 'YZX'; F.craft.rotation.set(F.roll, F.yaw, F.view === 'chase' ? F.vy * 0.004 + (K.has('arrowup') ? -0.03 : 0) : 0);
     // the view: from the cab (default) or behind the craft (C switches)
     const cam = window.__cam, c = window.__controls, up = new T.Vector3(0, 1, 0);
-    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = true; }
-    else { const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
+    if (F.view !== 'chase') { const eye = new T.Vector3(F.pos.x + fx * 4.2, F.pos.y + 2.7, F.pos.z + fz * 4.2), tgt = new T.Vector3(eye.x + fx * 80, eye.y + F.vy * 0.2, eye.z + fz * 80); cam.position.copy(eye); c.target.copy(tgt); cam.lookAt(tgt); F.craft.visible = !F.dash; if (F.dash) F.dash.group.visible = true; }
+    else { F.craft.visible = true; if (F.dash) F.dash.group.visible = false; const want = new T.Vector3(F.pos.x - fx * 46, F.pos.y + 13, F.pos.z - fz * 46), tgt = new T.Vector3(F.pos.x + fx * 18, F.pos.y + 3, F.pos.z + fz * 18);
       if (!F.cam) { F.cam = cam.position.clone(); } F.cam.lerp(want, Math.min(1, 7 * dt)); cam.position.copy(F.cam); c.target.copy(tgt); cam.lookAt(tgt); }
+    if (F.dash && F.dash.group.visible) { const gnd0 = P.gy(F.pos.x, F.pos.z); F.dash.update({ speed: F.spd * 3.6, maxSpeed: 1100, alt: F.pos.y - gnd0, climb: F.vy, headingDeg: Math.atan2(fx, -fz) * 180 / Math.PI, x: F.pos.x, z: F.pos.z, fx, fz, fast: false }, dt); if (window.__renderer) F.dash.renderDown(window.__renderer, window.__scene, F.pos, [F.dash.group, F.craft], dt, fx, fz); }
     const sw = P.padWorld('summit'), dk = Math.hypot(F.pos.x - sw[0], F.pos.z - sw[1]), dh = Math.hypot(F.pos.x - P.KP[0], F.pos.z - P.KP[1]);
-    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('↑ FASTER · ↓ SLOWER · ← → TURN · SPACE CLIMB · SHIFT DIVE · G LAND' + (document.body.classList.contains('info') ? '   |   ' + Math.round(F.spd * 3.6) + ' KM/H · ALT ' + Math.round(F.pos.y - P.gy(F.pos.x, F.pos.z)) + ' M · MOUNTAIN HOUSE ' + (dk / 1000).toFixed(1) + ' KM · KRYOS ' + (dh / 1000).toFixed(1) + ' KM' : ''));
+    if (F.msgT > 0) F.msgT -= dt; else P.flyHint('');
   };
   requestAnimationFrame(loop);
   (window.AEGIS_BUILDS = window.AEGIS_BUILDS || []).push(P.build({
