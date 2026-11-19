@@ -29,7 +29,7 @@ window.WB_MAP = (function () {
     { w:'haven',  name:'HAVENREACH STATION',      c:'#40d0ff', d:'Stacked disc station — Heartforge, gardens, living districts, Sky Docks on top.', ch:[4,48] },
 
     { w:'unity',  name:'KRYOS CITY',              c:'#5fe0a0', d:'The main city: landing field, Council Hall, homes, school, hospital, shops, arena, library, gate, spaceport, shield and watch builds.',
-      ch:[5,7,8,10,18,24,26,28,30,32,34,38,40,44,52,54,56,58,59,60,61,62,65,68,69], s:'kryos' },
+      ch:[5,7,8,10,18,24,26,28,30,32,34,38,40,44,52,54,56,58,59,60,61,62,65,68,69,85], s:'kryos' },
     { w:'unity',  name:'SEASHORE COAST',          c:'#4fb0ff', d:'Harbour town, shipyard, trade port and the fishing harbor.',
       ch:[6,42,46,84], s:'sea' },
     { w:'unity',  name:'FARMLANDS',               c:'#6fe08a', d:'Reservoir, canals, fields, greenhouses and silos.',
@@ -43,7 +43,7 @@ window.WB_MAP = (function () {
     { w:'unity',  name:'ORE DEPOT',               c:'#e0a070', d:'Underground ore store on the plateau and the freighter yard.',
       ch:[16,36], s:'ore' },
     { w:'unity',  name:'FACTORY VALLEY',          c:'#ffc850', d:'Factories, warehouses, shipyard, watch network, scouts, star chart house, academy, House of Ocknog and the Works.',
-      ch:[20,72,73,74,76,77,79,81,82,83], s:'fact' },
+      ch:[20,72,73,74,76,77,79,81,82,83,86], s:'fact' },
     { w:'unity',  name:'SUN FIELDS',              c:'#ffe070', d:'Nine long arrays of sun panels, a power hall and battery houses.', ch:[75], s:'sun' },
     { w:'unity',  name:'GREAT PARK OF UNITY',     c:'#90f0a0', d:'Lawns, a lake, tree walks, picnic groves, a bandstand and a great fountain.', ch:[78], s:'park' },
 
